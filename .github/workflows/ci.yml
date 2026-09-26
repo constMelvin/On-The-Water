@@ -1,0 +1,33 @@
+name: OTW Backend CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Grant execute permission for mvnw
+        run: chmod +x ./mvnw
+        working-directory: ./otw-server
+
+      - name: Compile and Test with Maven
+        run: ./mvnw test -B
+        working-directory: ./otw-server
+
+      - name: Verify Docker build
+        run: docker build -t otw-server:ci ./otw-server
