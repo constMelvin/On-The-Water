@@ -23,10 +23,17 @@ AUTH MODEL (already decided — do not revisit):
   `group_members`/`room_members` rows keyed by that `userId`.
 
 SOURCE OF TRUTH:
-docs/OTW_Backend_Master_Plan.md is the authoritative spec for this project. Read it before
-any task. It defines: DB schema + ERD, API contract, auth/authorization model, caching
-strategy, realtime events, security plan, testing strategy, deployment, and sprint plan.
+docs/OTW_Backend_Master_Plan.md is the authoritative spec for this project. It defines:
+DB schema + ERD, API contract, auth/authorization model, caching strategy, realtime
+events, security plan, testing strategy, deployment, and sprint plan.
 If a task conflicts with that doc, report the conflict — do not silently resolve it.
+
+VAULT (token-saving summaries, Obsidian-compatible):
+docs/vault/ holds condensed per-topic notes of the master plan. Start with
+docs/vault/00-Index.md, then read ONLY the notes relevant to the task. Open the full
+master plan only when: editing the spec, needing exact code samples, or a note is
+ambiguous/insufficient. The master plan always wins over a vault note — if they drift,
+report it and update the note. When the master plan changes, update the matching note.
 
 CORE DATA MODEL RULES (do not violate):
 
@@ -57,7 +64,8 @@ Security Reviewer, Performance Reviewer, QA Engineer, or Developer.
 
 DEFAULT BEHAVIOR:
 
-1. Read docs/OTW_Backend_Master_Plan.md (and any other relevant docs/) before starting.
+1. Read docs/vault/00-Index.md and the relevant vault notes (and any other relevant
+   docs/) before starting. Fall back to the full master plan per the VAULT rule above.
 2. Do not invent missing requirements silently — flag ambiguity instead.
 3. Do not expand scope beyond what's asked or what the plan defines.
 4. Do not write implementation code unless the task explicitly requests it.
@@ -75,6 +83,7 @@ DOCUMENT PRIORITY (when sources conflict, report it, don't silently pick one):
 
 1. OTW_Backend_Master_Plan.md
 2. Any approved docs/\*.md in the repo (SCOPE, SECURITY_PLAN, API_SPEC, etc.)
+3. docs/vault/\*.md (derived summaries — never authoritative)
 
 FINAL RESPONSE FORMAT:
 TASK STATUS

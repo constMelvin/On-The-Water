@@ -1,0 +1,42 @@
+---
+source: master plan §4
+---
+
+# API Contract (`/api/v1`)
+
+Back to [[00-Index]]
+
+## Conventions
+- JSON. Every call needs `Authorization: Bearer <supabase_jwt>`, including the join endpoints.
+- Pagination is cursor-based: `?cursor=...&limit=20`.
+- Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
+- Every write endpoint has Bean Validation on its DTO and a role guard ([[Auth]]). Where relevant, it also emits a realtime event ([[Realtime]]) and evicts cache ([[Caching]]).
+
+## Endpoints
+| Method | Path | Role |
+|---|---|---|
+| POST | `/groups` | Authenticated |
+| POST | `/groups/join` | Authenticated |
+| GET | `/groups/{groupId}` | Group member |
+| GET | `/groups/{groupId}/members` | Group member |
+| DELETE | `/groups/{groupId}/members/{userId}` | Group OWNER/ADMIN |
+| GET | `/groups/{groupId}/rooms` | Group member |
+| POST | `/groups/{groupId}/rooms` | Group member (checks the group tier, then creates the room and seeds `room_members`) |
+| POST | `/rooms` | Authenticated (standalone room) |
+| GET | `/rooms/{roomId}` | Member |
+| POST | `/rooms/join` | Authenticated |
+| GET | `/rooms/{roomId}/members` | Member |
+| DELETE | `/rooms/{roomId}/members/{userId}` | Host |
+| PATCH | `/rooms/{roomId}/members/me/rsvp` | Member |
+| GET / POST | `/rooms/{roomId}/itinerary` | Member |
+| PATCH / DELETE | `/rooms/{roomId}/itinerary/{itemId}` | Member (item owner or host). PATCH needs `version` |
+| GET / POST | `/rooms/{roomId}/checklist` | Member |
+| PATCH | `/rooms/{roomId}/checklist/{itemId}` | Member. Needs `version` |
+| GET / PUT | `/rooms/{roomId}/budget` | Member / Host |
+| GET / POST | `/rooms/{roomId}/expenses` | Member (GET is paginated; POST includes shares) |
+| GET | `/rooms/{roomId}/expenses/settlement` | Member (computed "who owes who") |
+| PUT / DELETE | `/rooms/{roomId}/location` | Member (opt-in) |
+| GET | `/rooms/{roomId}/locations` | Member |
+| POST | `/rooms/{roomId}/photos` | Member (registers metadata only) |
+
+Note: the §5.3 matrix lists "Delete expense (host / payer only)" and "Edit room details (host)", but §4 defines **no endpoint** for either. Flag this before building them.

@@ -32,11 +32,12 @@ build/
 ### VS Code ###
 .vscode/
 
-# Guides
-docs/Otw_Backend_Master_Plan.md
 
 # Environment variables & secrets
 .env
 .env.local
 .env.*.local
 *.env
+
+# Obsidian
+docs/vault/.obsidian/
