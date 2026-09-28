@@ -1,22 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Fredoka, Nunito } from 'next/font/google';
-
-const fredoka = Fredoka({
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-fredoka',
-});
-
-const nunito = Nunito({
-  subsets: ['latin'],
-  weight: ['600', '700', '800'],
-  variable: '--font-nunito',
-});
+import styles from './landing.module.css';
+import OtwConversationAd from './OtwConversationAd';
 
 interface Sparkle {
   id: number;
@@ -26,17 +15,319 @@ interface Sparkle {
   top: string;
 }
 
+/** Sets a per-element stagger delay consumed by the CSS (`--d`). */
+const delay = (seconds: number) => ({ '--d': `${seconds}s` }) as React.CSSProperties;
+
+// Official React hook to check client mount without triggering cascading renders
+const emptySubscribe = () => () => {};
+function useIsClient() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Living background: big, low-opacity shapes taken from the logo    */
+/*  (sparkles, bean blobs, noodle loop, pills, bursts) + soft glows.  */
+/*  Brand color tokens only.                                          */
+/* ------------------------------------------------------------------ */
+
+type Tone = 'rosy' | 'rosy-dark' | 'zest' | 'zest-dark' | 'blossom' | 'teal' | 'teal-dark' | 'cream';
+type Kind = 'spark' | 'blob' | 'noodle' | 'pill' | 'ring' | 'squiggle' | 'burst' | 'dot' | 'glow';
+type Motion = 'drift' | 'breathe' | 'spin' | 'sway' | 'twinkle' | 'rise';
+
+interface ShapeDef {
+  k: Kind;
+  l: string; // left
+  t: string; // top
+  w: number; // width in px
+  c: Tone;
+  o: number; // opacity
+  r?: number; // base rotation (deg)
+  a?: Motion; // idle motion
+  dur?: number; // seconds
+  dl?: number; // delay seconds (negative = already mid-animation)
+  z?: number; // pointer-parallax depth in px
+}
+
+const S = (k: Kind, l: string, t: string, w: number, c: Tone, o: number, x: Partial<ShapeDef> = {}): ShapeDef => ({
+  k,
+  l,
+  t,
+  w,
+  c,
+  o,
+  ...x,
+});
+
+const VIEWBOX: Record<Exclude<Kind, 'glow'>, string> = {
+  spark: '0 0 24 24',
+  blob: '0 0 100 100',
+  noodle: '0 0 120 120',
+  pill: '0 0 160 70',
+  ring: '0 0 100 100',
+  squiggle: '0 0 160 40',
+  burst: '0 0 100 100',
+  dot: '0 0 10 10',
+};
+
+const HERO_SHAPES: ShapeDef[] = [
+  S('glow', '52%', '-14%', 560, 'zest', 0.24, { a: 'drift', dur: 20, z: 8 }),
+  S('glow', '-10%', '36%', 480, 'blossom', 0.2, { a: 'drift', dur: 24, dl: -6, z: 10 }),
+  S('blob', '36%', '-16%', 320, 'cream', 0.09, { a: 'drift', dur: 22, z: 18 }),
+  S('blob', '68%', '56%', 360, 'rosy-dark', 0.22, { a: 'drift', dur: 26, dl: -9, z: 22 }),
+  S('ring', '-3%', '-16%', 240, 'rosy-dark', 0.24, { a: 'breathe', dur: 18, z: 24 }),
+  S('ring', '82%', '4%', 150, 'blossom', 0.2, { a: 'breathe', dur: 16, dl: -4, z: 30 }),
+  S('noodle', '-5%', '58%', 300, 'cream', 0.1, { a: 'sway', r: -20, dur: 24, z: 26 }),
+  S('spark', '3%', '12%', 120, 'cream', 0.16, { a: 'spin', dur: 30, z: 34 }),
+  S('burst', '46%', '76%', 130, 'zest', 0.24, { a: 'spin', dur: 26, z: 36 }),
+  S('pill', '62%', '80%', 260, 'blossom', 0.11, { a: 'sway', dur: 18, dl: -3, z: 20 }),
+  S('squiggle', '18%', '88%', 210, 'cream', 0.16, { a: 'sway', dur: 14, z: 30 }),
+  S('spark', '91%', '68%', 84, 'zest', 0.32, { a: 'twinkle', dur: 4, z: 44 }),
+  S('spark', '30%', '9%', 36, 'cream', 0.55, { a: 'twinkle', dur: 3.4, dl: -1, z: 48 }),
+  S('spark', '72%', '15%', 28, 'blossom', 0.6, { a: 'twinkle', dur: 4.2, dl: -2, z: 52 }),
+  S('spark', '12%', '50%', 26, 'cream', 0.5, { a: 'twinkle', dur: 3, dl: -0.6, z: 46 }),
+  S('dot', '54%', '48%', 16, 'cream', 0.45, { a: 'twinkle', dur: 3.6, dl: -2.2, z: 50 }),
+];
+
+const HOW_SHAPES: ShapeDef[] = [
+  S('glow', '28%', '-24%', 600, 'cream', 0.5, { a: 'drift', dur: 22, z: 8 }),
+  S('blob', '78%', '-16%', 340, 'cream', 0.24, { a: 'drift', dur: 21, z: 18 }),
+  S('blob', '18%', '28%', 220, 'blossom', 0.26, { a: 'drift', dur: 25, dl: -5, z: 16 }),
+  S('spark', '3%', '10%', 150, 'rosy', 0.13, { a: 'spin', dur: 28, z: 30 }),
+  S('ring', '88%', '20%', 140, 'zest-dark', 0.24, { a: 'breathe', dur: 17, z: 26 }),
+  S('noodle', '72%', '56%', 280, 'rosy', 0.09, { a: 'sway', r: 15, dur: 22, dl: -5, z: 24 }),
+  S('pill', '-5%', '68%', 290, 'teal', 0.08, { a: 'sway', dur: 24, dl: -8, z: 20 }),
+  S('burst', '12%', '74%', 120, 'rosy', 0.15, { a: 'spin', dur: 24, z: 34 }),
+  S('squiggle', '40%', '90%', 220, 'teal', 0.14, { a: 'sway', dur: 15, z: 28 }),
+  S('spark', '22%', '8%', 30, 'rosy', 0.42, { a: 'twinkle', dur: 3.6, z: 46 }),
+  S('spark', '92%', '78%', 34, 'teal', 0.36, { a: 'twinkle', dur: 4.4, dl: -1.5, z: 50 }),
+  S('spark', '52%', '12%', 24, 'cream', 0.75, { a: 'twinkle', dur: 3.2, dl: -0.8, z: 44 }),
+  S('spark', '60%', '88%', 26, 'rosy', 0.32, { a: 'twinkle', dur: 4, dl: -2.6, z: 48 }),
+];
+
+const FEATURE_SHAPES: ShapeDef[] = [
+  S('glow', '-10%', '-12%', 520, 'blossom', 0.3, { a: 'drift', dur: 22, z: 8 }),
+  S('glow', '74%', '52%', 500, 'zest', 0.18, { a: 'drift', dur: 26, dl: -7, z: 10 }),
+  S('blob', '64%', '-20%', 380, 'teal-dark', 0.3, { a: 'drift', dur: 24, z: 16 }),
+  S('blob', '-6%', '-10%', 320, 'blossom', 0.12, { a: 'drift', dur: 20, dl: -3, z: 18 }),
+  S('spark', '90%', '8%', 170, 'zest', 0.18, { a: 'spin', dur: 28, z: 32 }),
+  S('burst', '8%', '14%', 130, 'blossom', 0.22, { a: 'spin', dur: 24, z: 36 }),
+  S('ring', '50%', '-10%', 150, 'cream', 0.14, { a: 'breathe', dur: 17, z: 26 }),
+  S('noodle', '80%', '62%', 280, 'cream', 0.1, { a: 'sway', r: -10, dur: 23, dl: -7, z: 24 }),
+  S('pill', '5%', '72%', 250, 'blossom', 0.12, { a: 'sway', dur: 17, dl: -2, z: 20 }),
+  S('squiggle', '58%', '92%', 220, 'zest', 0.16, { a: 'sway', dur: 15, z: 30 }),
+  S('spark', '26%', '6%', 32, 'cream', 0.6, { a: 'twinkle', dur: 3.4, z: 46 }),
+  S('spark', '94%', '48%', 30, 'zest', 0.55, { a: 'twinkle', dur: 4, dl: -1.2, z: 50 }),
+  S('spark', '38%', '94%', 28, 'blossom', 0.6, { a: 'twinkle', dur: 3.8, dl: -2, z: 44 }),
+  S('spark', '10%', '52%', 24, 'cream', 0.55, { a: 'twinkle', dur: 3.2, dl: -0.5, z: 48 }),
+];
+
+const CTA_SHAPES: ShapeDef[] = [
+  S('glow', '32%', '10%', 560, 'zest', 0.32, { a: 'drift', dur: 22, z: 8 }),
+  S('blob', '-4%', '-30%', 320, 'rosy', 0.09, { a: 'drift', dur: 20, z: 18 }),
+  S('spark', '86%', '8%', 170, 'zest', 0.38, { a: 'spin', dur: 28, z: 32 }),
+  S('spark', '6%', '56%', 150, 'rosy', 0.12, { a: 'spin', dur: 30, dl: -4, z: 30 }),
+  S('ring', '20%', '8%', 110, 'rosy', 0.16, { a: 'breathe', dur: 16, z: 26 }),
+  S('burst', '70%', '8%', 110, 'teal', 0.15, { a: 'spin', dur: 24, z: 34 }),
+  S('noodle', '76%', '50%', 250, 'teal', 0.09, { a: 'sway', r: 20, dur: 22, dl: -5, z: 24 }),
+  S('pill', '8%', '80%', 280, 'cream', 0.42, { a: 'sway', dur: 18, z: 20 }),
+  // celebration confetti rising behind the button
+  S('dot', '30%', '86%', 14, 'rosy', 0.5, { a: 'rise', dur: 7, dl: 0, z: 40 }),
+  S('dot', '42%', '90%', 10, 'zest-dark', 0.6, { a: 'rise', dur: 9, dl: -3, z: 44 }),
+  S('dot', '56%', '88%', 16, 'teal', 0.4, { a: 'rise', dur: 8, dl: -5, z: 38 }),
+  S('dot', '66%', '92%', 12, 'rosy', 0.5, { a: 'rise', dur: 10, dl: -1.5, z: 46 }),
+  S('spark', '36%', '80%', 24, 'rosy', 0.5, { a: 'rise', dur: 8.5, dl: -6, z: 42 }),
+  S('spark', '60%', '84%', 22, 'zest-dark', 0.6, { a: 'rise', dur: 7.5, dl: -2.5, z: 40 }),
+];
+
+const FOOTER_SHAPES: ShapeDef[] = [
+  S('glow', '58%', '-70%', 520, 'teal', 0.4, { a: 'drift', dur: 22, z: 6 }),
+  S('spark', '5%', '18%', 80, 'cream', 0.1, { a: 'spin', dur: 30, z: 26 }),
+  S('burst', '88%', '24%', 90, 'blossom', 0.13, { a: 'spin', dur: 26, z: 30 }),
+  S('ring', '20%', '58%', 70, 'blossom', 0.12, { a: 'breathe', dur: 16, z: 22 }),
+  S('squiggle', '70%', '68%', 170, 'zest', 0.13, { a: 'sway', dur: 15, z: 24 }),
+  S('spark', '36%', '18%', 20, 'cream', 0.5, { a: 'twinkle', dur: 3.4, z: 34 }),
+  S('spark', '80%', '60%', 18, 'zest', 0.5, { a: 'twinkle', dur: 4, dl: -1.4, z: 36 }),
+];
+
+function Shapes({ items }: { items: ShapeDef[] }) {
+  return (
+    <div className={styles.bg} aria-hidden="true">
+      {items.map((s, i) => {
+        const style = {
+          '--l': s.l,
+          '--t': s.t,
+          '--w': `${s.w}px`,
+          '--c': `var(--${s.c})`,
+          '--o': s.o,
+          '--r': `${s.r ?? 0}deg`,
+          '--dur': `${s.dur ?? 18}s`,
+          '--dl': `${s.dl ?? 0}s`,
+          '--z': s.z ?? 14,
+        } as React.CSSProperties;
+        const cls = `${styles.shape} ${styles[s.a ?? 'drift']}`;
+
+        return (
+          <span key={i} className={styles.px} style={style}>
+            {s.k === 'glow' ? (
+              <span className={`${cls} ${styles.glow}`} />
+            ) : (
+              <svg className={cls} viewBox={VIEWBOX[s.k]} focusable="false">
+                <use href={`#otw-${s.k}`} />
+              </svg>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Shape library, drawn once and reused with <use>. Hand-drawn in the logo's style. */
+function ShapeDefs() {
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="otw-spark" viewBox="0 0 24 24">
+          <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="currentColor" />
+        </symbol>
+        <symbol id="otw-blob" viewBox="0 0 100 100">
+          <path d="M52 4C78 2 98 22 96 50c-2 30-24 48-50 46C20 94 2 74 5 48 8 24 28 6 52 4Z" fill="currentColor" />
+        </symbol>
+        <symbol id="otw-noodle" viewBox="0 0 120 120">
+          <path
+            d="M18 74C14 26 88 12 102 52c12 38-58 56-60 14-2-38 52-34 58 6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="15"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </symbol>
+        <symbol id="otw-pill" viewBox="0 0 160 70">
+          <rect x="2" y="2" width="156" height="66" rx="33" fill="currentColor" />
+        </symbol>
+        <symbol id="otw-ring" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="12" />
+        </symbol>
+        <symbol id="otw-squiggle" viewBox="0 0 160 40">
+          <path
+            d="M6 20 Q26 2 46 20 T86 20 T126 20 T156 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="9"
+            strokeLinecap="round"
+          />
+        </symbol>
+        <symbol id="otw-burst" viewBox="0 0 100 100">
+          <path
+            d="M50 4v18M50 78v18M4 50h18M78 50h18M17 17l13 13M70 70l13 13M83 17L70 30M30 70L17 83"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="7"
+            strokeLinecap="round"
+          />
+        </symbol>
+        <symbol id="otw-dot" viewBox="0 0 10 10">
+          <circle cx="5" cy="5" r="5" fill="currentColor" />
+        </symbol>
+      </defs>
+    </svg>
+  );
+}
+
 export default function LandingPage() {
   const router = useRouter();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const sparkleId = useRef(0);
+  const navigating = useRef(false);
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
+  const jsReady = useIsClient();
+
+  useEffect(() => {
+    router.prefetch('/plan');
+  }, [router]);
+
+  /* Scroll-triggered entrance: items below the fold pop in as they appear. */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-reveal]'));
+
+    if (typeof IntersectionObserver === 'undefined') {
+      targets.forEach((el) => el.classList.add(styles.in));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(styles.in);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -8% 0px' }
+    );
+
+    targets.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  /* Pointer parallax: background shapes drift slightly toward the cursor,
+     each at its own depth. Only on devices with a real pointer and when
+     motion is allowed. Writes two CSS variables, nothing else. */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const mq = window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)');
+    if (!mq.matches) return;
+
+    let raf = 0;
+    let x = 0;
+    let y = 0;
+
+    const apply = () => {
+      raf = 0;
+      root.style.setProperty('--mx', x.toFixed(3));
+      root.style.setProperty('--my', y.toFixed(3));
+    };
+
+    const onMove = (e: PointerEvent) => {
+      x = (e.clientX / window.innerWidth - 0.5) * 2;
+      y = (e.clientY / window.innerHeight - 0.5) * 2;
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   const handleTaraClick = () => {
+    if (navigating.current) return;
+    navigating.current = true;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      router.push('/plan');
+      return;
+    }
+
     const newSparkles: Sparkle[] = [];
     for (let i = 0; i < 7; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 44 + Math.random() * 46;
       newSparkles.push({
-        id: Date.now() + i + Math.random(),
+        id: sparkleId.current++,
         tx: `${Math.cos(angle) * dist}px`,
         ty: `${Math.sin(angle) * dist}px`,
         left: `${18 + Math.random() * 20}%`,
@@ -48,593 +339,86 @@ export default function LandingPage() {
 
     setTimeout(() => {
       setSparkles((prev) => prev.filter((s) => !newSparkles.some((ns) => ns.id === s.id)));
-    }, 750);
+    }, 700);
 
-    router.push('/plan');
+    // Let the sparkle burst play for a beat before navigating.
+    setTimeout(() => {
+      router.push('/plan');
+    }, 450);
   };
 
   return (
-    <div className={`otw-landing ${fredoka.variable} ${nunito.variable}`}>
-      {/* Scoped CSS to avoid bleeding into global styles or other routes */}
-      <style jsx global>{`
-        .otw-landing {
-          --rosy: #e0417c;
-          --rosy-dark: #c22e64;
-          --zest: #f8e140;
-          --zest-dark: #c9b418;
-          --blossom: #eac7df;
-          --teal: #2f8aa3;
-          --teal-dark: #1f6376;
-          --cream: #fff8f2;
+    <div ref={rootRef} className={`${styles.landing} ${jsReady ? styles.jsReady : ''}`}>
+      <ShapeDefs />
 
-          font-family: var(--font-nunito), sans-serif;
-          background-color: var(--cream);
-          color: #5c4655;
-          margin: 0;
-          padding: 0;
-          overflow-x: hidden;
-          box-sizing: border-box;
-          min-height: 100vh;
-        }
-
-        .otw-landing * {
-          box-sizing: border-box;
-        }
-
-        .otw-landing h1,
-        .otw-landing h2,
-        .otw-landing h3 {
-          font-family: var(--font-fredoka), sans-serif;
-          font-weight: 600;
-          margin: 0;
-        }
-
-        /* ---- Navigation ---- */
-        .otw-landing nav {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 20px 28px;
-          max-width: 1120px;
-          margin: 0 auto;
-          position: relative;
-          z-index: 5;
-        }
-
-        .otw-landing .logo-img {
-          height: 44px;
-          width: auto;
-          display: block;
-          object-fit: contain;
-        }
-
-        .otw-landing .nav-links {
-          display: flex;
-          gap: 28px;
-          font-weight: 800;
-          font-size: 14px;
-          color: var(--teal-dark);
-        }
-
-        .otw-landing .nav-links a {
-          text-decoration: none;
-          color: inherit;
-          transition: opacity 0.15s ease;
-        }
-
-        .otw-landing .nav-links a:hover {
-          opacity: 0.8;
-        }
-
-        .otw-landing .nav-cta {
-          background: var(--teal);
-          color: #fff;
-          font-family: var(--font-fredoka), sans-serif;
-          font-weight: 700;
-          font-size: 14px;
-          padding: 12px 26px;
-          border-radius: 999px;
-          text-decoration: none;
-          box-shadow: 0 5px 0 var(--teal-dark);
-          transition: transform 0.12s ease, box-shadow 0.12s ease;
-          display: inline-block;
-        }
-
-        .otw-landing .nav-cta:active {
-          transform: translateY(4px);
-          box-shadow: 0 1px 0 var(--teal-dark);
-        }
-
-        @media (max-width: 820px) {
-          .otw-landing .nav-links {
-            display: none;
-          }
-        }
-
-        /* ---- Hero Section: Full Rosy Bleed ---- */
-        .otw-landing .hero {
-          background: linear-gradient(160deg, var(--rosy) 0%, var(--rosy-dark) 100%);
-          position: relative;
-          overflow: hidden;
-          padding: 70px 28px 110px;
-        }
-
-        .otw-landing .hero-inner {
-          max-width: 1120px;
-          margin: 0 auto;
-          display: grid;
-          grid-template-columns: 1.05fr 0.95fr;
-          gap: 40px;
-          align-items: center;
-          position: relative;
-          z-index: 2;
-        }
-
-        @media (max-width: 900px) {
-          .otw-landing .hero-inner {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .otw-landing .hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: var(--zest);
-          color: #5a4d10;
-          font-weight: 800;
-          font-size: 12.5px;
-          padding: 8px 18px;
-          border-radius: 999px;
-          margin-bottom: 20px;
-          transform: rotate(-2deg);
-        }
-
-        .otw-landing .hero h1 {
-          color: #fff;
-          font-size: 56px;
-          line-height: 1.05;
-          letter-spacing: -0.5px;
-        }
-
-        @media (max-width: 600px) {
-          .otw-landing .hero h1 {
-            font-size: 42px;
-          }
-        }
-
-        .otw-landing .hero p.lead {
-          color: #ffdcea;
-          font-size: 18px;
-          line-height: 1.6;
-          max-width: 470px;
-          margin: 22px 0 32px;
-          font-weight: 700;
-        }
-
-        .otw-landing .hero-ctas {
-          display: flex;
-          gap: 14px;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        .otw-landing .btn-primary {
-          background: var(--zest);
-          color: #5a4d10;
-          font-family: var(--font-fredoka), sans-serif;
-          font-weight: 700;
-          font-size: 18px;
-          padding: 20px 38px;
-          border-radius: 999px;
-          text-decoration: none;
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 7px 0 var(--zest-dark);
-          transition: transform 0.12s ease, box-shadow 0.12s ease;
-        }
-
-        .otw-landing .btn-primary:active {
-          transform: translateY(5px);
-          box-shadow: 0 2px 0 var(--zest-dark);
-        }
-
-        .otw-landing .btn-ghost {
-          color: #fff;
-          font-weight: 800;
-          font-size: 15px;
-          text-decoration: none;
-          padding: 16px 10px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          border-bottom: 3px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .otw-landing .sparkle-btn-wrap {
-          position: relative;
-        }
-
-        .otw-landing .star-pop {
-          position: absolute;
-          font-size: 18px;
-          pointer-events: none;
-          animation: pop 0.7s ease-out forwards;
-        }
-
-        @keyframes pop {
-          0% {
-            transform: translate(0, 0) scale(0.4) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translate(var(--tx), var(--ty)) scale(1.1) rotate(40deg);
-            opacity: 0;
-          }
-        }
-
-        .otw-landing .hero-mascot {
-          position: relative;
-          height: 340px;
-        }
-
-        .otw-landing .mascot-blob {
-          position: absolute;
-          background: var(--cream);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .otw-landing .mb1 {
-          top: 10px;
-          left: 20px;
-          width: 230px;
-          height: 230px;
-          border-radius: 58% 42% 45% 55% / 55% 48% 52% 45%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transform: rotate(-6deg);
-        }
-
-        .otw-landing .mb2 {
-          bottom: 0;
-          right: 10px;
-          width: 190px;
-          padding: 18px;
-          border-radius: 34px;
-          transform: rotate(4deg);
-        }
-
-        .otw-landing .mb2 strong {
-          font-size: 14px;
-          display: block;
-          color: var(--rosy-dark);
-          font-family: var(--font-fredoka), sans-serif;
-        }
-
-        .otw-landing .mb2 small {
-          font-size: 11.5px;
-          font-weight: 700;
-          color: var(--teal-dark);
-        }
-
-        /* ---- How It Works: Full Zest Bleed ---- */
-        .otw-landing .how {
-          background: var(--zest);
-          padding: 80px 28px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .otw-landing .how-inner {
-          max-width: 1120px;
-          margin: 0 auto;
-          text-align: center;
-          position: relative;
-          z-index: 2;
-        }
-
-        .otw-landing .how h2 {
-          font-size: 38px;
-          color: #5a4d10;
-        }
-
-        .otw-landing .how-subtitle {
-          color: #7a6a12;
-          font-weight: 800;
-          font-size: 15px;
-          margin: 10px 0 46px;
-        }
-
-        .otw-landing .steps {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 26px;
-        }
-
-        .otw-landing .step-blob {
-          background: var(--cream);
-          border-radius: 40px 40px 44px 44px / 48px 48px 40px 40px;
-          padding: 34px 26px;
-          box-shadow: 0 10px 0 rgba(0, 0, 0, 0.06);
-          text-align: center;
-        }
-
-        .otw-landing .step-blob .num {
-          width: 52px;
-          height: 52px;
-          border-radius: 50%;
-          background: var(--rosy);
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 20px;
-          margin: 0 auto 16px;
-          box-shadow: 0 5px 0 var(--rosy-dark);
-        }
-
-        .otw-landing .step-blob h3 {
-          font-size: 18px;
-          color: var(--teal-dark);
-          margin-bottom: 8px;
-        }
-
-        .otw-landing .step-blob p {
-          font-size: 14px;
-          color: #5c4655;
-          line-height: 1.55;
-          margin: 0;
-          font-weight: 700;
-        }
-
-        @media (max-width: 900px) {
-          .otw-landing .steps {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        /* ---- Features: Full Teal Bleed, Blossom Blob Cards ---- */
-        .otw-landing .features {
-          background: var(--teal);
-          padding: 80px 28px;
-        }
-
-        .otw-landing .features-inner {
-          max-width: 1120px;
-          margin: 0 auto;
-        }
-
-        .otw-landing .section-head {
-          text-align: center;
-          max-width: 600px;
-          margin: 0 auto 46px;
-        }
-
-        .otw-landing .section-head h2 {
-          font-size: 36px;
-          color: #fff;
-        }
-
-        .otw-landing .section-head p {
-          color: #d7f0f6;
-          font-size: 15px;
-          font-weight: 700;
-          margin-top: 12px;
-        }
-
-        .otw-landing .feature-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 24px;
-        }
-
-        .otw-landing .feature-card {
-          background: var(--blossom);
-          border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%;
-          padding: 36px 28px;
-          text-align: center;
-          box-shadow: 0 10px 0 rgba(0, 0, 0, 0.08);
-          transition: transform 0.15s ease;
-        }
-
-        .otw-landing .feature-card:hover {
-          transform: translateY(-4px) rotate(-1deg);
-        }
-
-        .otw-landing .feature-card .icon-blob {
-          width: 64px;
-          height: 64px;
-          margin: 0 auto 18px;
-          border-radius: 50% 50% 40% 60% / 60% 40% 60% 40%;
-          background: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .otw-landing .feature-card h3 {
-          font-size: 19px;
-          margin-bottom: 8px;
-          color: #5a2c46;
-        }
-
-        .otw-landing .feature-card p {
-          font-size: 14px;
-          line-height: 1.55;
-          color: #6b4a5e;
-          margin: 0;
-          font-weight: 700;
-        }
-
-        .otw-landing .feature-card .tag {
-          display: inline-block;
-          margin-top: 14px;
-          background: var(--rosy);
-          color: #fff;
-          font-size: 10.5px;
-          font-weight: 800;
-          padding: 5px 12px;
-          border-radius: 999px;
-          letter-spacing: 0.5px;
-        }
-
-        @media (max-width: 900px) {
-          .otw-landing .feature-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        /* ---- CTA Banner: Full Blossom Bleed ---- */
-        .otw-landing .cta-banner {
-          background: var(--blossom);
-          padding: 80px 28px;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .otw-landing .cta-banner h2 {
-          font-size: 38px;
-          color: var(--rosy-dark);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .otw-landing .cta-banner p {
-          color: #6b4a5e;
-          font-size: 16px;
-          margin: 14px 0 30px;
-          font-weight: 800;
-        }
-
-        .otw-landing .btn-dark {
-          background: var(--rosy);
-          color: #fff;
-          font-family: var(--font-fredoka), sans-serif;
-          font-weight: 700;
-          font-size: 18px;
-          padding: 20px 40px;
-          border-radius: 999px;
-          text-decoration: none;
-          box-shadow: 0 7px 0 var(--rosy-dark);
-          display: inline-block;
-          transition: transform 0.12s ease, box-shadow 0.12s ease;
-        }
-
-        .otw-landing .btn-dark:active {
-          transform: translateY(5px);
-          box-shadow: 0 2px 0 var(--rosy-dark);
-        }
-
-        /* ---- Footer: Full Teal-dark Bleed ---- */
-        .otw-landing footer {
-          background: var(--teal-dark);
-          padding: 40px 28px 50px;
-          text-align: center;
-        }
-
-        .otw-landing .footer-logo {
-          height: 30px;
-          width: auto;
-          margin: 0 auto 10px;
-          opacity: 0.9;
-          filter: brightness(0) invert(1);
-          display: block;
-          object-fit: contain;
-        }
-
-        .otw-landing footer p {
-          color: #bfe3ec;
-          font-size: 12.5px;
-          font-weight: 800;
-          margin: 0;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
-        }
-      `}</style>
-
-      {/* Navigation */}
-      <nav>
-        <Image
-          src="/otw-logo.jpg"
-          alt="OTW logo"
-          width={120}
-          height={44}
-          className="logo-img"
-          priority
-        />
-        <div className="nav-links">
-          <a href="#how">How it works</a>
-          <a href="#features">Features</a>
-          <a href="#get-started">Pricing</a>
+      {/* Navigation: logo showcase + CTA only */}
+      <nav className={styles.nav}>
+        <div className={styles.logoWrap}>
+          <Image
+            src="/otw-logo.svg"
+            alt="OTW logo"
+            width={1500}
+            height={1500}
+            className={styles.logoImg}
+            priority
+          />
         </div>
-        <Link className="nav-cta" href="/plan">
+        <Link className={styles.navCta} href="#get-started">
           Tara G!
         </Link>
       </nav>
 
-      {/* HERO SECTION: Full Rosy Bleed */}
-      <section className="hero">
-        <div style={{ position: 'absolute', top: '24px', left: '6%', pointerEvents: 'none' }}>
+      {/* HERO : full rosy bleed */}
+      <section className={styles.hero}>
+        <Shapes items={HERO_SHAPES} />
+
+        <div className={styles.star} style={{ top: '24px', left: '6%', animationDelay: '0s' }}>
           <svg width="18" height="18" viewBox="0 0 24 24">
-            <path
-              d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"
-              fill="rgba(255,255,255,0.4)"
-            />
+            <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="rgba(255,255,255,0.4)" />
           </svg>
         </div>
-        <div style={{ position: 'absolute', top: '70px', right: '14%', pointerEvents: 'none' }}>
+        <div className={styles.star} style={{ top: '70px', right: '14%', animationDelay: '-2s' }}>
           <svg width="22" height="22" viewBox="0 0 24 24">
-            <path
-              d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"
-              fill="rgba(255,255,255,0.3)"
-            />
+            <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="rgba(255,255,255,0.3)" />
           </svg>
         </div>
 
-        <div className="hero-inner">
+        <div className={styles.heroInner}>
           <div>
-            <span className="hero-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24">
-                <path
-                  d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"
-                  fill="#5a4d10"
-                />
+            <span className={styles.heroBadge}>
+              <svg width="14" height="14" viewBox="0 0 24 24" className={styles.badgeIcon}>
+                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#5a4d10" />
               </svg>
               FOR PLANS THAT ACTUALLY HAPPEN
             </span>
 
-            <h1>
+            <h1 className={styles.heroRise} style={delay(0.1)}>
               From &quot;G tayo?&quot;
               <br />
               to &quot;OTW na.&quot;
             </h1>
 
-            <p className="lead">
-              Finally, a place for all those gala plans na ilang buwan nang nasa group chat. Plan it.
-              Share it. Make it happen.
+            <p className={`${styles.lead} ${styles.heroRise}`} style={delay(0.25)}>
+              Finally, a place for all those gala plans na ilang buwan nang nasa group chat. Plan it. Share it. Make it happen.
             </p>
 
-            <div className="hero-ctas sparkle-btn-wrap" id="ctaWrap">
-              <button className="btn-primary" id="taraBtn" onClick={handleTaraClick}>
+            <div
+              className={`${styles.heroCtas} ${styles.sparkleBtnWrap} ${styles.heroRise}`}
+              style={delay(0.4)}
+              id="ctaWrap"
+            >
+              <button className={styles.btnPrimary} id="taraBtn" onClick={handleTaraClick}>
                 Plan a Gala
               </button>
-
-              <Link className="btn-ghost" href="/join">
+              <Link className={styles.btnGhost} href="/join">
                 Join a Gala &rarr;
               </Link>
 
+              {/* Sparkle pop elements */}
               {sparkles.map((s) => (
                 <span
                   key={s.id}
-                  className="star-pop"
+                  className={styles.starPop}
                   style={
                     {
                       left: s.left,
@@ -645,67 +429,49 @@ export default function LandingPage() {
                   }
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24">
-                    <path
-                      d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"
-                      fill="#fff"
-                    />
+                    <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#fff" />
                   </svg>
                 </span>
               ))}
             </div>
 
-            <p style={{ color: '#ffdcea', fontSize: '12px', marginTop: '12px', fontWeight: 700 }}>
+            <p
+              className={styles.heroRise}
+              style={{ ...delay(0.55), color: '#ffdcea', fontSize: '12px', marginTop: '12px', fontWeight: 700 }}
+            >
               And yes, we can tell if you&apos;re actually OTW.
             </p>
           </div>
 
-          <div className="hero-mascot">
-            <div className="mascot-blob mb1">
-              <svg
-                width="90"
-                height="90"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--rosy)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 2a8 8 0 0 0-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 0 0-8-8z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-            </div>
-            <div className="mascot-blob mb2">
-              <strong>Baguio Before Graduation</strong>
-              <small>OTW-7K2P • 4 friends G!</small>
-            </div>
+          {/* WITHOUT OTW vs WITH OTW conversation ad */}
+          <div className={`${styles.heroMascot} ${styles.heroRise}`} style={{ ...delay(0.3), height: 'auto' }}>
+            <OtwConversationAd />
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS SECTION: Full Zest Bleed */}
-      <section className="how" id="how">
-        <div className="how-inner">
-          <h2>Your gala starts here.</h2>
-          <p className="how-subtitle">
+      {/* HOW IT WORKS : full zest bleed */}
+      <section className={styles.how} id="how">
+        <Shapes items={HOW_SHAPES} />
+
+        <div className={styles.howInner}>
+          <h2 data-reveal style={delay(0)}>Your gala starts here.</h2>
+          <p className={styles.howSub} data-reveal style={delay(0.1)}>
             NO COMPLICATED SETUP. JUST MAKE A PLAN AND GET EVERYONE MOVING.
           </p>
-
-          <div className="steps">
-            <div className="step-blob">
-              <div className="num">1</div>
+          <div className={styles.steps}>
+            <div className={styles.stepBlob} data-reveal style={delay(0.15)}>
+              <div className={styles.num}>1</div>
               <h3>G tayo?</h3>
               <p>Pick a date, get the tropa, and give your gala a name your GC will remember.</p>
             </div>
-
-            <div className="step-blob">
-              <div className="num">2</div>
+            <div className={styles.stepBlob} data-reveal style={delay(0.3)}>
+              <div className={styles.num}>2</div>
               <h3>Okay, what&apos;s the plan?</h3>
               <p>Build the itinerary, sort out the budget, and keep everything in one place.</p>
             </div>
-
-            <div className="step-blob">
-              <div className="num">3</div>
+            <div className={styles.stepBlob} data-reveal style={delay(0.45)}>
+              <div className={styles.num}>3</div>
               <h3>OTW na ba talaga?</h3>
               <p>Share your location on the day itself. Less &quot;Nasaan ka na?&quot; More &quot;2 mins away.&quot;</p>
             </div>
@@ -713,48 +479,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURES SECTION: Full Teal Bleed with Blossom Blob Cards */}
-      <section className="features" id="features">
-        <div className="features-inner">
-          <div className="section-head">
+      {/* FEATURES : full teal bleed, blossom blob cards */}
+      <section className={styles.features} id="features">
+        <Shapes items={FEATURE_SHAPES} />
+
+        <div className={styles.featuresInner}>
+          <div className={styles.sectionHead} data-reveal style={delay(0)}>
             <h2>Built for the group chat energy</h2>
             <p>Four things, done well, so nobody has to be &quot;the planner&quot; ever again</p>
           </div>
-
-          <div className="feature-grid">
-            <div className="feature-card">
-              <div className="icon-blob">
-                <svg
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--rosy)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+          <div className={styles.featureGrid}>
+            <div className={styles.featureCard} data-reveal style={delay(0.1)}>
+              <div className={styles.iconBlob}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rosy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z" />
                   <circle cx="12" cy="9" r="2.4" />
                 </svg>
               </div>
               <h3>Saan Tayo?</h3>
               <p>Drop a location poll, votes come in live, winner locks the plan.</p>
-              <span className="tag">LOCATION POLLS</span>
+              <span className={styles.tag}>LOCATION POLLS</span>
             </div>
-
-            <div className="feature-card">
-              <div className="icon-blob">
-                <svg
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--rosy)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+            <div className={styles.featureCard} data-reveal style={delay(0.25)}>
+              <div className={styles.iconBlob}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rosy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="7" width="18" height="12" rx="4" />
                   <path d="M3 10.5h18" />
                   <circle cx="16.5" cy="14.5" r="1.3" fill="var(--rosy)" stroke="none" />
@@ -762,45 +510,33 @@ export default function LandingPage() {
               </div>
               <h3>Ambagan</h3>
               <p>Shared costs split and tracked automatically — no group-chat math.</p>
-              <span className="tag">SHARED EXPENSES</span>
+              <span className={styles.tag}>SHARED EXPENSES</span>
             </div>
-
-            <div className="feature-card">
-              <div className="icon-blob">
-                <svg
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--rosy)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+            <div className={styles.featureCard} data-reveal style={delay(0.4)}>
+              <div className={styles.iconBlob}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rosy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="5" y="3" width="14" height="18" rx="4" />
                   <path d="M9 8h6M9 12h6M9 16h4" />
                 </svg>
               </div>
               <h3>Mga Drawing</h3>
               <p>Plans that fell through get shelved, not deleted — revive anytime.</p>
-              <span className="tag">SHELVED PLANS</span>
+              <span className={styles.tag}>SHELVED PLANS</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA BANNER: Full Blossom Bleed */}
-      <section className="cta-banner">
-        <div style={{ position: 'absolute', top: '24px', right: '12%', pointerEvents: 'none' }}>
+      {/* CTA BANNER : blossom bleed */}
+      <section className={styles.ctaBanner}>
+        <Shapes items={CTA_SHAPES} />
+
+        <div className={styles.star} style={{ top: '24px', right: '12%', animationDelay: '-1s' }}>
           <svg width="18" height="18" viewBox="0 0 24 24">
-            <path
-              d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"
-              fill="#e0417c"
-            />
+            <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#e0417c" />
           </svg>
         </div>
-
-        <h2 id="get-started">
+        <h2 id="get-started" data-reveal style={delay(0)}>
           Your next gala is one tap away
           <svg
             width="30"
@@ -816,33 +552,31 @@ export default function LandingPage() {
             <circle cx="12" cy="12" r="3" fill="var(--rosy-dark)" stroke="none" />
           </svg>
         </h2>
-        <p>Free to start. Zero planning skills required.</p>
-        <Link className="btn-dark" href="/plan">
-          Tara G! — It&apos;s Free
-        </Link>
+        <p data-reveal style={delay(0.1)}>Free to start. Zero planning skills required.</p>
+        <div className={styles.ctaBtnWrap} data-reveal style={delay(0.2)}>
+          <Link className={styles.btnDark} href="/plan">
+            Tara G! — It&apos;s Free
+          </Link>
+        </div>
       </section>
 
-      {/* FOOTER: Full Teal-dark Bleed */}
-      <footer>
-        <Image
-          src="/otw-logo.jpg"
-          alt="OTW logo"
-          width={90}
-          height={30}
-          className="footer-logo"
-        />
+      {/* Footer */}
+      <footer className={styles.footer}>
+        <Shapes items={FOOTER_SHAPES} />
+
+        <div className={styles.footerLogoWrap}>
+          <Image
+            src="/otw-logo.svg"
+            alt="OTW logo"
+            width={1500}
+            height={1500}
+            className={styles.logoImg}
+          />
+        </div>
         <p>
           On The Way — planning made for people who decide things last minute
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            style={{ verticalAlign: '1px', marginLeft: '2px' }}
-          >
-            <path
-              d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"
-              fill="#bfe3ec"
-            />
+          <svg width="12" height="12" viewBox="0 0 24 24" style={{ verticalAlign: '1px', marginLeft: '2px' }}>
+            <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#bfe3ec" />
           </svg>
         </p>
       </footer>

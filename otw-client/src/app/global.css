@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 1. Core Brand Hex Tokens */
+    --rosy: #e0417c;
+    --rosy-dark: #c22e64;
+    --zest: #f8e140;
+    --zest-dark: #c9b418;
+    --blossom: #eac7df;
+    --teal: #2f8aa3;
+    --teal-dark: #1f6376;
+    --cream: #fff8f2;
+
+    /* 2. Shadcn Semantic Mapping */
+    --background: var(--cream);
+    --foreground: #5c4655;
+
+    --card: var(--cream);
+    --card-foreground: #5c4655;
+
+    --popover: var(--cream);
+    --popover-foreground: #5c4655;
+
+    --primary: var(--rosy);
+    --primary-foreground: #ffffff;
+
+    --secondary: var(--zest);
+    --secondary-foreground: #5a4d10;
+
+    --muted: var(--blossom);
+    --muted-foreground: var(--teal-dark);
+
+    --accent: var(--blossom);
+    --accent-foreground: var(--rosy-dark);
+
+    --destructive: var(--rosy-dark);
+    --destructive-foreground: #ffffff;
+
+    --border: var(--blossom);
+    --input: var(--blossom);
+    --ring: var(--teal);
+
+    /* 3. Radius - 999px for full pill */
+    --radius: 999px;
+  }
+
+  body {
+    font-family: var(--font-nunito), sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-fredoka), sans-serif;
+  }
+}
