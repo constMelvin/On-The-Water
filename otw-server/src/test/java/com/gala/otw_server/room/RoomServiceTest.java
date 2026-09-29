@@ -16,10 +16,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.hibernate.exception.ConstraintViolationException;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -101,7 +103,7 @@ class RoomServiceTest {
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
         when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(false);
         when(memberRepo.existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(roomId, "Carlos")).thenReturn(false);
-        when(memberRepo.save(any(RoomMember.class))).thenAnswer(inv -> {
+        when(memberRepo.saveAndFlush(any(RoomMember.class))).thenAnswer(inv -> {
             RoomMember m = inv.getArgument(0);
             m.setId(UUID.randomUUID());
             m.setJoinedAt(OffsetDateTime.now());
@@ -151,7 +153,7 @@ class RoomServiceTest {
     }
 
     @Test
-    @DisplayName("joinRoom maps a raced DB unique-constraint violation to DuplicateNicknameException")
+    @DisplayName("joinRoom maps a raced nickname-index violation to DuplicateNicknameException")
     void joinRoom_duplicateNickname_concurrentRace() {
         JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel");
         Room room = new Room();
@@ -162,12 +164,43 @@ class RoomServiceTest {
         when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(false);
         // Pre-check passes (no active "Miguel" yet)...
         when(memberRepo.existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(roomId, "Miguel")).thenReturn(false);
-        // ...but a concurrent request beats this one to the insert.
-        when(memberRepo.save(any(RoomMember.class)))
-                .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
+        // ...but a concurrent request beats this one to the insert. saveAndFlush
+        // (not save) is what surfaces this violation inside the try at all.
+        when(memberRepo.saveAndFlush(any(RoomMember.class)))
+                .thenThrow(nicknameIndexViolation());
 
         assertThatThrownBy(() -> roomService.joinRoom(callerId, req))
                 .isInstanceOf(DuplicateNicknameException.class);
+    }
+
+    @Test
+    @DisplayName("joinRoom does not relabel an unrelated constraint violation as DuplicateNicknameException")
+    void joinRoom_otherConstraintViolation_isNotMappedToDuplicateNickname() {
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel");
+        Room room = new Room();
+        room.setId(roomId);
+        room.setStatus("ACTIVE");
+
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
+        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(false);
+        when(memberRepo.existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(roomId, "Miguel")).thenReturn(false);
+        // A different constraint (e.g. room_members_room_id_user_id_key, hit when
+        // a left member rejoins) must NOT be mislabeled as a nickname collision.
+        DataIntegrityViolationException otherViolation = new DataIntegrityViolationException(
+                "duplicate key value violates unique constraint",
+                new ConstraintViolationException("insert failed",
+                        new SQLException("duplicate key"), "room_members_room_id_user_id_key"));
+        when(memberRepo.saveAndFlush(any(RoomMember.class))).thenThrow(otherViolation);
+
+        assertThatThrownBy(() -> roomService.joinRoom(callerId, req))
+                .isSameAs(otherViolation);
+    }
+
+    private static DataIntegrityViolationException nicknameIndexViolation() {
+        return new DataIntegrityViolationException(
+                "duplicate key value violates unique constraint",
+                new ConstraintViolationException("insert failed",
+                        new SQLException("duplicate key"), "idx_room_members_room_nickname_active"));
     }
 
     @Test

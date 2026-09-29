@@ -90,10 +90,20 @@ public class RoomService {
         member.setRole(RoomRole.MEMBER);
 
         try {
-            member = memberRepo.save(member);
+            // saveAndFlush forces the INSERT now, inside this try — with a plain
+            // save(), the class-level @Transactional defers the actual INSERT to
+            // commit, so a raced unique-constraint violation would surface after
+            // this method returns as an unhandled 500, not here.
+            member = memberRepo.saveAndFlush(member);
         } catch (org.springframework.dao.DataIntegrityViolationException ex) {
             // Belt-and-suspenders: two concurrent joins raced past the check above.
-            throw new DuplicateNicknameException();
+            // Only the nickname index's violation means "nickname taken" — a
+            // different constraint (e.g. room_id/user_id) is a different bug and
+            // must not be mislabeled as DuplicateNicknameException.
+            if (isNicknameIndexViolation(ex)) {
+                throw new DuplicateNicknameException();
+            }
+            throw ex;
         }
 
         final UUID roomId = room.getId();
@@ -170,6 +180,15 @@ public class RoomService {
         Room room = roomRepo.findById(roomId).orElseThrow(RoomNotFoundException::new);
         if (!"ACTIVE".equals(room.getStatus())) throw new RoomNotFoundException();
         return room;
+    }
+
+    private static boolean isNicknameIndexViolation(org.springframework.dao.DataIntegrityViolationException ex) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t instanceof org.hibernate.exception.ConstraintViolationException cve) {
+                return "idx_room_members_room_nickname_active".equals(cve.getConstraintName());
+            }
+        }
+        return false;
     }
 
     private String generateUniqueCode() {
