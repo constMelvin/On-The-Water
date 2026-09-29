@@ -35,6 +35,7 @@ public enum ErrorCode {
     // ── Validation / Limits ────────────────────────────────────────────────
     VALIDATION_ERROR,
     INVALID_REQUEST,
+    INVALID_PHOTO_REFERENCE,   // driveFileId isn't a real/accessible image in the expected Drive folder
     TOO_MANY_REQUESTS,
 
     // ── Server ──────────────────────────────────────────────────────────────

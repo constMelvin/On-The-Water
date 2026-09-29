@@ -1,10 +1,12 @@
 package com.gala.otw_server.photo;
 
 import com.gala.otw_server.common.DomainExceptions.ForbiddenException;
+import com.gala.otw_server.common.DomainExceptions.InvalidPhotoReferenceException;
 import com.gala.otw_server.photo.dto.PhotoDto;
 import com.gala.otw_server.photo.dto.RegisterPhotoRequest;
 import com.gala.otw_server.photo.entity.Photo;
 import com.gala.otw_server.photo.repository.PhotoRepository;
+import com.gala.otw_server.photo.service.GoogleDriveFileValidator;
 import com.gala.otw_server.photo.service.PhotoService;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import com.gala.otw_server.room.entity.Room;
@@ -25,6 +27,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +45,9 @@ class PhotoServiceTest {
     @Mock
     private RealtimeEventPublisher realtime;
 
+    @Mock
+    private GoogleDriveFileValidator driveFileValidator;
+
     private PhotoService photoService;
 
     private final UUID roomId = UUID.randomUUID();
@@ -51,7 +57,7 @@ class PhotoServiceTest {
 
     @BeforeEach
     void setUp() {
-        photoService = new PhotoService(photoRepo, roomRepo, memberRepo, realtime);
+        photoService = new PhotoService(photoRepo, roomRepo, memberRepo, realtime, driveFileValidator);
     }
 
     @Test
@@ -76,7 +82,28 @@ class PhotoServiceTest {
         assertThat(dto.driveFileId()).isEqualTo("1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms");
         assertThat(dto.uploadedBy()).isEqualTo(uploaderId);
         assertThat(dto.status()).isEqualTo("READY");
+        verify(driveFileValidator).validate("1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms");
         verify(photoRepo).save(any(Photo.class));
+    }
+
+    @Test
+    @DisplayName("registerPhoto rejects and saves nothing when the Drive file fails validation")
+    void registerPhoto_InvalidDriveFile_ThrowsAndSavesNothing() {
+        Room room = new Room();
+        room.setId(roomId);
+        room.setStatus("ACTIVE");
+
+        when(roomRepo.findById(roomId)).thenReturn(Optional.of(room));
+        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, uploaderId)).thenReturn(true);
+        doThrow(new InvalidPhotoReferenceException())
+                .when(driveFileValidator).validate(anyString());
+
+        RegisterPhotoRequest req = new RegisterPhotoRequest("not-a-real-file-id");
+
+        assertThatThrownBy(() -> photoService.registerPhoto(roomId, uploaderId, req))
+                .isInstanceOf(InvalidPhotoReferenceException.class);
+
+        verify(photoRepo, never()).save(any(Photo.class));
     }
 
     @Test

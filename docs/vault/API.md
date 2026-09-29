@@ -9,7 +9,7 @@ Back to [[00-Index]]
 ## Conventions
 - JSON. Every call needs `Authorization: Bearer <supabase_jwt>`, including the join endpoints.
 - Pagination is cursor-based: `?cursor=...&limit=20`.
-- Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`. Notable codes: `409 DUPLICATE_NICKNAME` on `POST /rooms/join`; `401 ACCOUNT_REQUIRED` (distinct from `401 UNAUTHENTICATED`) when the token is a rejected anonymous session — see [[Auth]].
+- Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`. Notable codes: `409 DUPLICATE_NICKNAME` on `POST /rooms/join`; `401 ACCOUNT_REQUIRED` (distinct from `401 UNAUTHENTICATED`) when the token is a rejected anonymous session — see [[Auth]]; `400 INVALID_PHOTO_REFERENCE` on `POST /rooms/{roomId}/photos` when the submitted driveFileId fails Google Drive validation (see the photos row below).
 - Every write endpoint has Bean Validation on its DTO and a role guard ([[Auth]]). Where relevant, it also emits a realtime event ([[Realtime]]) and evicts cache ([[Caching]]).
 
 ## Endpoints
@@ -30,6 +30,6 @@ Back to [[00-Index]]
 | GET | `/rooms/{roomId}/expenses/settlement` | Member (computed "who owes who") |
 | PUT / DELETE | `/rooms/{roomId}/location` | Member (opt-in) |
 | GET | `/rooms/{roomId}/locations` | Member |
-| POST | `/rooms/{roomId}/photos` | Member (registers metadata only) |
+| POST | `/rooms/{roomId}/photos` | Member (registers metadata only — backend verifies the submitted `driveFileId` via a read-only Google Drive API call: it must be a real, non-trashed image in the configured shared folder, or `400 INVALID_PHOTO_REFERENCE`. Binary upload to Drive is the client's job.) |
 
 Note: the §5.3 matrix lists "Delete expense (host / payer only)" and "Edit room details (host)", but §4 defines **no endpoint** for either. Flag this before building them.

@@ -34,15 +34,18 @@ public class PhotoService {
     private final RoomRepository roomRepo;
     private final RoomMemberRepository memberRepo;
     private final RealtimeEventPublisher realtime;
+    private final GoogleDriveFileValidator driveFileValidator;
 
     public PhotoService(PhotoRepository photoRepo,
                         RoomRepository roomRepo,
                         RoomMemberRepository memberRepo,
-                        RealtimeEventPublisher realtime) {
+                        RealtimeEventPublisher realtime,
+                        GoogleDriveFileValidator driveFileValidator) {
         this.photoRepo = photoRepo;
         this.roomRepo = roomRepo;
         this.memberRepo = memberRepo;
         this.realtime = realtime;
+        this.driveFileValidator = driveFileValidator;
     }
 
     // ── Register photo metadata ───────────────────────────────────────────────
@@ -50,6 +53,7 @@ public class PhotoService {
     public PhotoDto registerPhoto(UUID roomId, UUID callerId, RegisterPhotoRequest req) {
         Room room = verifyActiveRoom(roomId);
         verifyMemberOfRoom(roomId, callerId);
+        driveFileValidator.validate(req.driveFileId().trim());
 
         Photo photo = new Photo();
         photo.setRoom(room);

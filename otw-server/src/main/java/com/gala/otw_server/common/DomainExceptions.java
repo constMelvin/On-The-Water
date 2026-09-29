@@ -86,6 +86,13 @@ public final class DomainExceptions {
         }
     }
 
+    public static class InvalidPhotoReferenceException extends BaseException {
+        public InvalidPhotoReferenceException() {
+            super(ErrorCode.INVALID_PHOTO_REFERENCE, HttpStatus.BAD_REQUEST,
+                    "That Drive file isn't a valid photo in the expected folder");
+        }
+    }
+
     // ── 429 Too Many Requests ───────────────────────────────────────────────
 
     public static class TooManyRequestsException extends BaseException {
