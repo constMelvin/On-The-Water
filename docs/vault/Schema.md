@@ -7,18 +7,17 @@ source: master plan §3
 Back to [[00-Index]] · Full DDL: master plan §3.1
 
 ## Model
-A **Group** (persistent barkada, joined via `group_code`) contains many **Rooms** (one-off galas).
-A Room can be standalone (`group_id = NULL`). `group_members` and `room_members` are **separate tables**: being in a group never enrolls you in a room. Creating a room in a group pre-fills invites from the roster, but each person still needs their own `room_members` row.
+Every **Room** (a one-off gala or trip) is standalone — there is no persistent group/barkada tier. `room_members` is the only membership table.
+
+> Group/barkada tier removed 2026-09-29 — see docs/OTW - WEB.pdf's flat Room-only model. This drift from the original master plan §3 is intentional; the master plan itself is being amended in the same change.
 
 ## Tables
 All `id` columns are `UUID DEFAULT gen_random_uuid()`. All timestamps are `TIMESTAMPTZ`.
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `groups` | group_code VARCHAR(8) UNIQUE, name(120), created_by, status (default ACTIVE), created_at, updated_at | |
-| `group_members` | group_id FK→groups CASCADE, user_id, nickname(60), role (OWNER/ADMIN/MEMBER, default MEMBER), joined_at, left_at | UNIQUE(group_id, user_id) |
-| `rooms` | group_id FK→groups **SET NULL** (nullable), room_code VARCHAR(8) UNIQUE, title(120), schedule_at, meeting_lat/lng DOUBLE, meeting_label(255), host_user_id, status (ACTIVE/ARCHIVED) | |
-| `room_members` | room_id FK CASCADE, user_id (= auth.users.id), nickname(60), role (HOST/MEMBER), rsvp_status (GOING/MAYBE/NOT_GOING/PENDING, default PENDING), joined_at, left_at | UNIQUE(room_id, user_id) |
+| `rooms` | room_code VARCHAR(8) UNIQUE, title(120), schedule_at, meeting_lat/lng DOUBLE, meeting_label(255), host_user_id, status (ACTIVE/ARCHIVED) | |
+| `room_members` | room_id FK CASCADE, user_id (= auth.users.id), nickname(60), role (HOST/MEMBER), rsvp_status (GOING/MAYBE/NOT_GOING/PENDING, default PENDING), joined_at, left_at | UNIQUE(room_id, user_id); nickname unique per room (case-insensitive, active members only) — see Indexes |
 | `itinerary_items` | room_id FK CASCADE, title(150), notes TEXT, starts_at, position INT, created_by, completed BOOL, **version INT** | Optimistic locking |
 | `checklist_items` | room_id FK CASCADE, label(150), assigned_to (nullable), is_done, done_by, done_at, **version INT**, created_at | Optimistic locking |
 | `budget_estimates` | **room_id PK** FK CASCADE, estimated_amount NUMERIC(12,2) default 0, currency(3) default PHP, updated_by, updated_at | One per room |
@@ -30,10 +29,11 @@ All `id` columns are `UUID DEFAULT gen_random_uuid()`. All timestamps are `TIMES
 There is no `users` table. Identity comes from Supabase `auth.users`, and `user_id` is taken from the JWT `sub` claim.
 
 ## Indexes (§3.2)
-- `groups(group_code)` and `rooms(room_code)`: unique; used by join
-- `group_members(group_id,user_id)` and `room_members(room_id,user_id)`: unique; used by every authorization check
-- `group_members(user_id)` and `room_members(user_id)`: for "my groups/rooms" queries
-- `rooms(group_id)`, `itinerary_items(room_id,position)`, `checklist_items(room_id,is_done)`
+- `rooms(room_code)`: unique; used by join
+- `room_members(room_id,user_id)`: unique; used by every authorization check
+- `room_members(room_id, LOWER(nickname)) WHERE left_at IS NULL`: unique, partial; enforces per-room nickname uniqueness among active members (case-insensitive; a nickname frees up when its holder leaves)
+- `room_members(user_id)`: for "my rooms" queries
+- `itinerary_items(room_id,position)`, `checklist_items(room_id,is_done)`
 - `expenses(room_id)`, `expense_shares(expense_id)`, `member_locations(room_id)` (with cleanup of expired rows via `expires_at`)
 
 ## Concurrency (§3.3)

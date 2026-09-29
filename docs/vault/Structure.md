@@ -15,15 +15,15 @@ Back to [[00-Index]]
 6. One Spring Boot modular monolith, package-by-feature. No microservices.
 
 ## Packages (§1)
-Root `com.otw`:
+Root `com.gala.otw_server`:
 - `config/`: SecurityConfig, RedisConfig, CacheConfig, CorsConfig, WebSocketConfig, RateLimitConfig
 - `common/`: BaseException, ApiResponse, ErrorCode, AuditFields, PageResponse
 - `security/jwt/`: Supabase JWT verification
-- `security/authz/`: `@RequireGroupRole` / `@RequireRoomRole` + aspects
-- **Feature packages**: `group`, `room`, `rsvp`, `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`
+- `security/authz/`: `@RequireRoomRole` + aspect
+- **Feature packages**: `room`, `rsvp`, `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`
 - **Cross-cutting (no controller, no five-folder split)**: `realtime/` (RealtimeEventPublisher), `cache/` (CacheKeys, CacheEvictionService), `ratelimit/`
 - Resources: `application.yml`, `application-local.yml`, `application-prod.yml`, `db/migration/`
-- Tests mirror the main packages under `src/test/java/com/otw/`
+- Tests mirror the main packages under `src/test/java/com/gala/otw_server/`
 
 ## Five-folder shape (every feature package)
 | Folder | Responsibility |

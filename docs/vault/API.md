@@ -15,13 +15,6 @@ Back to [[00-Index]]
 ## Endpoints
 | Method | Path | Role |
 |---|---|---|
-| POST | `/groups` | Authenticated |
-| POST | `/groups/join` | Authenticated |
-| GET | `/groups/{groupId}` | Group member |
-| GET | `/groups/{groupId}/members` | Group member |
-| DELETE | `/groups/{groupId}/members/{userId}` | Group OWNER/ADMIN |
-| GET | `/groups/{groupId}/rooms` | Group member |
-| POST | `/groups/{groupId}/rooms` | Group member (checks the group tier, then creates the room and seeds `room_members`) |
 | POST | `/rooms` | Authenticated (standalone room) |
 | GET | `/rooms/{roomId}` | Member |
 | POST | `/rooms/join` | Authenticated |

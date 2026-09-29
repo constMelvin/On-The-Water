@@ -1,6 +1,8 @@
 # OTW — Backend Master Plan
 **Scope: Backend only (Spring Boot 21 + Supabase Postgres + Redis + Supabase Auth/Realtime)**
 
+> **2026-09-29:** Group/barkada tier removed — see docs/OTW - WEB.pdf's flat Room-only tasking. Backend now has one authorization tier (Room), not two. Anonymous Supabase sessions are rejected; a registered account is required (overrides the PDF's no-login flow).
+
 This guide takes the OTW Master Project Management Plan and narrows it to everything the backend team needs, from an empty repo to a production-ready API. Frontend/UI/branding work is intentionally out of scope here.
 
 ---
@@ -25,14 +27,8 @@ otw-backend/
 │   ├── config/              # SecurityConfig, RedisConfig, CacheConfig, CorsConfig, WebSocketConfig, RateLimitConfig
 │   ├── common/               # BaseException, ApiResponse, ErrorCode, AuditFields, PageResponse
 │   ├── security/
-│   │   ├── jwt/               # Supabase JWT filter + JWK verification
-│   │   ├── authz/              # @RequireGroupRole / @RequireRoomRole annotations + aspects, access guards
-│   ├── group/
-│   │   ├── controller/
-│   │   ├── dto/
-│   │   ├── entity/
-│   │   ├── repository/
-│   │   └── service/
+│   │   ├── jwt/               # Supabase JWT filter + JWK verification (+ NotAnonymousJwtValidator)
+│   │   ├── authz/              # @RequireRoomRole annotation + aspect, access guard
 │   ├── room/
 │   │   ├── controller/
 │   │   ├── dto/
@@ -92,13 +88,13 @@ otw-backend/
 └── src/test/java/com/otw/       # mirrors main packages
 ```
 
-Every feature package (`group`, `room`, `rsvp`, `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`) follows the same five-folder shape:
+Every feature package (`room`, `rsvp`, `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`) follows the same five-folder shape:
 
 - **`controller/`** — REST endpoints only. No business logic, no direct repository calls — delegates to `service/`.
 - **`dto/`** — request/response objects (e.g. `CreateRoomRequest`, `RoomSummaryDto`). Controllers bind to these, never to entities directly (prevents mass assignment — §9).
 - **`entity/`** — JPA entities mapped to the tables in §3 (e.g. `Room`, `RoomMember`).
 - **`repository/`** — Spring Data JPA repositories, one per entity.
-- **`service/`** — business logic, transaction boundaries (`@Transactional`), authorization-adjacent logic that isn't already covered by the `@RequireRoomRole`/`@RequireGroupRole` aspects, and where realtime events / cache evictions get triggered after a write.
+- **`service/`** — business logic, transaction boundaries (`@Transactional`), authorization-adjacent logic that isn't already covered by the `@RequireRoomRole` aspect, and where realtime events / cache evictions get triggered after a write.
 
 `realtime/`, `cache/`, and `ratelimit/` stay cross-cutting (no five-folder split) since they're shared infrastructure every feature calls into, not a feature with its own endpoints.
 
@@ -121,36 +117,12 @@ Every feature package (`group`, `room`, `rsvp`, `itinerary`, `checklist`, `budge
 
 ### 3.1 Core tables
 
-Two-tier model: a **Group** (the persistent barkada/circle — join once) can contain **many Rooms** (one-off galas/trips). A Room can also exist standalone with `group_id = NULL`, so you don't force every gala into a group.
+Flat model: every **Room** (one-off gala/trip) is standalone. There is no persistent group/barkada tier — `room_members` is the only membership table (Group/barkada tier removed 2026-09-29, see docs/OTW - WEB.pdf's flat Room-only model).
 
 ```sql
--- groups — the persistent circle of friends
-groups (
-  id UUID PK DEFAULT gen_random_uuid(),
-  group_code VARCHAR(8) UNIQUE NOT NULL,   -- join code, same pattern as room_code
-  name VARCHAR(120) NOT NULL,
-  created_by UUID NOT NULL,
-  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- group_members — persists across every gala the group ever plans
-group_members (
-  id UUID PK DEFAULT gen_random_uuid(),
-  group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL,
-  nickname VARCHAR(60) NOT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT 'MEMBER',  -- OWNER, ADMIN, MEMBER
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  left_at TIMESTAMPTZ,
-  UNIQUE (group_id, user_id)
-);
-
--- rooms — one gala/trip; optionally scoped to a group
+-- rooms — one gala/trip, always standalone
 rooms (
   id UUID PK DEFAULT gen_random_uuid(),
-  group_id UUID REFERENCES groups(id) ON DELETE SET NULL, -- NULL = standalone room, not tied to a group
   room_code VARCHAR(8) UNIQUE NOT NULL,   -- short, human-shareable, indexed
   title VARCHAR(120) NOT NULL,
   schedule_at TIMESTAMPTZ,
@@ -175,6 +147,8 @@ room_members (
   left_at TIMESTAMPTZ,
   UNIQUE (room_id, user_id)
 );
+-- Partial unique index (added V5): nickname unique per room, case-insensitive, active members only
+-- CREATE UNIQUE INDEX idx_room_members_room_nickname_active ON room_members (room_id, LOWER(nickname)) WHERE left_at IS NULL;
 
 -- itinerary_items
 itinerary_items (
@@ -256,12 +230,9 @@ photos (
 ```
 
 ### 3.2 Indexes (minimum set)
-- `groups(group_code)` — unique, used on every "join group" call
-- `group_members(group_id, user_id)` — unique composite, used on every group-level authorization check
-- `group_members(user_id)` — "my groups" queries
-- `rooms(group_id)` — "list galas in this group"
 - `rooms(room_code)` — unique, used on every "join" call
 - `room_members(room_id, user_id)` — unique composite, used on every authorization check
+- `room_members(room_id, LOWER(nickname)) WHERE left_at IS NULL` — unique partial index, enforces per-room nickname uniqueness among active members
 - `room_members(user_id)` — "my rooms" queries
 - `itinerary_items(room_id, position)`
 - `checklist_items(room_id, is_done)`
@@ -278,8 +249,6 @@ Since Flyway is already the chosen tool: keep migrations additive and reversible
 ### 3.5 ERD (Mermaid)
 ```mermaid
 erDiagram
-  GROUPS ||--o{ GROUP_MEMBERS : has
-  GROUPS ||--o{ ROOMS : contains
   ROOMS ||--o{ ROOM_MEMBERS : has
   ROOMS ||--o{ ITINERARY_ITEMS : has
   ROOMS ||--o{ CHECKLIST_ITEMS : has
@@ -290,24 +259,15 @@ erDiagram
   ROOMS ||--o{ PHOTOS : stores
 ```
 
-Note: `GROUP_MEMBERS` and `ROOM_MEMBERS` are deliberately separate tables, not one inherited from the other. Being in a group doesn't auto-enroll you in every gala the group creates — someone can be a group member but skip a specific trip. When a room is created inside a group, the natural UX is "invite from group roster," which pre-fills `room_members` from `group_members` but still requires each person to actually be added/RSVP into that specific room.
-
 ---
 
 ## 4. API Contract (`/api/v1`)
 
-Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call except `POST /rooms/join` (still needs *a* JWT — see §5.2), cursor-based pagination (`?cursor=...&limit=20`), errors as `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
+Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call, including `POST /rooms/join` — every non-public endpoint requires a registered account (see §5.1), cursor-based pagination (`?cursor=...&limit=20`), errors as `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
 
 | Method | Path | Purpose | Role |
 |---|---|---|---|
-| POST | `/groups` | Create group | Authenticated |
-| POST | `/groups/join` | Join a group by code | Authenticated |
-| GET | `/groups/{groupId}` | Group overview | Group member |
-| GET | `/groups/{groupId}/members` | Group roster | Group member |
-| DELETE | `/groups/{groupId}/members/{userId}` | Remove group member | Group Owner/Admin |
-| GET | `/groups/{groupId}/rooms` | List galas in this group | Group member |
-| POST | `/groups/{groupId}/rooms` | Create a gala inside the group | Group member |
-| POST | `/rooms` | Create standalone room (no group) | Authenticated |
+| POST | `/rooms` | Create standalone room | Authenticated |
 | GET | `/rooms/{roomId}` | Room overview | Member |
 | POST | `/rooms/join` | Join by room code | Authenticated |
 | GET | `/rooms/{roomId}/members` | Member list | Member |
@@ -339,7 +299,7 @@ Every write endpoint: Bean Validation on the request DTO, ownership/role check v
 - Supabase Auth issues JWTs (supports anonymous auth, which fits nickname-only onboarding).
 - Spring Boot does **not** re-implement login, signup, or token refresh — the frontend talks to Supabase Auth directly and just attaches the resulting token as `Authorization: Bearer <token>`. The backend's only job is to **verify** that token on every request.
 - Reject any token whose `aud`/`iss` doesn't match your Supabase project.
-- Anonymous users are still real `auth.users` rows with a real `sub` — treat them identically to email users in authorization logic. Note for the team: anonymous sessions are device/browser-bound, so a user who clears storage loses their identity unless they later link a real auth method — worth flagging as a known limitation, not a bug.
+- **Anonymous Supabase sessions are rejected (2026-09-29, overrides the PDF's no-login flow).** A `NotAnonymousJwtValidator` in the `JwtDecoder`'s validator chain fails any token with `is_anonymous: true` or a blank `email` claim, fail-closed. The auth entry point maps that specific rejection to `401 {"code":"ACCOUNT_REQUIRED"}` (distinct from the generic `401 UNAUTHENTICATED`) so the frontend can route the user to sign-in. Every non-public endpoint requires a registered account (email/OTP or password via Supabase Auth).
 
 #### 5.1.1 Implementation — verifying Supabase JWTs in Spring Boot
 
@@ -448,56 +408,30 @@ public class CurrentUserProvider {
 
 **What this gives you automatically:** signature verification against Supabase's live JWKS, expiry (`exp`) and issued-at checks, key rotation handling, and now explicit `aud` checking on top. **What it does NOT do:** room membership/role checks — that's still the separate `@RequireRoomRole` authorization layer in §5.2, which runs *after* this filter, using the `userId` this filter puts in the security context.
 
-### 5.2 Authorization (are you allowed here) — two tiers
+### 5.2 Authorization (are you allowed here) — one tier
 
-With groups in the picture, there are now **two independent membership checks**, not one. A group member is not automatically a room member, and vice versa (a standalone room has no group at all) — so the guard has to know which tier a given endpoint cares about.
+There is a single membership check: room membership. There is no group tier to conflate it with.
 
 Layered checks, cheapest first, for a **room**-scoped endpoint:
 1. **JWT valid?** → filter, rejects before hitting a controller.
-2. **Room exists?** → 404 if not (don't leak "exists but you can't see it" vs "doesn't exist" — same 404 for both to avoid room-code/group-code enumeration hints).
-3. **Is this user a member of this room?** → `room_members` lookup, cached (see §6). 403 if not. *(Note: do **not** substitute a group-membership check here — someone can be in the group but not this specific gala.)*
+2. **Room exists?** → 404 if not (don't leak "exists but you can't see it" vs "doesn't exist" — same 404 for both to avoid room-code enumeration hints).
+3. **Is this user a member of this room?** → `room_members` lookup, cached (see §6). 403 if not.
 4. **Does this action require HOST?** → role check.
 
-And for a **group**-scoped endpoint (e.g. viewing the roster, listing galas in the group, removing someone from the group):
-1. JWT valid?
-2. Group exists? → 404 if not.
-3. Is this user a `group_members` row for this group? → 403 if not.
-4. Does this action require OWNER/ADMIN?
-
-Implement both as method-level guards, not scattered in controllers:
+Implement as a method-level guard, not scattered in controllers:
 
 ```java
 @RequireRoomRole(RoomRole.MEMBER)
 @PatchMapping("/rooms/{roomId}/checklist/{itemId}")
 public ChecklistItemDto toggle(@PathVariable UUID roomId, ...) { ... }
-
-@RequireGroupRole(GroupRole.MEMBER)
-@GetMapping("/groups/{groupId}/rooms")
-public PageResponse<RoomSummaryDto> listGroupRooms(@PathVariable UUID groupId, ...) { ... }
-
-@RequireGroupRole(GroupRole.OWNER_OR_ADMIN)
-@DeleteMapping("/groups/{groupId}/members/{userId}")
-public void removeGroupMember(@PathVariable UUID groupId, @PathVariable UUID userId) { ... }
 ```
-Two separate AOP aspects (`RoomAccessGuard`, `GroupAccessGuard`), each reading its own path variable (`roomId` vs `groupId`), looking up membership cache-first, and throwing `403` before the method body runs. `POST /groups/{groupId}/rooms` is the one endpoint that touches both tiers: it checks group membership first (can you create a gala in this circle at all), then creates the room and seeds `room_members` from the inviter's picks off the group roster.
+One AOP aspect (`RoomAccessGuard`) reads the `roomId` path variable, looks up membership cache-first, and throws `403` before the method body runs.
 
-This layered guard is the single most important control against "guessing/manipulating URLs" (Objective O5) — never trust a `roomId` or `groupId` in the path or body without the matching check, on every endpoint, no exceptions.
+This layered guard is the single most important control against "guessing/manipulating URLs" (Objective O5) — never trust a `roomId` in the path or body without the matching check, on every endpoint, no exceptions.
 
-### 5.3 Role matrices (starting point — refine per feature)
+### 5.3 Role matrix (starting point — refine per feature)
 
-**Group level**
-
-| Action | OWNER | ADMIN | MEMBER | Unauthenticated |
-|---|---|---|---|---|
-| Create group | ✅ (becomes owner) | — | — | ❌ |
-| Join group by code | ✅ | ✅ | ✅ | ❌ |
-| View roster / galas list | ✅ | ✅ | ✅ | ❌ |
-| Create a gala inside the group | ✅ | ✅ | ✅ | ❌ |
-| Remove a group member | ✅ | ✅ | ❌ | ❌ |
-| Rename group / edit group settings | ✅ | ✅ | ❌ | ❌ |
-| Delete/archive group | ✅ | ❌ | ❌ | ❌ |
-
-**Room level (unchanged by groups — applies whether the room is standalone or inside a group)**
+**Room level**
 
 | Action | HOST | MEMBER | Unauthenticated |
 |---|---|---|---|
@@ -513,8 +447,6 @@ This layered guard is the single most important control against "guessing/manipu
 | Share location | ✅ | ✅ (opt-in) | ❌ |
 | View another room's data | ❌ | ❌ | ❌ |
 
-A group OWNER/ADMIN has **no automatic elevated rights** inside a specific room they didn't host — group role and room role are independent. Being the group owner doesn't let you edit someone else's itinerary item in a gala where you're just a MEMBER. Keep that boundary explicit, or it quietly becomes a privilege-escalation path (a group admin "reaching into" every room).
-
 ### 5.4 Row-Level Security as a second layer
 Even though Spring Boot enforces authorization, if the mobile team ever queries Supabase directly (e.g. Realtime subscription payloads, or a future direct-to-Supabase read), **RLS policies on every table must independently enforce room membership**. Defense in depth: don't rely on the API being the only door.
 
@@ -524,8 +456,6 @@ Even though Spring Boot enforces authorization, if the mobile team ever queries 
 
 | Data | Cache? | Key | TTL | Invalidate on |
 |---|---|---|---|---|
-| Group membership check | Yes | `group:{groupId}:member:{userId}` | 5 min | group member added/removed |
-| Group roster / room list | Yes | `group:{groupId}:rooms` | 60 s | gala created/archived in group |
 | Room membership check | Yes | `room:{roomId}:member:{userId}` | 5 min | member added/removed |
 | Room overview | Yes | `room:{roomId}:overview` | 60 s | any room-level edit |
 | Itinerary list | Yes | `room:{roomId}:itinerary` | 30 s | any itinerary write |
@@ -640,8 +570,8 @@ Suggested acceptance targets to start from (refine after real load tests): P95 <
 | Sprint | Backend Deliverables | Exit Gate |
 |---|---|---|
 | 0 — Discovery | This doc reviewed/approved, ERD + API contract frozen | Team can answer "what does the backend expose?" |
-| 1 — Foundation | Repo, Spring Boot skeleton, Flyway V1 (groups/rooms/members), JWT filter, CI green | A protected endpoint correctly rejects an invalid token |
-| 2 — Group + Room + Members | Create/join group, create/join room (standalone and in-group), membership, RSVP, `@RequireGroupRole` + `@RequireRoomRole` aspects | Two users can join the same group, create a gala inside it, and a third person outside the group can't see either |
+| 1 — Foundation | Repo, Spring Boot skeleton, Flyway V1 (rooms/members), JWT filter, CI green | A protected endpoint correctly rejects an invalid token |
+| 2 — Room + Members | Create/join room, membership, RSVP, `@RequireRoomRole` aspect | Two users can join the same room, and a third person can't see it |
 | 3 — Collaboration | Itinerary, checklist (with optimistic locking), realtime publisher wired in | Two clients see each other's itinerary/checklist changes live |
 | 4 — Money | Budget, expenses, expense shares, settlement calculation | Settlement math verified correct on test scenarios (incl. uneven splits) |
 | 5 — Performance + Fun | Redis caching, rate limiting, location sharing (pin + live) | Cache-failure test passes; live location updates broadcast correctly |
@@ -651,9 +581,8 @@ Suggested acceptance targets to start from (refine after real load tests): P95 <
 
 ## 13. Open Items to Confirm With the Team (don't assume these)
 
-- Whether creating a gala inside a group *requires* explicitly inviting people from the roster, or defaults to "everyone in the group is invited, RSVP decides who actually comes."
-- Whether a group can be deleted/archived while it still has active (non-archived) rooms inside it, or must those be resolved first.
-- Exact room-code and group-code format/length and collision-retry strategy.
+- Exact room-code format/length and collision-retry strategy.
 - Whether expense settlement should support partial payments/"marked as settled" state, or stay a pure calculated view (recommended for MVP: pure calculated view, no settlement persistence).
 - Live-location update interval and auto-expiry window (defaults suggested above, tune after testing).
-- Whether anonymous Supabase auth is acceptable long-term or if account linking (email) becomes a later requirement.
+
+**Resolved 2026-09-29:** Anonymous Supabase auth is not acceptable — a registered account (email/OTP or password) is required for every non-public endpoint. See §5.1.
