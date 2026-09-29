@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import '../index.css';
+import '../styles/otw.css';
 
 export const metadata: Metadata = {
   title: 'OTW — Tara G!',
@@ -13,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans bg-cream text-[#5c4655] antialiased">
+      <body className="antialiased">
         {children}
       </body>
     </html>

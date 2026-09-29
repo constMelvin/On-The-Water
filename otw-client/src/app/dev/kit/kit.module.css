@@ -1,0 +1,162 @@
+/* Layout for the dev kit page only. Mirrors the reference's doc-page classes
+   (.sec .dspart .dsg .dsb .dsrow .swc .icons) so it can be compared side by side. */
+
+.sec {
+  padding: 60px var(--pad);
+}
+
+.h1 {
+  font-size: var(--h1);
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  margin-top: 22px;
+}
+
+.lead {
+  font-size: 20px;
+  font-weight: 700;
+  max-width: 34ch;
+  margin: 14px 0;
+}
+
+.part {
+  background: var(--cream);
+  color: var(--teal-dark);
+  border-radius: 30px;
+  padding: 26px 28px;
+  margin-bottom: 22px;
+}
+
+.partTitle {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.grid {
+  display: grid;
+  gap: 18px;
+}
+
+.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.swatches {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.box {
+  background: var(--cream);
+  border: 3px solid var(--blossom);
+  border-radius: 22px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.box h4 {
+  font-size: 15px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+.rowBlossom {
+  background: var(--blossom);
+  border-radius: 22px;
+  padding: 18px 20px;
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.swatch i {
+  font-style: normal;
+  border-radius: 22px;
+  padding: 34px 12px 12px;
+  font-family: var(--fd);
+  font-size: 15px;
+  box-shadow: inset 0 0 0 3px var(--blossom);
+}
+
+.swatch span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tdisp {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 38px;
+  line-height: 1.05;
+  margin: 10px 0;
+}
+
+.tdisp2 {
+  font-size: 28px;
+}
+
+.tdisp3 {
+  font-size: 20px;
+}
+
+.tb1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.tb2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+}
+
+.icons span {
+  background: var(--blossom);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  height: 52px;
+  color: var(--teal-dark);
+}
+
+.skel {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.note {
+  margin-top: 12px;
+}
+
+@media (max-width: 980px) {
+  .two,
+  .three {
+    grid-template-columns: 1fr;
+  }
+
+  .swatches {
+    grid-template-columns: 1fr 1fr;
+  }
+}
