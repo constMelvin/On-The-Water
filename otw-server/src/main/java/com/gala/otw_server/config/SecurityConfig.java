@@ -3,6 +3,7 @@ package com.gala.otw_server.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gala.otw_server.common.ErrorCode;
 import com.gala.otw_server.common.ErrorResponse;
+import com.gala.otw_server.security.NotAnonymousJwtValidator;
 import com.gala.otw_server.security.SupabaseJwtAuthenticationConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -88,7 +89,11 @@ public class SecurityConfig {
                             response.setStatus(401);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             objectMapper.writeValue(response.getWriter(),
-                                    ErrorResponse.of(ErrorCode.UNAUTHENTICATED, "Invalid or missing token"));
+                                    NotAnonymousJwtValidator.isCauseOf(authException)
+                                            ? ErrorResponse.of(ErrorCode.ACCOUNT_REQUIRED,
+                                                    "Please sign in with an account to use OTW")
+                                            : ErrorResponse.of(ErrorCode.UNAUTHENTICATED,
+                                                    "Invalid or missing token"));
                         })
                 )
                 .exceptionHandling(ex -> ex
@@ -132,7 +137,8 @@ public class SecurityConfig {
                     new OAuth2Error("invalid_audience", "JWT audience mismatch", null));
         };
 
-        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(withIssuer, withAudience));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                withIssuer, withAudience, new NotAnonymousJwtValidator()));
         return decoder;
     }
 }

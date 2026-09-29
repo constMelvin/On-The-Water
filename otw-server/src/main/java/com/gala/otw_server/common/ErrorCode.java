@@ -12,6 +12,7 @@ public enum ErrorCode {
     FORBIDDEN,
     TOKEN_EXPIRED,
     TOKEN_INVALID,
+    ACCOUNT_REQUIRED,           // valid token, but an anonymous session — sign in with an account
 
     // ── Resource not found ──────────────────────────────────────────────────
     ROOM_NOT_FOUND,
