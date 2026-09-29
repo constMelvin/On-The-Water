@@ -153,6 +153,345 @@ const FOOTER_SHAPES: ShapeDef[] = [
   S('spark', '80%', '60%', 18, 'zest', 0.5, { a: 'twinkle', dur: 4, dl: -1.4, z: 36 }),
 ];
 
+/* ------------------------------------------------------------------ */
+/*  How it works: road-trip / parcel tracker                          */
+/* ------------------------------------------------------------------ */
+
+const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
+  {
+    t: 'Pick the date',
+    d: 'Let’s turn “someday” into an actual date.',
+    icon: (
+      <>
+        <rect x="3.5" y="5" width="17" height="15" rx="4" />
+        <path d="M3.5 10h17M8 3v4M16 3v4" />
+      </>
+    ),
+  },
+  {
+    t: 'See who’s G',
+    d: 'I’m G, Maybe, or Can’t make it. No more “seen.”',
+    icon: (
+      <>
+        <circle cx="9" cy="8" r="3.2" />
+        <path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5M15.5 10.5l2 2 3.5-4" />
+      </>
+    ),
+  },
+  {
+    t: 'Build the plan',
+    d: 'Places, food stops and timing, in order.',
+    icon: (
+      <>
+        <circle cx="6" cy="18" r="2.2" />
+        <circle cx="18" cy="6" r="2.2" />
+        <path d="M8.2 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.8" />
+      </>
+    ),
+  },
+  {
+    t: 'Talk gastos',
+    d: 'Estimate the budget before “magkano ba?” starts.',
+    icon: (
+      <>
+        <rect x="3" y="6.5" width="18" height="13" rx="4" />
+        <path d="M3 10.5h18" />
+        <circle cx="16.5" cy="15" r="1.2" />
+      </>
+    ),
+  },
+  {
+    t: 'Pack smart',
+    d: 'Because someone always forgets the charger.',
+    icon: (
+      <>
+        <rect x="4" y="8" width="16" height="12" rx="4" />
+        <path d="M9 8V6a3 3 0 0 1 6 0v2M4 13h16" />
+      </>
+    ),
+  },
+  {
+    t: 'Real-time GC chat',
+    d: 'Keep all the banter, updates, and side-talk in one place.',
+    icon: (
+      <>
+        <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+        <path d="M8 10h8M8 13.5h5" />
+      </>
+    ),
+  },
+  {
+    t: 'Watch everyone go OTW',
+    d: 'Live location on gala day.',
+    icon: (
+      <>
+        <path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z" />
+        <circle cx="12" cy="9" r="2.4" />
+      </>
+    ),
+  },
+];
+
+/** Winding route through the centre of every stop (viewBox 0 0 100 700, one row = 100 units). */
+const ROUTE_D = `M50 0 L50 50 ${Array.from({ length: STEPS.length - 1 }, (_, i) => {
+  const y = 50 + i * 100;
+  const x = i % 2 ? 18 : 82;
+  return `C${x} ${y + 40} ${x} ${y + 60} 50 ${y + 100}`;
+}).join(' ')} L50 700`;
+
+function RoadTracker() {
+  const [active, setActive] = useState(0);
+  const stopRefs = useRef<(HTMLLIElement | null)[]>([]);
+
+  /* The OTW pin follows whichever stop sits in the middle of the viewport. */
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.i));
+        });
+      },
+      { rootMargin: '-45% 0px -45% 0px' }
+    );
+    stopRefs.current.forEach((el) => el && io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  const progress = ((active + 0.5) / STEPS.length) * 100;
+
+  return (
+    <>
+      <p className={styles.trackStatus} aria-live="polite">
+        <span className={styles.trackDot} />
+        Stop {active + 1} of {STEPS.length} · {STEPS[active].t}
+      </p>
+
+      <div className={styles.road} style={{ '--p': `${progress}%` } as React.CSSProperties}>
+        <div className={styles.route} aria-hidden="true">
+          <svg viewBox="0 0 100 700" preserveAspectRatio="none" focusable="false">
+            <path className={styles.routeBase} d={ROUTE_D} />
+          </svg>
+          <div className={styles.routeFillWrap}>
+            <svg viewBox="0 0 100 700" preserveAspectRatio="none" focusable="false">
+              <path className={styles.routeFill} d={ROUTE_D} />
+            </svg>
+          </div>
+          <div className={styles.van} style={{ top: `${progress}%` }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 16V9.5A2.5 2.5 0 0 1 5.5 7H14l4 4h1.5A1.5 1.5 0 0 1 21 12.5V16h-2M9 16h6M5 16H3M14 7v4h4" />
+              <circle cx="7" cy="16.5" r="1.8" />
+              <circle cx="17" cy="16.5" r="1.8" />
+            </svg>
+            <span>OTW</span>
+          </div>
+        </div>
+
+        <ol className={styles.stops}>
+        {STEPS.map((s, i) => {
+          const state = i < active ? styles.done : i === active ? styles.here : '';
+          return (
+            <li
+              key={s.t}
+              ref={(el) => {
+                stopRefs.current[i] = el;
+              }}
+              data-i={i}
+              className={`${styles.stop} ${i % 2 ? styles.stopRight : styles.stopLeft} ${state}`}
+            >
+              <button
+                type="button"
+                className={styles.milestone}
+                onClick={() => setActive(i)}
+                aria-label={`Stop ${i + 1}: ${s.t}`}
+                aria-current={i === active ? 'step' : undefined}
+              >
+                {i + 1}
+              </button>
+              <div className={styles.stopCard} data-reveal style={delay(0.05)} onClick={() => setActive(i)}>
+                <span className={styles.stopIcon}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {s.icon}
+                  </svg>
+                </span>
+                <div>
+                  <span className={styles.stopEyebrow}>STOP {String(i + 1).padStart(2, '0')}</span>
+                  <h3>{s.t}</h3>
+                  <p>{s.d}</p>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+        </ol>
+      </div>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Features: no account vs. account fork                             */
+/* ------------------------------------------------------------------ */
+
+const NOW_ITEMS = [
+  'Plan a Gala or join with a code',
+  'Attendance, itinerary, checklist',
+  'Budget, expenses, chat',
+  'Live location on gala day',
+  'The Gala Dump for photos',
+];
+
+const LATER_ITEMS = [
+  'Saved galas, one tap away',
+  'A personal gala calendar',
+  'Gala history, plus Mga Drawing',
+  'Reminders, even when you’re not in the gala',
+  'Your galas on any device',
+];
+
+/** Playful pointer tilt, written as two CSS variables. Mouse only. */
+const tilt = (e: React.PointerEvent<HTMLElement>) => {
+  if (e.pointerType !== 'mouse') return;
+  const r = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty('--rx', `${((e.clientY - r.top) / r.height - 0.5) * -8}deg`);
+  e.currentTarget.style.setProperty('--ry', `${((e.clientX - r.left) / r.width - 0.5) * 10}deg`);
+};
+
+const untilt = (e: React.PointerEvent<HTMLElement>) => {
+  e.currentTarget.style.removeProperty('--rx');
+  e.currentTarget.style.removeProperty('--ry');
+};
+
+function ForkCards() {
+  return (
+    <div className={styles.fork}>
+      <article
+        className={`${styles.forkCard} ${styles.forkNow}`}
+        data-reveal
+        style={delay(0.1)}
+        onPointerMove={tilt}
+        onPointerLeave={untilt}
+      >
+        <span className={styles.forkTag}>INSTANT ACCESS</span>
+        <h3>Right away, no account</h3>
+        <p className={styles.forkSub}>
+          Jump in. No sign-up. Make an account later, only if you want to keep your galas with you.
+        </p>
+        <ul className={styles.forkList}>
+          {NOW_ITEMS.map((t) => (
+            <li key={t}>
+              <span className={styles.bullet}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+              </span>
+              {t}
+            </li>
+          ))}
+        </ul>
+      </article>
+
+      <div className={styles.forkOr} aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        <span>LATER</span>
+      </div>
+
+      <article
+        className={`${styles.forkCard} ${styles.forkLater}`}
+        data-reveal
+        style={delay(0.25)}
+        onPointerMove={tilt}
+        onPointerLeave={untilt}
+      >
+        <span className={styles.forkTag}>TOTALLY OPTIONAL</span>
+        <h3>Want to keep your galas with you?</h3>
+        <p className={styles.forkSub}>Upgrade anytime to unlock your gala vault.</p>
+        <ul className={styles.forkList}>
+          {LATER_ITEMS.map((t) => (
+            <li key={t}>
+              <span className={styles.bullet}>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="currentColor" />
+                </svg>
+              </span>
+              {t}
+            </li>
+          ))}
+        </ul>
+      </article>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Returning users: pill that opens into a quick gala-code input     */
+/* ------------------------------------------------------------------ */
+
+function ReEnterGala() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const c = code.replace(/\s+/g, '');
+    router.push(c ? `/${encodeURIComponent(c)}` : '/join');
+  };
+
+  if (!open) {
+    return (
+      <button type="button" className={styles.reenter} onClick={() => setOpen(true)}>
+        <span className={styles.reenterIcon}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 4h3a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-3M10 16l4-4-4-4M14 12H4" />
+          </svg>
+        </span>
+        <span className={styles.reenterSoft}>Been here before?</span> Enter a Gala
+      </button>
+    );
+  }
+
+  return (
+    <form
+      className={styles.reenterForm}
+      onSubmit={submit}
+      onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
+    >
+      <label htmlFor="reenter-code" className={styles.srOnly}>
+        Gala code
+      </label>
+      <input
+        id="reenter-code"
+        ref={inputRef}
+        className={styles.reenterInput}
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        placeholder="Gala code"
+        autoComplete="off"
+        autoCapitalize="characters"
+        spellCheck={false}
+      />
+      <button type="submit" className={styles.reenterGo} aria-label="Enter gala">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </button>
+      <button type="button" className={styles.reenterClose} onClick={() => setOpen(false)} aria-label="Close">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </form>
+  );
+}
+
 function Shapes({ items }: { items: ShapeDef[] }) {
   return (
     <div className={styles.bg} aria-hidden="true">
@@ -435,9 +774,13 @@ export default function LandingPage() {
               ))}
             </div>
 
+            <div className={`${styles.reenterWrap} ${styles.heroRise}`} style={delay(0.5)}>
+              <ReEnterGala />
+            </div>
+
             <p
               className={styles.heroRise}
-              style={{ ...delay(0.55), color: '#ffdcea', fontSize: '12px', marginTop: '12px', fontWeight: 700 }}
+              style={{ ...delay(0.6), color: '#ffdcea', fontSize: '12px', marginTop: '14px', fontWeight: 700 }}
             >
               And yes, we can tell if you&apos;re actually OTW.
             </p>
@@ -459,71 +802,16 @@ export default function LandingPage() {
           <p className={styles.howSub} data-reveal style={delay(0.1)}>
             NO COMPLICATED SETUP. JUST MAKE A PLAN AND GET EVERYONE MOVING.
           </p>
-          <div className={styles.steps}>
-            <div className={styles.stepBlob} data-reveal style={delay(0.15)}>
-              <div className={styles.num}>1</div>
-              <h3>G tayo?</h3>
-              <p>Pick a date, get the tropa, and give your gala a name your GC will remember.</p>
-            </div>
-            <div className={styles.stepBlob} data-reveal style={delay(0.3)}>
-              <div className={styles.num}>2</div>
-              <h3>Okay, what&apos;s the plan?</h3>
-              <p>Build the itinerary, sort out the budget, and keep everything in one place.</p>
-            </div>
-            <div className={styles.stepBlob} data-reveal style={delay(0.45)}>
-              <div className={styles.num}>3</div>
-              <h3>OTW na ba talaga?</h3>
-              <p>Share your location on the day itself. Less &quot;Nasaan ka na?&quot; More &quot;2 mins away.&quot;</p>
-            </div>
-          </div>
+          <RoadTracker />
         </div>
       </section>
 
-      {/* FEATURES : full teal bleed, blossom blob cards */}
-      <section className={styles.features} id="features">
+      {/* FEATURES : full teal bleed, no-account vs. account fork */}
+      <section className={styles.features} id="features" aria-label="Ways to use OTW">
         <Shapes items={FEATURE_SHAPES} />
 
         <div className={styles.featuresInner}>
-          <div className={styles.sectionHead} data-reveal style={delay(0)}>
-            <h2>Built for the group chat energy</h2>
-            <p>Four things, done well, so nobody has to be &quot;the planner&quot; ever again</p>
-          </div>
-          <div className={styles.featureGrid}>
-            <div className={styles.featureCard} data-reveal style={delay(0.1)}>
-              <div className={styles.iconBlob}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rosy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z" />
-                  <circle cx="12" cy="9" r="2.4" />
-                </svg>
-              </div>
-              <h3>Saan Tayo?</h3>
-              <p>Drop a location poll, votes come in live, winner locks the plan.</p>
-              <span className={styles.tag}>LOCATION POLLS</span>
-            </div>
-            <div className={styles.featureCard} data-reveal style={delay(0.25)}>
-              <div className={styles.iconBlob}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rosy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="7" width="18" height="12" rx="4" />
-                  <path d="M3 10.5h18" />
-                  <circle cx="16.5" cy="14.5" r="1.3" fill="var(--rosy)" stroke="none" />
-                </svg>
-              </div>
-              <h3>Ambagan</h3>
-              <p>Shared costs split and tracked automatically — no group-chat math.</p>
-              <span className={styles.tag}>SHARED EXPENSES</span>
-            </div>
-            <div className={styles.featureCard} data-reveal style={delay(0.4)}>
-              <div className={styles.iconBlob}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rosy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="5" y="3" width="14" height="18" rx="4" />
-                  <path d="M9 8h6M9 12h6M9 16h4" />
-                </svg>
-              </div>
-              <h3>Mga Drawing</h3>
-              <p>Plans that fell through get shelved, not deleted — revive anytime.</p>
-              <span className={styles.tag}>SHELVED PLANS</span>
-            </div>
-          </div>
+          <ForkCards />
         </div>
       </section>
 
