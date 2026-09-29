@@ -5,11 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import styles from './join.module.css';
 import { lookupGala, joinGala, type GalaEvent } from './mockJoin';
+import { galaRoute, registerJoinedGala } from '@/lib/otw/gala-registry';
 
-// TODO(D3-01): Dashboard route for leader
-export const LEADER_DASHBOARD_ROUTE = '/dashboard';
-// TODO(D3-01): Dashboard route for member
-export const MEMBER_DASHBOARD_ROUTE = '/dashboard';
+// Dashboard route for the gala the member just joined
+const MEMBER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
 
 interface Sparkle {
   id: number;
@@ -21,7 +20,7 @@ interface Sparkle {
  * Normalizes input code to standard format OTW-XXXX.
  * Accepts formats like 7K2P, otw7k2p, OTW7K2P, or OTW-7K2P.
  */
-export function normalizeGalaCode(value: string): string {
+function normalizeGalaCode(value: string): string {
   const stripped = value.replace(/[\s-]+/g, '').toUpperCase();
   if (!stripped) return '';
   if (stripped.startsWith('OTW')) {
@@ -253,6 +252,13 @@ export default function JoinPage() {
         return;
       }
 
+      // Hand the join to the shared gala store; the joiner is a member under their nickname.
+      registerJoinedGala(
+        normalizeGalaCode(code),
+        trimmedNick,
+        event ? { name: event.name, location: event.location, attendees: event.attendees } : undefined
+      );
+
       // Store joined gala details for session retrieval
       try {
         sessionStorage.setItem(
@@ -361,7 +367,7 @@ export default function JoinPage() {
               <span>{nickname.trim()}</span>
             </div>
 
-            <Link href={MEMBER_DASHBOARD_ROUTE} className={styles.btnSuccess}>
+            <Link href={MEMBER_DASHBOARD_ROUTE(normalizeGalaCode(code))} className={styles.btnSuccess}>
               Go to the Gala
             </Link>
           </div>

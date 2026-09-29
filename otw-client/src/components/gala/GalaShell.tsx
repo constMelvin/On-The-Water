@@ -5,14 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AvatarStack, Icon, Tag } from '@/components/otw';
 import { useGala } from '@/lib/otw/gala-store';
-import { statusOf } from '@/lib/otw/data';
 import { GBOT, GNAV, PTABS, SETTINGS, galaHref } from './nav';
 import { GalaSheets } from './GalaSheets';
 import { useCopyCode } from './useCopyCode';
 import { DevSwitcher } from './DevSwitcher';
 
 export function GalaShell({ children }: { children: ReactNode }) {
-  const { gala, members, myStatus, role, hasAccount, unread, openSheet } = useGala();
+  const { gala, members, role, hasAccount, unread, openSheet } = useGala();
   const pathname = usePathname();
   const copyCode = useCopyCode();
 
@@ -21,7 +20,7 @@ export function GalaShell({ children }: { children: ReactNode }) {
   const href = (s: string) => galaHref(gala.code, s);
   const showTabs = PTABS.some((t) => t.seg === seg);
   const badge = (s: string) => s === 'chat' && seg !== 'chat' && unread > 0 && <em className="badge">{unread}</em>;
-  const going = members.filter((m) => statusOf(m, myStatus) === 'g').map((m) => m.n);
+  const going = members.filter((m) => m.s === 'g').map((m) => m.n);
 
   return (
     <div className="shell">
@@ -33,7 +32,7 @@ export function GalaShell({ children }: { children: ReactNode }) {
 
         <div className="gmini">
           <b>{gala.title}</b>
-          <span>{gala.range}</span>
+          {gala.range && <span>{gala.range}</span>}
           <button type="button" className="codepill" onClick={copyCode} aria-label="Copy gala code">
             <Icon name="copy" size={14} /> {gala.code}
           </button>

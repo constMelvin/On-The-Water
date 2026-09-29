@@ -4,10 +4,11 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './code-confirm.module.css';
+import { galaRoute } from '@/lib/otw/gala-registry';
 
 // Dashboard routes constants
-export const LEADER_DASHBOARD_ROUTE = '/dashboard';
-export const CREATE_ACCOUNT_ROUTE = '/signup';
+const LEADER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
+const CREATE_ACCOUNT_ROUTE = '/login?tab=create';
 
 interface SparkleParticle {
   id: number;
@@ -509,7 +510,7 @@ function CodeConfirmContent() {
         <div className={styles.bottomCenterRow}>
           <button
             type="button"
-            onClick={() => router.push(LEADER_DASHBOARD_ROUTE)}
+            onClick={() => router.push(code ? LEADER_DASHBOARD_ROUTE(code) : '/plan')}
             className={styles.enterGalaBtn}
             id="enterGalaBtn"
           >

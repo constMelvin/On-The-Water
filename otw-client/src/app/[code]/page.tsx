@@ -1,15 +1,11 @@
-import { RoleAwareDashboard } from '@/components/dashboard';
+import { redirect } from 'next/navigation';
 
-interface GalaDashboardPageProps {
-  params: Promise<{
-    code: string;
-  }>;
+interface OldGalaRouteProps {
+  params: Promise<{ code: string }>;
 }
 
-export default async function GalaDashboardPage({
-  params,
-}: GalaDashboardPageProps) {
+/** Old gala URL (/OTW-7K2P). Kept so existing links still work; the dashboard lives at /gala/[code]. */
+export default async function OldGalaRoute({ params }: OldGalaRouteProps) {
   const { code } = await params;
-
-  return <RoleAwareDashboard code={code} />;
+  redirect(`/gala/${code}`);
 }

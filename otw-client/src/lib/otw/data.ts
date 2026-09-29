@@ -5,6 +5,7 @@
  * ported 1:1. Each type documents what the short keys mean. To move to a real API,
  * keep these types as the view model and map the API response into them.
  */
+import type { GalaRecord } from './gala-registry';
 
 /** Brand tones a member or photo can be colored with. */
 export type Tone = 'rosy' | 'teal' | 'zest' | 'blossom';
@@ -24,6 +25,10 @@ export interface Gala {
   date: string;
   range: string;
   time: string;
+  /** Real start (yyyy-mm-dd + hh:mm) for the live countdown. Absent on the demo gala. */
+  dateISO?: string;
+  startTime?: string;
+  days?: number;
 }
 
 export interface Member {
@@ -175,6 +180,24 @@ export const EXP0: Expense[] = [
   { n: 'Airbnb deposit', c: 'Stay', a: 3200, w: 'Merylle', d: 'Sep 24', note: '' },
   { n: 'Strawberry Farm booking', c: 'Activities', a: 1120, w: 'Josh', d: 'Sep 27', note: '' },
 ];
+
+/**
+ * DEV FALLBACK ONLY: the demo gala as a registry record, so /gala/OTW-7K2P works in
+ * development without creating a gala first. Production never seeds this.
+ */
+export const demoGalaRecord = (): GalaRecord => ({
+  code: G.code,
+  title: G.title,
+  date: '2026-11-14',
+  days: 2,
+  startTime: '05:30',
+  endTime: '21:00',
+  destination: G.dest,
+  password: G.pw,
+  members: MEM.map((m, i) => ({ name: m.n, role: i === 0 ? 'leader' : 'member', status: m.s, color: m.c })),
+  createdAt: 0,
+  demo: true,
+});
 
 /** Starting budget estimate (the prototype's initial `S.bud`). */
 export const BUD0: Budget = { tr: 5600, st: 6400, fo: 4800, ac: 2000, ot: 800, n: 8 };

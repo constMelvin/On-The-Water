@@ -1,3 +1,5 @@
+import { formatRange, getGala } from '@/lib/otw/gala-registry';
+
 export interface GalaEvent {
   name: string;
   dateRange: string;
@@ -29,6 +31,22 @@ export async function lookupGala(code: string): Promise<LookupGalaResult> {
 
   if (code.toUpperCase() === 'OTW-0000') {
     return { ok: false, error: 'NOT_FOUND' };
+  }
+
+  // A gala created with Plan a Gala on this device: preview the real one.
+  // TODO(D3-01): the real API replaces both this and the mock below.
+  const known = getGala(code);
+  if (known) {
+    return {
+      ok: true,
+      event: {
+        name: known.title,
+        dateRange: formatRange(known.date, known.days),
+        location: known.destination,
+        attendeeCount: known.members.length,
+        attendees: known.members.map((m) => m.name),
+      },
+    };
   }
 
   return {

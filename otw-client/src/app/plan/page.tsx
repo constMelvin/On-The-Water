@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './plan.module.css';
 import { createGala } from './mockCreate';
+import { registerCreatedGala } from '@/lib/otw/gala-registry';
 
 /**
  * Returns today's date formatted as YYYY-MM-DD in local time (not UTC).
@@ -261,6 +262,18 @@ export default function PlanPage() {
         const result = await createGala({
           name: name.trim(),
           tripType,
+          date,
+          days: finalDays,
+          startTime,
+          endTime,
+          destination: destination.trim(),
+          password,
+        });
+
+        // Hand the created gala to the shared gala store; the creator is the Gala Leader.
+        registerCreatedGala({
+          code: result.code,
+          title: name.trim(),
           date,
           days: finalDays,
           startTime,

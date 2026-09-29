@@ -442,7 +442,7 @@ function ReEnterGala() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const c = code.replace(/\s+/g, '');
-    router.push(c ? `/${encodeURIComponent(c)}` : '/join');
+    router.push(c ? `/enter?code=${encodeURIComponent(c)}` : '/enter');
   };
 
   if (!open) {

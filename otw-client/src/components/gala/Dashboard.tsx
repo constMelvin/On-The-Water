@@ -1,11 +1,10 @@
 'use client';
 
-import type { MouseEvent } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { Avatar, Button, Icon, StatusBadge, Tag, blob } from '@/components/otw';
 import type { IconName } from '@/lib/otw/icons';
 import {
-  ME,
   NOW_TO_GALA,
   ST,
   budTotal,
@@ -13,9 +12,9 @@ import {
   peso,
   photoCountFor,
   spent,
-  statusOf,
   type AttendanceKey,
 } from '@/lib/otw/data';
+import { countdownTo, galaStart } from '@/lib/otw/gala-registry';
 import { useGala } from '@/lib/otw/gala-store';
 import { burstEl, toast } from '@/lib/otw/feedback';
 import { galaHref } from './nav';
@@ -25,19 +24,29 @@ type Tone = 'blossom' | 'zest' | 'cream' | 'teal' | 'rosy';
 
 /* ---------------- hero parts ---------------- */
 
+/** Ticks by minute to the gala start. The demo gala uses the fixed demo clock. */
 function Countdown() {
+  const { gala } = useGala();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const left = gala.dateISO ? countdownTo(galaStart(gala.dateISO, gala.startTime), new Date(now)) : NOW_TO_GALA;
   return (
     <div className="cdown" aria-label="Countdown">
       <div>
-        <b>{NOW_TO_GALA.d}</b>
+        <b>{left.d}</b>
         <span>days</span>
       </div>
       <div>
-        <b>{NOW_TO_GALA.h}</b>
+        <b>{left.h}</b>
         <span>hours</span>
       </div>
       <div>
-        <b>{NOW_TO_GALA.m}</b>
+        <b>{left.m}</b>
         <span>mins</span>
       </div>
     </div>
@@ -90,9 +99,7 @@ function Hero() {
       <section className="dhero bg-rosy">
         <div>
           <h1 className="h1s">Today&apos;s the day.</h1>
-          <p className="lead2">
-            {gala.title} · {gala.dest}
-          </p>
+          <p className="lead2">{[gala.title, gala.dest].filter(Boolean).join(' · ')}</p>
           <div className="pmeta">
             <Tag variant="cream" icon="check">
               1 already there
@@ -121,12 +128,16 @@ function Hero() {
         <h1 className="h1s">Let&apos;s get this gala together.</h1>
         <h2 className="gt">{gala.title}</h2>
         <div className="pmeta">
-          <Tag variant="cream" icon="calendar">
-            {gala.range}
-          </Tag>
-          <Tag variant="cream" icon="pin">
-            {gala.dest}
-          </Tag>
+          {gala.range && (
+            <Tag variant="cream" icon="calendar">
+              {gala.range}
+            </Tag>
+          )}
+          {gala.dest && (
+            <Tag variant="cream" icon="pin">
+              {gala.dest}
+            </Tag>
+          )}
           <Tag variant="cream" icon="users">
             {members.length} people
           </Tag>
@@ -202,8 +213,8 @@ function RouteStrip() {
 /* ---------------- feature grid + rail ---------------- */
 
 function FeatureGrid() {
-  const { gala, members, myStatus, stops, items, budget, expenses, phase, unread } = useGala();
-  const c = counts(members, myStatus);
+  const { gala, members, stops, items, budget, expenses, phase, unread } = useGala();
+  const c = counts(members);
   const packed = items.filter((i) => i.d).length;
   const photos = photoCountFor(phase);
 
@@ -236,9 +247,9 @@ function FeatureGrid() {
 }
 
 function Rail() {
-  const { gala, members, myStatus, role } = useGala();
+  const { gala, members, me, role } = useGala();
   const copyCode = useCopyCode();
-  const c = counts(members, myStatus);
+  const c = counts(members);
   const href = (s: string) => galaHref(gala.code, s);
 
   return (
@@ -256,9 +267,9 @@ function Rail() {
               <Avatar name={m.n} tone={m.c} size={34} online={!!m.on} />
               <span>
                 {m.n}
-                {m.n === ME ? ' (you)' : ''}
+                {m.n === me ? ' (you)' : ''}
               </span>
-              <StatusBadge status={statusOf(m, myStatus)} />
+              <StatusBadge status={m.s} />
             </li>
           ))}
         </ul>
