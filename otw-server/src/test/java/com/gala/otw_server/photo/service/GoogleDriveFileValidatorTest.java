@@ -55,8 +55,24 @@ class GoogleDriveFileValidatorTest {
     }
 
     @Test
-    @DisplayName("rejects a non-image file")
-    void validate_rejectsNonImageMimeType() throws IOException {
+    @DisplayName("accepts a video file that lives in the expected folder and isn't trashed")
+    void validate_acceptsVideoInExpectedFolder() throws IOException {
+        Drive drive = mock(Drive.class, RETURNS_DEEP_STUBS);
+        File file = new File()
+                .setMimeType("video/mp4")
+                .setParents(List.of(FOLDER_ID))
+                .setTrashed(false);
+        when(drive.files().get(FILE_ID).setFields(anyString()).setSupportsAllDrives(true).execute())
+                .thenReturn(file);
+
+        GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
+
+        assertThatCode(() -> validator.validate(FILE_ID)).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("rejects a file that is neither an image nor a video")
+    void validate_rejectsNonImageNonVideoMimeType() throws IOException {
         Drive drive = mock(Drive.class, RETURNS_DEEP_STUBS);
         File file = new File()
                 .setMimeType("application/pdf")

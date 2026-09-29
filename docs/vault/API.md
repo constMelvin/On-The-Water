@@ -30,6 +30,6 @@ Back to [[00-Index]]
 | GET | `/rooms/{roomId}/expenses/settlement` | Member (computed "who owes who") |
 | PUT / DELETE | `/rooms/{roomId}/location` | Member (opt-in) |
 | GET | `/rooms/{roomId}/locations` | Member |
-| POST | `/rooms/{roomId}/photos` | Member (registers metadata only — backend verifies the submitted `driveFileId` via a read-only Google Drive API call: it must be a real, non-trashed image in the configured shared folder, or `400 INVALID_PHOTO_REFERENCE`. Binary upload to Drive is the client's job.) |
+| POST | `/rooms/{roomId}/photos` | Member (registers metadata only — backend verifies the submitted `driveFileId` via a read-only Google Drive API call: it must be a real, non-trashed image or video in the configured shared folder, or `400 INVALID_PHOTO_REFERENCE`. Binary upload to Drive is the client's job.) |
 
 Note: the §5.3 matrix lists "Delete expense (host / payer only)" and "Edit room details (host)", but §4 defines **no endpoint** for either. Flag this before building them.

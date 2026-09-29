@@ -14,9 +14,9 @@ import java.io.IOException;
 
 /**
  * Verifies a client-supplied Google Drive file ID before PhotoService marks
- * it READY: the file must exist, not be trashed, be an image, and live in
- * the shared folder this backend expects. Metadata-only (Drive files.get) —
- * the backend never downloads or stores the binary itself.
+ * it READY: the file must exist, not be trashed, be an image or video, and
+ * live in the shared folder this backend expects. Metadata-only (Drive
+ * files.get) — the backend never downloads or stores the binary itself.
  *
  * <p>Fails closed: if the Drive client isn't configured (see
  * {@link com.gala.otw_server.config.GoogleDriveConfig}), the folder ID isn't
@@ -56,16 +56,18 @@ public class GoogleDriveFileValidator {
             throw new InvalidPhotoReferenceException();
         }
 
-        if (!isValidPhotoFile(file)) {
+        if (!isValidMediaFile(file)) {
+            log.warn("Rejected Drive file {}: mimeType={}, parents={}, trashed={}, expectedFolder={}",
+                    driveFileId, file.getMimeType(), file.getParents(), file.getTrashed(), expectedFolderId);
             throw new InvalidPhotoReferenceException();
         }
     }
 
-    private boolean isValidPhotoFile(File file) {
+    private boolean isValidMediaFile(File file) {
         return file != null
                 && !Boolean.TRUE.equals(file.getTrashed())
                 && file.getMimeType() != null
-                && file.getMimeType().startsWith("image/")
+                && (file.getMimeType().startsWith("image/") || file.getMimeType().startsWith("video/"))
                 && file.getParents() != null
                 && file.getParents().contains(expectedFolderId);
     }
