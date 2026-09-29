@@ -33,23 +33,10 @@ public final class DomainExceptions {
         }
     }
 
-    public static class NotAGroupMemberException extends BaseException {
-        public NotAGroupMemberException() {
-            super(ErrorCode.NOT_A_GROUP_MEMBER, HttpStatus.FORBIDDEN, "You are not a member of this group");
-        }
-    }
-
     public static class InsufficientRoomRoleException extends BaseException {
         public InsufficientRoomRoleException(String required) {
             super(ErrorCode.INSUFFICIENT_ROOM_ROLE, HttpStatus.FORBIDDEN,
                     "This action requires room role: " + required);
-        }
-    }
-
-    public static class InsufficientGroupRoleException extends BaseException {
-        public InsufficientGroupRoleException(String required) {
-            super(ErrorCode.INSUFFICIENT_GROUP_ROLE, HttpStatus.FORBIDDEN,
-                    "This action requires group role: " + required);
         }
     }
 
@@ -58,12 +45,6 @@ public final class DomainExceptions {
     public static class RoomNotFoundException extends BaseException {
         public RoomNotFoundException() {
             super(ErrorCode.ROOM_NOT_FOUND, HttpStatus.NOT_FOUND, "Room not found");
-        }
-    }
-
-    public static class GroupNotFoundException extends BaseException {
-        public GroupNotFoundException() {
-            super(ErrorCode.GROUP_NOT_FOUND, HttpStatus.NOT_FOUND, "Group not found");
         }
     }
 
@@ -125,6 +106,13 @@ public final class DomainExceptions {
     public static class AlreadyAMemberException extends BaseException {
         public AlreadyAMemberException() {
             super(ErrorCode.ALREADY_A_MEMBER, HttpStatus.CONFLICT, "User is already a member");
+        }
+    }
+
+    public static class DuplicateNicknameException extends BaseException {
+        public DuplicateNicknameException() {
+            super(ErrorCode.DUPLICATE_NICKNAME, HttpStatus.CONFLICT,
+                    "That nickname is already taken by someone in this room");
         }
     }
 

@@ -16,15 +16,6 @@ public final class CacheKeys {
     public static final Duration TTL_OVERVIEW = Duration.ofSeconds(60);
     public static final Duration TTL_COLLECTIONS = Duration.ofSeconds(30);
 
-    // ── Group Keys ───────────────────────────────────────────────────────────
-    public static String groupMember(UUID groupId, UUID userId) {
-        return "group:" + groupId + ":member:" + userId;
-    }
-
-    public static String groupRooms(UUID groupId) {
-        return "group:" + groupId + ":rooms";
-    }
-
     // ── Room Keys ────────────────────────────────────────────────────────────
     public static String roomMember(UUID roomId, UUID userId) {
         return "room:" + roomId + ":member:" + userId;

@@ -15,7 +15,6 @@ public enum ErrorCode {
 
     // ── Resource not found ──────────────────────────────────────────────────
     ROOM_NOT_FOUND,
-    GROUP_NOT_FOUND,
     MEMBER_NOT_FOUND,
     ITINERARY_ITEM_NOT_FOUND,
     CHECKLIST_ITEM_NOT_FOUND,
@@ -24,14 +23,13 @@ public enum ErrorCode {
 
     // ── Access / membership ─────────────────────────────────────────────────
     NOT_A_ROOM_MEMBER,
-    NOT_A_GROUP_MEMBER,
     INSUFFICIENT_ROOM_ROLE,
-    INSUFFICIENT_GROUP_ROLE,
 
     // ── Conflict / state ────────────────────────────────────────────────────
     ALREADY_A_MEMBER,
+    DUPLICATE_NICKNAME,          // nickname already taken by an active member of this room
     OPTIMISTIC_LOCK_CONFLICT,   // version mismatch on itinerary/checklist edit
-    INVALID_CODE,               // bad room_code or group_code on join
+    INVALID_CODE,               // bad room_code on join
 
     // ── Validation / Limits ────────────────────────────────────────────────
     VALIDATION_ERROR,
