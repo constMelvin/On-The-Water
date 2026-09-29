@@ -1,15 +1,18 @@
 PROJECT: OTW — On The Water (Backend)
 
-OTW is a collaborative gala/trip planner. A persistent GROUP (barkada, join once via
-group_code) can contain many one-off ROOMS (individual galas/trips, join via room_code).
-Rooms can also exist standalone with no group. This is the backend only — no frontend/UI work.
+OTW is a collaborative gala/trip planner. Every ROOM (an individual gala/trip, joined via
+room_code) is standalone — there is no persistent group/barkada tier above it (removed
+2026-09-29; see docs/OTW_Backend_Master_Plan.md's changelog and docs/vault/Schema.md).
+This is the backend only — no frontend/UI work.
 
 STACK:
 
 - Java 21 + Spring Boot
 - Supabase PostgreSQL / Auth / Realtime
 - Redis (cache-aside, disposable — never the source of truth)
-- Google Drive (photo storage; backend stores metadata/file-id only, never binaries)
+- Google Drive (photo storage; backend stores metadata/file-id only, never binaries —
+  it verifies a client-supplied driveFileId via a read-only Drive API call before
+  marking a photo READY, see the `photo` package's GoogleDriveFileValidator)
 - Flyway for migrations
 
 AUTH MODEL (already decided — do not revisit):
@@ -18,9 +21,13 @@ AUTH MODEL (already decided — do not revisit):
   frontend. The backend NEVER issues, stores, or refreshes tokens.
 - Backend only VERIFIES incoming JWTs using Spring Security's OAuth2 Resource Server
   against Supabase's JWKS endpoint (see doc §5.1.1) — signature, expiry, aud, iss.
+- Anonymous Supabase sessions are rejected (2026-09-29 decision, requires a registered
+  account for security and abuse-prevention) — a token with `is_anonymous: true` or no
+  `email` claim fails verification with `401 ACCOUNT_REQUIRED`, not the generic
+  `401 UNAUTHENTICATED`. See `NotAnonymousJwtValidator` and doc §5.1.
 - `userId` comes from the JWT `sub` claim only. There is no local `users` table —
   Supabase `auth.users` is the identity source of truth; Postgres only stores
-  `group_members`/`room_members` rows keyed by that `userId`.
+  `room_members` rows keyed by that `userId`.
 
 SOURCE OF TRUTH:
 docs/OTW_Backend_Master_Plan.md is the authoritative spec for this project. It defines:
@@ -37,26 +44,23 @@ report it and update the note. When the master plan changes, update the matching
 
 CORE DATA MODEL RULES (do not violate):
 
-1. GROUP and ROOM membership are separate tables (group_members, room_members).
-   Being in a group never auto-grants access to a specific room — check both
-   independently, per the doc's §5.2.
-2. A group OWNER/ADMIN has NO automatic elevated rights inside a room they don't host.
-   Group role and room role are independent permission tiers.
-3. Postgres is the source of truth. Redis failures must degrade gracefully (fall through
+1. Postgres is the source of truth. Redis failures must degrade gracefully (fall through
    to Postgres), never return a 500.
-4. Every room- or group-scoped endpoint must go through the matching authorization guard
-   (@RequireRoomRole / @RequireGroupRole) — never trust a roomId/groupId in a path or body
-   without it, no exceptions, even for "obviously safe" reads.
-5. Money uses BigDecimal, scale 2, HALF_UP. Never double/float.
-6. No unbounded collection endpoints — always paginate.
-7. Any mutation other participants should see emits a realtime event on the appropriate
+2. Every room-scoped endpoint must go through the `@RequireRoomRole` authorization guard
+   — never trust a roomId in a path or body without it, no exceptions, even for
+   "obviously safe" reads.
+3. Money uses BigDecimal, scale 2, HALF_UP. Never double/float.
+4. No unbounded collection endpoints — always paginate.
+5. Any mutation other participants should see emits a realtime event on the appropriate
    private channel (room:{roomId}, per the doc's §8) AFTER the DB transaction commits.
-8. Optimistic locking (version column) on itinerary_items and checklist_items — concurrent
+6. Optimistic locking (version column) on itinerary_items and checklist_items — concurrent
    edits return 409, not silent overwrite.
-9. Every feature package (group, room, rsvp, itinerary, checklist, budget, expense,
-   location, photo) follows the same five-folder shape: controller/, dto/, entity/,
-   repository/, service/ (see doc §1). Controllers never bind to entities directly —
-   always through dto/.
+7. Every feature package (room, rsvp, itinerary, checklist, budget, expense, location,
+   photo) follows the same five-folder shape: controller/, dto/, entity/, repository/,
+   service/ (see doc §1). Controllers never bind to entities directly — always through
+   dto/.
+8. A room-member nickname is unique per room among active members, case-insensitive,
+   enforced by a DB partial unique index — see doc §3.1/§3.2 and V5's migration.
 
 YOUR ROLE:
 Depending on the task, act as: Backend Architect, Database Engineer, API Designer,
@@ -73,7 +77,7 @@ DEFAULT BEHAVIOR:
    criteria, and deliverables.
 6. Keep solutions simple and appropriate for a student project — no microservices,
    no unjustified new dependencies.
-7. Preserve the documented architecture and the group/room model above.
+7. Preserve the documented architecture and the room model above.
 8. Flag architecture conflicts before modifying anything.
 9. Security and authorization are mandatory on every task, not an afterthought.
 10. Consider performance and concurrency for any shared/collaborative data.
