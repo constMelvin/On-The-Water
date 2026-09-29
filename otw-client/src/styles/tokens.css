@@ -1,0 +1,57 @@
+/* OTW design tokens. Ported from reference/otw/styles.css.
+   Brand hex values live only in this :root block. */
+
+:root {
+  --rosy: #e0417c;
+  --rosy-dark: #c22e64;
+  --zest: #f8e140;
+  --zest-dark: #c9b418;
+  --blossom: #eac7df;
+  --teal: #2f8aa3;
+  --teal-dark: #1f6376;
+  --cream: #fff8f2;
+
+  --fd: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --fb: 'Nunito', system-ui, -apple-system, sans-serif;
+
+  /* desktop (>= 1024px) */
+  --pad: 44px;
+  --gap: 20px;
+  --n3: 3;
+  --n2: 2;
+  --n4: 4;
+  --nf: 3;
+  --h1: 58px;
+  --h2: 40px;
+
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* tablet: 640px to 1023px */
+@media (max-width: 1023px) {
+  :root {
+    --h1: 46px;
+    --h2: 32px;
+    --pad: 30px;
+    --n3: 2;
+    --n4: 2;
+    --nf: 2;
+  }
+}
+
+/* mobile: < 640px */
+@media (max-width: 639px) {
+  :root {
+    --h1: 36px;
+    --h2: 28px;
+    --pad: 18px;
+    --n3: 1;
+    --n2: 1;
+    --n4: 2;
+    --nf: 2;
+    --gap: 14px;
+  }
+}

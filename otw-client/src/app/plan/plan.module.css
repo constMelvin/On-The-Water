@@ -1,0 +1,1171 @@
+/* Bubblegum Chaos design system tokens */
+.planPage {
+  --rosy: #e0417c;
+  --rosy-dark: #c22e64;
+  --zest: #f8e140;
+  --zest-dark: #c9b418;
+  --blossom: #eac7df;
+  --teal: #2f8aa3;
+  --teal-dark: #1f6376;
+  --cream: #fff8f2;
+
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  transition: background-color 0.3s var(--bounce);
+}
+
+.planPage * {
+  box-sizing: border-box;
+}
+
+/* Step color themes */
+.step1Theme {
+  background-color: var(--rosy);
+  color: var(--cream);
+}
+
+.step2Theme {
+  background-color: var(--zest);
+  color: var(--teal-dark);
+}
+
+.step3Theme {
+  background-color: var(--teal);
+  color: var(--cream);
+}
+
+.step4Theme {
+  background-color: var(--blossom);
+  color: var(--teal-dark);
+}
+
+/* Drifting dot background pattern */
+.planPage::before {
+  content: '';
+  position: absolute;
+  inset: -32px;
+  background-image: radial-gradient(circle, var(--cream) 2.5px, transparent 3px);
+  background-size: 32px 32px;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: 0;
+  animation: dotsDrift 24s linear infinite;
+}
+
+.step2Theme::before,
+.step4Theme::before {
+  background-image: radial-gradient(circle, var(--teal-dark) 2.5px, transparent 3px);
+  opacity: 0.12;
+}
+
+@keyframes dotsDrift {
+  to {
+    transform: translate(32px, 32px);
+  }
+}
+
+/* 3 large floating background shapes */
+.bgShapes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floatingShape {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.14;
+  display: block;
+}
+
+.step1Theme .floatingShape,
+.step3Theme .floatingShape {
+  color: var(--cream);
+  fill: currentColor;
+}
+
+.step2Theme .floatingShape,
+.step4Theme .floatingShape {
+  color: var(--teal-dark);
+  fill: currentColor;
+}
+
+.shapeSparkle {
+  top: clamp(60px, 12vw, 110px);
+  right: clamp(16px, 8vw, 90px);
+  width: clamp(80px, 16vw, 120px);
+  animation: floatSparkle 18s ease-in-out infinite;
+}
+
+.shapeRing {
+  bottom: clamp(60px, 15vw, 140px);
+  left: clamp(-40px, -4vw, -20px);
+  width: clamp(120px, 24vw, 180px);
+  animation: floatRing 20s ease-in-out infinite;
+}
+
+.shapeBlob {
+  bottom: clamp(40px, 10vw, 80px);
+  right: clamp(-50px, -4vw, -20px);
+  width: clamp(140px, 26vw, 210px);
+  animation: floatBlob 22s ease-in-out infinite;
+}
+
+@keyframes floatSparkle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(14deg);
+  }
+}
+
+@keyframes floatRing {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(18px) rotate(-10deg);
+  }
+}
+
+@keyframes floatBlob {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) rotate(12deg) scale(1.06);
+  }
+}
+
+/* Centered content column */
+.contentContainer {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 640px;
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(20px, 4vw, 32px) 16px clamp(28px, 5vw, 40px);
+  box-sizing: border-box;
+}
+
+/* Header: Logo wordmark top-left, X top-right */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: clamp(18px, 3.5vw, 28px);
+}
+
+/* Original wordmark: map-pin icon (24px, var(--zest)) + "OTW" text */
+.wordmarkLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline-offset: 4px;
+  border-radius: 8px;
+  transition: transform 0.2s var(--bounce);
+  flex-shrink: 0;
+}
+
+@media (hover: hover) {
+  .wordmarkLink:hover {
+    transform: scale(1.04);
+  }
+}
+
+.step1Theme .wordmarkLink:focus-visible,
+.step3Theme .wordmarkLink:focus-visible {
+  outline: 3px solid var(--cream);
+}
+
+.step2Theme .wordmarkLink:focus-visible,
+.step4Theme .wordmarkLink:focus-visible {
+  outline: 3px solid var(--teal-dark);
+}
+
+.wordmarkPin {
+  width: 24px;
+  height: 24px;
+  color: var(--zest);
+  stroke: var(--zest);
+  flex-shrink: 0;
+}
+
+.wordmarkText {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+@media (min-width: 900px) {
+  .wordmarkText {
+    font-size: 34px;
+  }
+}
+
+.step1Theme .wordmarkText,
+.step3Theme .wordmarkText {
+  color: var(--cream);
+}
+
+.step2Theme .wordmarkText,
+.step4Theme .wordmarkText {
+  color: var(--teal-dark);
+}
+
+.closeBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  outline-offset: 3px;
+  background: transparent;
+  flex-shrink: 0;
+  transition: transform 0.2s var(--bounce);
+}
+
+.step1Theme .closeBtn,
+.step3Theme .closeBtn {
+  border: 3px solid var(--cream);
+  color: var(--cream);
+}
+
+.step2Theme .closeBtn,
+.step4Theme .closeBtn {
+  border: 3px solid var(--teal-dark);
+  color: var(--teal-dark);
+}
+
+@media (hover: hover) {
+  .closeBtn:hover {
+    transform: scale(1.08) rotate(90deg);
+  }
+}
+
+.step1Theme .closeBtn:focus-visible,
+.step3Theme .closeBtn:focus-visible {
+  outline: 3px solid var(--cream);
+}
+
+.step2Theme .closeBtn:focus-visible,
+.step4Theme .closeBtn:focus-visible {
+  outline: 3px solid var(--teal-dark);
+}
+
+.closeIcon {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Top Progress row: 4 pills (44x12px) + Step N of 4 */
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(24px, 5vw, 40px);
+  width: 100%;
+}
+
+.progressPills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressPill {
+  width: 44px;
+  height: 12px;
+  border-radius: 9999px;
+  transition: opacity 0.3s var(--bounce), transform 0.3s var(--bounce);
+}
+
+.step1Theme .progressPill,
+.step3Theme .progressPill {
+  background-color: var(--cream);
+}
+
+.step2Theme .progressPill,
+.step4Theme .progressPill {
+  background-color: var(--teal-dark);
+}
+
+.pillFilled {
+  opacity: 1;
+}
+
+.pillUnfilled {
+  opacity: 0.3;
+}
+
+.progressText {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.step1Theme .progressText,
+.step3Theme .progressText {
+  color: var(--cream);
+}
+
+.step2Theme .progressText,
+.step4Theme .progressText {
+  color: var(--teal-dark);
+}
+
+/* Step Content Form Area */
+.stepForm {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: center;
+}
+
+/* Step 3 top tag: "Saan Tayo?" */
+.saanTayoTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cream);
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+  align-self: flex-start;
+  box-shadow: 0 4px 0 var(--teal-dark);
+}
+
+.tagPinIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Headings */
+.heading {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: clamp(32px, 7vw, 46px);
+  line-height: 1.1;
+  margin: 0 0 12px 0;
+  outline: none;
+}
+
+.step1Theme .heading,
+.step3Theme .heading {
+  color: var(--cream);
+}
+
+.step2Theme .heading,
+.step4Theme .heading {
+  color: var(--teal-dark);
+}
+
+/* Sub copy */
+.subCopy {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: clamp(16px, 3.5vw, 19px);
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0 0 clamp(20px, 4vw, 30px) 0;
+}
+
+.step1Theme .subCopy,
+.step3Theme .subCopy {
+  color: var(--cream);
+  opacity: 0.95;
+}
+
+.step2Theme .subCopy,
+.step4Theme .subCopy {
+  color: var(--teal-dark);
+  opacity: 0.9;
+}
+
+/* Step 2 Trip Type selector */
+.tripTypeFieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+  width: 100%;
+}
+
+.tripTypeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+.tripTypeOption {
+  min-height: 52px;
+  border-radius: 9999px;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  outline-offset: 3px;
+  user-select: none;
+  transition: transform 0.12s var(--bounce), box-shadow 0.12s var(--bounce), background-color 0.15s ease;
+}
+
+.tripTypeOption:has(:focus-visible) {
+  outline: 3px solid var(--teal-dark);
+}
+
+.tripTypeSelected {
+  background-color: var(--teal-dark);
+  color: var(--cream);
+  box-shadow: 0 5px 0 var(--teal);
+  border: none;
+}
+
+.tripTypeUnselected {
+  background: transparent;
+  color: var(--teal-dark);
+  border: 3px solid var(--teal-dark);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .tripTypeSelected:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 var(--teal);
+  }
+  .tripTypeUnselected:hover {
+    transform: translateY(-2px);
+    background-color: rgba(31, 99, 118, 0.08);
+  }
+}
+
+.tripTypeOption:active {
+  transform: translateY(3px);
+}
+
+.tripTypeSelected:active {
+  box-shadow: 0 1px 0 var(--teal);
+}
+
+.tripTypeHelperText {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  margin-top: 10px;
+  margin-bottom: 22px;
+}
+
+/* Step 2 Vacation Days field */
+.daysFieldGroup {
+  display: flex;
+  flex-direction: column;
+  margin-top: 18px;
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.daysInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.daysBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--teal-dark);
+  background-color: var(--cream);
+  color: var(--teal-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 var(--blossom);
+  flex-shrink: 0;
+  transition: transform 0.12s var(--bounce), box-shadow 0.12s var(--bounce);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .daysBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--blossom);
+  }
+}
+
+.daysBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--blossom);
+}
+
+.daysBtn:focus-visible {
+  outline: 3px solid var(--teal-dark);
+}
+
+.daysInput {
+  flex: 1;
+  text-align: center;
+}
+
+.endsOnLine {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--teal-dark);
+  margin-top: 8px;
+  padding-left: 4px;
+}
+
+/* Time inputs & helper */
+.timeHelperText {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  margin-top: 8px;
+}
+
+/* Form fields & inputs */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.label {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.step1Theme .label,
+.step3Theme .label {
+  color: var(--cream);
+}
+
+.step2Theme .label,
+.step4Theme .label {
+  color: var(--teal-dark);
+}
+
+/* Big pill input */
+.pillInput {
+  height: 60px;
+  width: 100%;
+  border-radius: 9999px;
+  background-color: var(--cream);
+  color: var(--teal-dark);
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 0 24px;
+  outline: none;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.step1Theme .pillInput {
+  border: 3px solid var(--teal);
+  box-shadow: 0 5px 0 var(--blossom);
+}
+
+.step2Theme .pillInput {
+  border: 3px solid var(--teal-dark);
+  box-shadow: 0 5px 0 var(--blossom);
+}
+
+.step3Theme .pillInput {
+  border: 3px solid var(--cream);
+  box-shadow: 0 5px 0 var(--blossom);
+}
+
+.step4Theme .pillInput {
+  border: 3px solid var(--teal-dark);
+  box-shadow: 0 5px 0 var(--blossom);
+}
+
+.pillInput::placeholder {
+  color: #927588;
+  font-weight: 600;
+}
+
+.pillInput:focus-visible {
+  border-color: var(--teal-dark);
+  box-shadow: 0 7px 0 var(--teal-dark);
+}
+
+.step1Theme .pillInput:focus-visible,
+.step3Theme .pillInput:focus-visible {
+  border-color: var(--cream);
+  box-shadow: 0 7px 0 var(--cream);
+}
+
+.pillInputError {
+  border-color: var(--rosy-dark) !important;
+  box-shadow: 0 6px 0 var(--rosy-dark) !important;
+}
+
+/* Native date/time picker adjustments */
+.pillInput[type='date'],
+.pillInput[type='time'] {
+  color: var(--teal-dark);
+}
+
+.pillInput[type='date']::-webkit-calendar-picker-indicator,
+.pillInput[type='time']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(36%) sepia(34%) saturate(940%) hue-rotate(147deg) brightness(91%) contrast(87%);
+}
+
+/* Error text in cream pill */
+.errorPill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  background-color: var(--cream);
+  color: var(--rosy-dark);
+  border-radius: 9999px;
+  padding: 6px 18px;
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+  margin-top: 10px;
+  box-shadow: 0 4px 0 var(--rosy-dark);
+}
+
+/* Step 1 "Use example" pill button */
+.useExampleBtn {
+  align-self: flex-start;
+  background-color: var(--cream);
+  border: 3px solid var(--blossom);
+  color: var(--teal-dark);
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  margin-top: 14px;
+  box-shadow: 0 4px 0 var(--blossom);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+@media (hover: hover) {
+  .useExampleBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--blossom);
+  }
+}
+
+.useExampleBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--blossom);
+}
+
+.useExampleBtn:focus-visible {
+  outline: 3px solid var(--cream);
+  outline-offset: 3px;
+}
+
+.btnPlusIcon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+/* Step 2 time inputs row */
+.timeRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+/* Step 3 search input with icon */
+.searchWrap {
+  position: relative;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  color: var(--teal-dark);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 54px !important;
+}
+
+/* Step 3 suggestion chips */
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.chipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chipUnselected {
+  background-color: var(--cream);
+  color: var(--teal-dark);
+  box-shadow: 0 4px 0 var(--blossom);
+}
+
+.chipSelected {
+  background-color: var(--zest);
+  color: var(--teal-dark);
+  box-shadow: 0 4px 0 var(--zest-dark);
+}
+
+@media (hover: hover) {
+  .chipBtn:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.chipBtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--blossom);
+}
+
+.chipSelected:active {
+  box-shadow: 0 1px 0 var(--zest-dark);
+}
+
+.chipBtn:focus-visible {
+  outline: 3px solid var(--cream);
+  outline-offset: 2px;
+}
+
+/* Step 3 decorative map card (~130px tall, 3px cream border, 26px radius) */
+.mapCard {
+  width: 100%;
+  height: 130px;
+  border: 3px solid var(--cream);
+  border-radius: 26px;
+  background-color: var(--blossom);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 0 var(--teal-dark);
+  margin-bottom: 12px;
+}
+
+.mapSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mapDestinationPill {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cream);
+  color: var(--teal-dark);
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 3px 0 var(--blossom);
+}
+
+/* Step 4 Password toggle & strength meter */
+.passwordInputWrap {
+  position: relative;
+  width: 100%;
+}
+
+.passwordInput {
+  padding-right: 58px !important;
+}
+
+.eyeToggleBtn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--teal-dark);
+  border-radius: 50%;
+}
+
+.eyeToggleBtn:focus-visible {
+  outline: 2px solid var(--teal-dark);
+}
+
+/* Strength meter: 3 short pills (44x8px) + text label */
+.strengthMeter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 18px;
+}
+
+.strengthPills {
+  display: flex;
+  gap: 6px;
+}
+
+.strengthPill {
+  width: 44px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: var(--cream);
+  opacity: 0.35;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.strengthPillWeak {
+  background-color: var(--rosy-dark) !important;
+  opacity: 1 !important;
+}
+
+.strengthPillGood {
+  background-color: var(--zest-dark) !important;
+  opacity: 1 !important;
+}
+
+.strengthPillStrong {
+  background-color: var(--teal-dark) !important;
+  opacity: 1 !important;
+}
+
+.strengthText {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--teal-dark);
+}
+
+/* Step 4 Info cards (22px radius, round blossom icon) */
+.infoCardsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.infoCard {
+  background-color: var(--cream);
+  border-radius: 22px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 0 var(--teal-dark);
+}
+
+.infoIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--blossom);
+  color: var(--rosy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.infoText {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* Footer: Back & Next buttons */
+.footerButtons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: clamp(28px, 6vw, 44px);
+  width: 100%;
+}
+
+/* Back button: outline pill */
+.backBtn {
+  padding: 14px 28px;
+  border-radius: 9999px;
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline-offset: 3px;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.step1Theme .backBtn,
+.step3Theme .backBtn {
+  border: 3px solid var(--cream);
+  color: var(--cream);
+}
+
+.step2Theme .backBtn,
+.step4Theme .backBtn {
+  border: 3px solid var(--teal-dark);
+  color: var(--teal-dark);
+}
+
+@media (hover: hover) {
+  .backBtn:hover {
+    transform: translateY(-2px);
+  }
+  .step1Theme .backBtn:hover,
+  .step3Theme .backBtn:hover {
+    background-color: rgba(255, 248, 242, 0.1);
+  }
+  .step2Theme .backBtn:hover,
+  .step4Theme .backBtn:hover {
+    background-color: rgba(31, 99, 118, 0.1);
+  }
+}
+
+.backBtn:active {
+  transform: translateY(3px);
+}
+
+.step1Theme .backBtn:focus-visible,
+.step3Theme .backBtn:focus-visible {
+  outline: 3px solid var(--cream);
+}
+
+.step2Theme .backBtn:focus-visible,
+.step4Theme .backBtn:focus-visible {
+  outline: 3px solid var(--teal-dark);
+}
+
+/* Next button: squishy pill */
+.nextBtn {
+  padding: 14px 34px;
+  border-radius: 9999px;
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  outline-offset: 3px;
+  transition: transform 0.12s var(--bounce), box-shadow 0.12s var(--bounce);
+}
+
+/* Step 1 & 3 Next: --zest pill, --teal-dark text, 0 7px 0 --zest-dark */
+.step1Theme .nextBtn,
+.step3Theme .nextBtn {
+  background-color: var(--zest);
+  color: var(--teal-dark);
+  box-shadow: 0 7px 0 var(--zest-dark);
+}
+
+@media (hover: hover) {
+  .step1Theme .nextBtn:hover:not(:disabled),
+  .step3Theme .nextBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 9px 0 var(--zest-dark);
+  }
+}
+
+.step1Theme .nextBtn:active:not(:disabled),
+.step3Theme .nextBtn:active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: 0 2px 0 var(--zest-dark);
+}
+
+/* Step 2 & 4 Next: --rosy pill, cream text, 0 7px 0 --rosy-dark */
+.step2Theme .nextBtn,
+.step4Theme .nextBtn {
+  background-color: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 7px 0 var(--rosy-dark);
+}
+
+@media (hover: hover) {
+  .step2Theme .nextBtn:hover:not(:disabled),
+  .step4Theme .nextBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 9px 0 var(--rosy-dark);
+  }
+}
+
+.step2Theme .nextBtn:active:not(:disabled),
+.step4Theme .nextBtn:active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: 0 2px 0 var(--rosy-dark);
+}
+
+.nextBtn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.nextBtn:focus-visible {
+  outline: 3px solid var(--cream);
+}
+
+.step2Theme .nextBtn:focus-visible,
+.step4Theme .nextBtn:focus-visible {
+  outline: 3px solid var(--teal-dark);
+}
+
+/* CSS Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Screen reader only utility */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .planPage::before {
+    animation: none;
+  }
+
+  .shapeSparkle,
+  .shapeRing,
+  .shapeBlob {
+    animation: none;
+  }
+
+  .wordmarkLink,
+  .closeBtn,
+  .tripTypeOption,
+  .daysBtn,
+  .useExampleBtn,
+  .chipBtn,
+  .backBtn,
+  .nextBtn {
+    transition: none;
+  }
+
+  .tripTypeOption:active,
+  .daysBtn:active,
+  .nextBtn:active:not(:disabled),
+  .nextBtn:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .spinner {
+    animation-duration: 2s;
+  }
+}

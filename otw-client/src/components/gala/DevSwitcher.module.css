@@ -1,0 +1,66 @@
+/* Dev-only review switcher. Mirrors the reference "Demo" panel (#demo). */
+
+.demo {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.demo :global(.btn) {
+  margin: 0;
+}
+
+/* unlayered module CSS already beats the layered .btn rules */
+.toggle {
+  --bg: var(--teal-dark);
+  --fg: var(--cream);
+  --sh: var(--teal);
+}
+
+.panel {
+  background: var(--cream);
+  border: 3px solid var(--teal-dark);
+  border-radius: 24px;
+  padding: 14px 16px;
+  width: min(320px, calc(100vw - 28px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 6px 0 var(--teal-dark);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+@media (max-width: 639px) {
+  .demo {
+    left: 10px;
+    right: auto;
+    bottom: 22px;
+    align-items: flex-start;
+  }
+
+  .toggle {
+    padding: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+  }
+
+  .toggle span {
+    display: none;
+  }
+}
