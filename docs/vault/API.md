@@ -9,7 +9,7 @@ Back to [[00-Index]]
 ## Conventions
 - JSON. Every call needs `Authorization: Bearer <supabase_jwt>`, including the join endpoints.
 - Pagination is cursor-based: `?cursor=...&limit=20`.
-- Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
+- Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`. Notable codes: `409 DUPLICATE_NICKNAME` on `POST /rooms/join`; `401 ACCOUNT_REQUIRED` (distinct from `401 UNAUTHENTICATED`) when the token is a rejected anonymous session — see [[Auth]].
 - Every write endpoint has Bean Validation on its DTO and a role guard ([[Auth]]). Where relevant, it also emits a realtime event ([[Realtime]]) and evicts cache ([[Caching]]).
 
 ## Endpoints

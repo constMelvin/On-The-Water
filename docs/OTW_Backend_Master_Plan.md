@@ -291,12 +291,14 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call, includi
 
 Every write endpoint: Bean Validation on the request DTO, ownership/role check via the `@RequireRoomRole` aspect (see §5.3), and — where relevant — emits a realtime event (§8) and evicts a cache key (§6).
 
+Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST /rooms/join` (nickname already taken by an active member of that room) and `401 ACCOUNT_REQUIRED` on any endpoint when the token belongs to a rejected anonymous session (distinct from the generic `401 UNAUTHENTICATED` — see §5.1).
+
 ---
 
 ## 5. Authentication & Authorization
 
 ### 5.1 Authentication (who are you)
-- Supabase Auth issues JWTs (supports anonymous auth, which fits nickname-only onboarding).
+- Supabase Auth issues JWTs. Although Supabase supports anonymous auth, this backend rejects those sessions — see the rejection rule immediately below.
 - Spring Boot does **not** re-implement login, signup, or token refresh — the frontend talks to Supabase Auth directly and just attaches the resulting token as `Authorization: Bearer <token>`. The backend's only job is to **verify** that token on every request.
 - Reject any token whose `aud`/`iss` doesn't match your Supabase project.
 - **Anonymous Supabase sessions are rejected (2026-09-29, overrides the PDF's no-login flow).** A `NotAnonymousJwtValidator` in the `JwtDecoder`'s validator chain fails any token with `is_anonymous: true` or a blank `email` claim, fail-closed. The auth entry point maps that specific rejection to `401 {"code":"ACCOUNT_REQUIRED"}` (distinct from the generic `401 UNAUTHENTICATED`) so the frontend can route the user to sign-in. Every non-public endpoint requires a registered account (email/OTP or password via Supabase Auth).

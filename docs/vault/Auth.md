@@ -14,7 +14,7 @@ Back to [[00-Index]] · Full `SecurityConfig` code: master plan §5.1.1
   - `supabase.jwt-audience: ${SUPABASE_JWT_AUD:authenticated}`
 - The `NimbusJwtDecoder` validates signature, `exp`, `iat`, `iss`, and adds an explicit `aud` check.
 - The filter chain is stateless with CSRF disabled. `/actuator/health` is permitAll; everything else requires authentication.
-- 401 returns `{"code":"UNAUTHENTICATED",...}`. 403 returns `{"code":"FORBIDDEN",...}`.
+- 401 returns `{"code":"UNAUTHENTICATED",...}` — except a rejected anonymous session, which returns `{"code":"ACCOUNT_REQUIRED",...}` instead (still 401, but a distinguishable code so the frontend can route to sign-in). 403 returns `{"code":"FORBIDDEN",...}`.
 - The converter sets the principal name to `sub`. Read it through `CurrentUserProvider.getUserId()` rather than calling `SecurityContextHolder` everywhere.
 - Anonymous Supabase sessions are rejected. NotAnonymousJwtValidator fails any token with is_anonymous=true or a blank email → 401 {"code":"ACCOUNT_REQUIRED"}. Every non-public endpoint requires a registered account.
 
