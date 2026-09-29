@@ -3,8 +3,6 @@ package com.gala.otw_server.room.service;
 import com.gala.otw_server.common.CodeGenerator;
 import com.gala.otw_server.common.DomainExceptions.*;
 import com.gala.otw_server.common.PageResponse;
-import com.gala.otw_server.group.entity.Group;
-import com.gala.otw_server.group.repository.GroupRepository;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import com.gala.otw_server.room.dto.*;
 import com.gala.otw_server.room.entity.Room;
@@ -34,35 +32,41 @@ public class RoomService {
 
     private final RoomRepository roomRepo;
     private final RoomMemberRepository memberRepo;
-    private final GroupRepository groupRepo;
     private final RealtimeEventPublisher realtime;
     private final com.gala.otw_server.cache.CacheService cacheService;
 
     public RoomService(RoomRepository roomRepo,
                        RoomMemberRepository memberRepo,
-                       GroupRepository groupRepo,
                        RealtimeEventPublisher realtime,
                        com.gala.otw_server.cache.CacheService cacheService) {
         this.roomRepo = roomRepo;
         this.memberRepo = memberRepo;
-        this.groupRepo = groupRepo;
         this.realtime = realtime;
         this.cacheService = cacheService;
     }
 
-    // ── Create standalone room ────────────────────────────────────────────────
+    // ── Create room ───────────────────────────────────────────────────────────
 
     public RoomDto createRoom(UUID callerId, CreateRoomRequest req) {
-        return buildRoom(callerId, req, null);
-    }
+        Room room = new Room();
+        room.setRoomCode(generateUniqueCode());
+        room.setTitle(req.title());
+        room.setScheduleAt(req.scheduleAt());
+        room.setMeetingLat(req.meetingLat());
+        room.setMeetingLng(req.meetingLng());
+        room.setMeetingLabel(req.meetingLabel());
+        room.setHostUserId(callerId);
+        room = roomRepo.save(room);
 
-    // ── Create room inside a group ────────────────────────────────────────────
+        RoomMember host = new RoomMember();
+        host.setRoom(room);
+        host.setUserId(callerId);
+        host.setNickname(req.nickname());
+        host.setRole(RoomRole.HOST);
+        memberRepo.save(host);
 
-    public RoomDto createGroupRoom(UUID callerId, UUID groupId, CreateRoomRequest req) {
-        Group group = groupRepo.findById(groupId)
-                .filter(g -> "ACTIVE".equals(g.getStatus()))
-                .orElseThrow(GroupNotFoundException::new);
-        return buildRoom(callerId, req, group);
+        log.info("Room created: id={}, code={}, host={}", room.getId(), room.getRoomCode(), callerId);
+        return RoomDto.from(room);
     }
 
     // ── Join room by code ─────────────────────────────────────────────────────
@@ -75,13 +79,22 @@ public class RoomService {
             throw new AlreadyAMemberException();
         }
 
+        if (memberRepo.existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(room.getId(), req.nickname())) {
+            throw new DuplicateNicknameException();
+        }
+
         RoomMember member = new RoomMember();
         member.setRoom(room);
         member.setUserId(callerId);
         member.setNickname(req.nickname());
         member.setRole(RoomRole.MEMBER);
 
-        member = memberRepo.save(member);
+        try {
+            member = memberRepo.save(member);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Belt-and-suspenders: two concurrent joins raced past the check above.
+            throw new DuplicateNicknameException();
+        }
 
         final UUID roomId = room.getId();
         final RoomMemberDto dto = RoomMemberDto.from(member);
@@ -108,21 +121,6 @@ public class RoomService {
         List<RoomMemberDto> page = members.stream()
                 .limit(limit)
                 .map(RoomMemberDto::from)
-                .toList();
-
-        String nextCursor = hasMore ? page.get(page.size() - 1).id().toString() : null;
-        return PageResponse.of(page, nextCursor, limit);
-    }
-
-    @Transactional(readOnly = true)
-    public PageResponse<RoomDto> getRoomsInGroup(UUID groupId, UUID cursor, int limit) {
-        List<Room> rooms = roomRepo.findActiveRoomsByGroup(
-                groupId, cursor, PageRequest.of(0, limit + 1));
-
-        boolean hasMore = rooms.size() > limit;
-        List<RoomDto> page = rooms.stream()
-                .limit(limit)
-                .map(RoomDto::from)
                 .toList();
 
         String nextCursor = hasMore ? page.get(page.size() - 1).id().toString() : null;
@@ -167,31 +165,6 @@ public class RoomService {
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
-
-    private RoomDto buildRoom(UUID callerId, CreateRoomRequest req, Group group) {
-        Room room = new Room();
-        room.setGroup(group);
-        room.setRoomCode(generateUniqueCode());
-        room.setTitle(req.title());
-        room.setScheduleAt(req.scheduleAt());
-        room.setMeetingLat(req.meetingLat());
-        room.setMeetingLng(req.meetingLng());
-        room.setMeetingLabel(req.meetingLabel());
-        room.setHostUserId(callerId);
-        room = roomRepo.save(room);
-
-        RoomMember host = new RoomMember();
-        host.setRoom(room);
-        host.setUserId(callerId);
-        host.setNickname(req.nickname());
-        host.setRole(RoomRole.HOST);
-        memberRepo.save(host);
-
-        log.info("Room created: id={}, code={}, host={}, groupId={}",
-                room.getId(), room.getRoomCode(), callerId,
-                group != null ? group.getId() : "standalone");
-        return RoomDto.from(room);
-    }
 
     private Room findActiveRoomOrThrow(UUID roomId) {
         Room room = roomRepo.findById(roomId).orElseThrow(RoomNotFoundException::new);

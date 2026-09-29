@@ -3,8 +3,6 @@ package com.gala.otw_server.room;
 import com.gala.otw_server.cache.CacheService;
 import com.gala.otw_server.common.DomainExceptions.*;
 import com.gala.otw_server.common.PageResponse;
-import com.gala.otw_server.group.entity.Group;
-import com.gala.otw_server.group.repository.GroupRepository;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import com.gala.otw_server.room.dto.*;
 import com.gala.otw_server.room.entity.Room;
@@ -20,10 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,9 +41,6 @@ class RoomServiceTest {
     private RoomMemberRepository memberRepo;
 
     @Mock
-    private GroupRepository groupRepo;
-
-    @Mock
     private RealtimeEventPublisher realtime;
 
     @Mock
@@ -56,16 +50,15 @@ class RoomServiceTest {
 
     private final UUID callerId = UUID.randomUUID();
     private final UUID roomId = UUID.randomUUID();
-    private final UUID groupId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
-        roomService = new RoomService(roomRepo, memberRepo, groupRepo, realtime, cacheService);
+        roomService = new RoomService(roomRepo, memberRepo, realtime, cacheService);
     }
 
     @Test
-    @DisplayName("createRoom creates standalone room and assigns host as HOST member")
-    void createRoom_standalone_success() {
+    @DisplayName("createRoom creates a room and assigns the creator as HOST member")
+    void createRoom_success() {
         CreateRoomRequest req = new CreateRoomRequest(
                 "Beach Gala",
                 "Melvin",
@@ -88,36 +81,12 @@ class RoomServiceTest {
         assertThat(result.id()).isEqualTo(roomId);
         assertThat(result.title()).isEqualTo("Beach Gala");
         assertThat(result.roomCode()).isNotNull();
-        assertThat(result.groupId()).isNull();
 
         verify(memberRepo).save(argThat(member ->
                 member.getRole() == RoomRole.HOST &&
                 member.getUserId().equals(callerId) &&
                 "Melvin".equals(member.getNickname())
         ));
-    }
-
-    @Test
-    @DisplayName("createGroupRoom creates room scoped to group")
-    void createGroupRoom_success() {
-        CreateRoomRequest req = new CreateRoomRequest("Group Gala", "Melvin", null, null, null, null);
-        Group group = new Group();
-        group.setId(groupId);
-        group.setStatus("ACTIVE");
-
-        when(groupRepo.findById(groupId)).thenReturn(Optional.of(group));
-        when(roomRepo.existsByRoomCode(anyString())).thenReturn(false);
-        when(roomRepo.save(any(Room.class))).thenAnswer(inv -> {
-            Room r = inv.getArgument(0);
-            r.setId(roomId);
-            r.setStatus("ACTIVE");
-            return r;
-        });
-
-        RoomDto result = roomService.createGroupRoom(callerId, groupId, req);
-
-        assertThat(result.id()).isEqualTo(roomId);
-        assertThat(result.groupId()).isEqualTo(groupId);
     }
 
     @Test
@@ -131,6 +100,7 @@ class RoomServiceTest {
 
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
         when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(false);
+        when(memberRepo.existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(roomId, "Carlos")).thenReturn(false);
         when(memberRepo.save(any(RoomMember.class))).thenAnswer(inv -> {
             RoomMember m = inv.getArgument(0);
             m.setId(UUID.randomUUID());
@@ -160,6 +130,44 @@ class RoomServiceTest {
 
         assertThatThrownBy(() -> roomService.joinRoom(callerId, req))
                 .isInstanceOf(AlreadyAMemberException.class);
+    }
+
+    @Test
+    @DisplayName("joinRoom throws DuplicateNicknameException when nickname is taken by an active member")
+    void joinRoom_duplicateNickname() {
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel");
+        Room room = new Room();
+        room.setId(roomId);
+        room.setStatus("ACTIVE");
+
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
+        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(false);
+        when(memberRepo.existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(roomId, "Miguel")).thenReturn(true);
+
+        assertThatThrownBy(() -> roomService.joinRoom(callerId, req))
+                .isInstanceOf(DuplicateNicknameException.class);
+
+        verify(memberRepo, never()).save(any(RoomMember.class));
+    }
+
+    @Test
+    @DisplayName("joinRoom maps a raced DB unique-constraint violation to DuplicateNicknameException")
+    void joinRoom_duplicateNickname_concurrentRace() {
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel");
+        Room room = new Room();
+        room.setId(roomId);
+        room.setStatus("ACTIVE");
+
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
+        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(false);
+        // Pre-check passes (no active "Miguel" yet)...
+        when(memberRepo.existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(roomId, "Miguel")).thenReturn(false);
+        // ...but a concurrent request beats this one to the insert.
+        when(memberRepo.save(any(RoomMember.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
+
+        assertThatThrownBy(() -> roomService.joinRoom(callerId, req))
+                .isInstanceOf(DuplicateNicknameException.class);
     }
 
     @Test

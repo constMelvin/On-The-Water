@@ -10,7 +10,6 @@ import java.util.UUID;
  */
 public record RoomDto(
         UUID id,
-        UUID groupId,
         String roomCode,
         String title,
         OffsetDateTime scheduleAt,
@@ -24,7 +23,6 @@ public record RoomDto(
     public static RoomDto from(Room r) {
         return new RoomDto(
                 r.getId(),
-                r.getGroup() != null ? r.getGroup().getId() : null,
                 r.getRoomCode(),
                 r.getTitle(),
                 r.getScheduleAt(),

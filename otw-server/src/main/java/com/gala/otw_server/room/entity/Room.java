@@ -1,6 +1,5 @@
 package com.gala.otw_server.room.entity;
 
-import com.gala.otw_server.group.entity.Group;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,8 +10,7 @@ import java.util.UUID;
 
 /**
  * Represents a single gala or trip event (a "Room").
- * A room may optionally belong to a group ({@code group_id} nullable).
- * Standalone rooms ({@code group_id = null}) work identically — the group tier is simply absent.
+ * Rooms are always standalone — there is no persistent group/barkada tier.
  */
 @Entity
 @Table(name = "rooms")
@@ -25,11 +23,6 @@ public class Room {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-
-    /** Nullable: null = standalone room, not scoped to any group. */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
-    private Group group;
 
     @Column(name = "room_code", unique = true, nullable = false, length = 8)
     private String roomCode;

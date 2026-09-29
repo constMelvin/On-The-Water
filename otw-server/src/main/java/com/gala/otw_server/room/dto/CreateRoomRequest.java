@@ -6,8 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.time.OffsetDateTime;
 
 /**
- * Request body for creating a room (standalone or inside a group).
- * Used by both {@code POST /rooms} and {@code POST /groups/{groupId}/rooms}.
+ * Request body for {@code POST /rooms} — every room is standalone.
  */
 public record CreateRoomRequest(
 

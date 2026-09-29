@@ -18,6 +18,8 @@ public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
 
     boolean existsByRoom_IdAndUserIdAndLeftAtIsNull(UUID roomId, UUID userId);
 
+    boolean existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(UUID roomId, String nickname);
+
     List<RoomMember> findByRoom_IdAndLeftAtIsNull(UUID roomId);
 
     /** Paginated member list for a room. */

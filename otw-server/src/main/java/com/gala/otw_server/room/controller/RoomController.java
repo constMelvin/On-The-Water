@@ -4,8 +4,6 @@ import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.room.dto.*;
 import com.gala.otw_server.room.service.RoomService;
 import com.gala.otw_server.security.auth.CurrentUserProvider;
-import com.gala.otw_server.security.auth.GroupRole;
-import com.gala.otw_server.security.auth.RequireGroupRole;
 import com.gala.otw_server.security.auth.RequireRoomRole;
 import com.gala.otw_server.security.auth.RoomRole;
 import jakarta.validation.Valid;
@@ -25,7 +23,7 @@ public class RoomController {
         this.currentUser = currentUser;
     }
 
-    // ── POST /rooms — standalone room ─────────────────────────────────────────
+    // ── POST /rooms — create a room ───────────────────────────────────────────
 
     @PostMapping("/api/v1/rooms")
     @ResponseStatus(HttpStatus.CREATED)
@@ -79,27 +77,5 @@ public class RoomController {
             @PathVariable UUID roomId,
             @Valid @RequestBody UpdateRsvpRequest req) {
         return roomService.updateRsvp(roomId, currentUser.getUserId(), req);
-    }
-
-    // ── POST /groups/{groupId}/rooms — gala inside a group ───────────────────
-
-    @PostMapping("/api/v1/groups/{groupId}/rooms")
-    @ResponseStatus(HttpStatus.CREATED)
-    @RequireGroupRole(GroupRole.MEMBER)
-    public RoomDto createGroupRoom(
-            @PathVariable UUID groupId,
-            @Valid @RequestBody CreateRoomRequest req) {
-        return roomService.createGroupRoom(currentUser.getUserId(), groupId, req);
-    }
-
-    // ── GET /groups/{groupId}/rooms — list galas in group ────────────────────
-
-    @GetMapping("/api/v1/groups/{groupId}/rooms")
-    @RequireGroupRole(GroupRole.MEMBER)
-    public PageResponse<RoomDto> listGroupRooms(
-            @PathVariable UUID groupId,
-            @RequestParam(required = false) UUID cursor,
-            @RequestParam(defaultValue = "20") int limit) {
-        return roomService.getRoomsInGroup(groupId, cursor, Math.min(limit, 50));
     }
 }
