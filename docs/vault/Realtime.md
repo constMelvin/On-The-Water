@@ -11,17 +11,26 @@ The backend publishes to **Supabase Realtime Broadcast** on private channels nam
 ## Events
 | Event | Trigger | Payload |
 |---|---|---|
-| `member.joined` / `member.left` | membership insert/soft-delete | `{userId, nickname}` |
+| `member.joined` / `member.left` | join (incl. rejoin), remove, leave | `{userId, nickname}` / `{userId}` |
 | `member.rsvp.changed` | RSVP patch | `{userId, status}` |
-| `itinerary.created` / `.updated` / `.completed` | itinerary write | full item DTO |
-| `checklist.updated` | checklist write | full item DTO |
-| `expense.created` | expense write | expense DTO (the client recomputes or refetches settlement) |
-| `location.updated` | location write | `{userId, lat, lng, mode}`, sent to members who opted into seeing locations |
+| `member.reclaimed` / `member.updated` / `member.travel.changed` / `member.nudged` | Enter a Gala claim, nickname, travel status, nudge | `{memberId, userId}` / member DTO / `{userId, status}` / `{userId}` |
+| `room.updated` / `room.code.changed` / `room.archived` / `room.restored` / `room.deleted` | gala settings | room DTO or `{roomId, …}` |
+| `itinerary.created` / `.updated` / `.deleted` / `.reordered` | itinerary write | full item DTO / `{id}` / `[{id, position, version}]` |
+| `checklist.updated` | checklist write (incl. claim, delete with `deleted: true`) | full item DTO |
+| `budget.updated` | budget write | budget DTO |
+| `expense.created` / `.deleted` | expense write | expense DTO / `{id}` |
+| `settlement.payment.recorded` / `.deleted` | Mark paid / undo | payment DTO / `{id}` |
+| `location.updated` | location write/stop | `{userId, lat, lng, mode}` / `{userId, deleted}` |
+| `photo.added` / `photo.deleted` | photo write | photo DTO / `{id}` |
+| `chat.message.created` / `chat.reaction.changed` | send, system/card line, heart | message DTO / `{messageId, userId, hearted, heartCount}` |
+| `couple.idea.changed` | save/unsave idea | `{key, saved}` |
 
-All events go to room members only.
+All events go to room members only. Notifications are **not** realtime — the frontend polls `/me/notifications`. "Online now" is Supabase presence on the room channel (client-only).
 
 ## Rules
 - Publish only through `RealtimeEventPublisher.publish(roomId, event, dto)`. Feature modules never call Supabase directly.
 - Publish **after commit**, using `@TransactionalEventListener(phase = AFTER_COMMIT)` or `TransactionSynchronizationManager`.
+- Automatic chat lines ("Sam changed their status to I'm G.") are written by `ChatSystemMessageService` inside the originating transaction, then broadcast after commit.
+- Notification rows are written by `NotificationEventListener` after commit in their own transaction; failures are logged, never surfaced.
 - On reconnect, clients refetch the paginated GET. Realtime speeds up the UX; it is not the source of truth.
 - Duplicate events are OK because clients apply them idempotently by ID + `version`/`updated_at`. Don't build exactly-once delivery.

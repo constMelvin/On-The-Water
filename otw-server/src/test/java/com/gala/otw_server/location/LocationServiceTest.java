@@ -2,6 +2,7 @@ package com.gala.otw_server.location;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gala.otw_server.cache.CacheService;
+import com.gala.otw_server.common.DomainExceptions.PermissionDisabledException;
 import com.gala.otw_server.location.dto.MemberLocationDto;
 import com.gala.otw_server.location.dto.ShareMode;
 import com.gala.otw_server.location.dto.UpdateLocationRequest;
@@ -13,6 +14,9 @@ import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import com.gala.otw_server.room.entity.Room;
 import com.gala.otw_server.room.repository.RoomMemberRepository;
 import com.gala.otw_server.room.repository.RoomRepository;
+import com.gala.otw_server.room.service.GalaClock;
+import com.gala.otw_server.room.service.RoomPermissionService;
+import com.gala.otw_server.room.service.RoomPermissionService.Permission;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,11 +24,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -49,10 +54,16 @@ class LocationServiceTest {
     @Mock
     private RealtimeEventPublisher realtime;
 
+    @Mock
+    private RoomPermissionService permissions;
+
+    private final GalaClock galaClock = new GalaClock("Asia/Manila");
+
     private LocationService locationService;
 
     private final UUID roomId = UUID.randomUUID();
     private final UUID userId = UUID.randomUUID();
+    private Room room;
 
     @BeforeEach
     void setUp() {
@@ -63,18 +74,19 @@ class LocationServiceTest {
                 cacheService,
                 rateLimiter,
                 realtime,
-                new ObjectMapper().findAndRegisterModules()
+                new ObjectMapper().findAndRegisterModules(),
+                permissions,
+                galaClock
         );
+        room = new Room();
+        room.setId(roomId);
+        room.setStatus("ACTIVE");
     }
 
     @Test
     @DisplayName("updateLocation saves LIVE share with short expiry and broadcasts to realtime")
     void updateLocation_LiveShare() {
-        Room room = new Room();
-        room.setId(roomId);
-        room.setStatus("ACTIVE");
-
-        when(roomRepo.findById(roomId)).thenReturn(Optional.of(room));
+        when(permissions.require(roomId, userId, Permission.SHARE_LOCATION)).thenReturn(room);
         when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, userId)).thenReturn(true);
         when(locationRepo.findById(any())).thenReturn(Optional.empty());
         when(locationRepo.save(any(MemberLocation.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -96,12 +108,40 @@ class LocationServiceTest {
     }
 
     @Test
+    @DisplayName("PIN share never outlives the gala: expiry is capped at 3 hours after the gala ends")
+    void updateLocation_PinCappedAtGalaEnd() {
+        LocalDate today = galaClock.today();
+        room.setStartDate(today);
+        room.setEndTime(LocalTime.of(23, 0));
+        when(permissions.require(roomId, userId, Permission.SHARE_LOCATION)).thenReturn(room);
+        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, userId)).thenReturn(true);
+        when(locationRepo.findById(any())).thenReturn(Optional.empty());
+        when(locationRepo.save(any(MemberLocation.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MemberLocationDto dto = locationService.updateLocation(roomId, userId,
+                new UpdateLocationRequest(16.4, 120.6, ShareMode.PIN));
+
+        OffsetDateTime cutoff = ZonedDateTime.of(today, LocalTime.of(23, 0), ZoneId.of("Asia/Manila"))
+                .plusHours(3).toOffsetDateTime();
+        assertThat(dto.expiresAt().toInstant()).isEqualTo(cutoff.toInstant());
+    }
+
+    @Test
+    @DisplayName("sharing after the gala ended (+3h) is refused")
+    void updateLocation_AfterGalaRefused() {
+        room.setStartDate(galaClock.today().minusDays(2));
+        when(permissions.require(roomId, userId, Permission.SHARE_LOCATION)).thenReturn(room);
+        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, userId)).thenReturn(true);
+
+        assertThatThrownBy(() -> locationService.updateLocation(roomId, userId,
+                new UpdateLocationRequest(16.4, 120.6, ShareMode.LIVE)))
+                .isInstanceOf(PermissionDisabledException.class);
+        verify(locationRepo, never()).save(any());
+    }
+
+    @Test
     @DisplayName("stopSharingLocation deletes from Postgres, evicts from Redis, and broadcasts deletion")
     void stopSharingLocation_DeletesAndEvicts() {
-        Room room = new Room();
-        room.setId(roomId);
-        room.setStatus("ACTIVE");
-
         when(roomRepo.findById(roomId)).thenReturn(Optional.of(room));
 
         locationService.stopSharingLocation(roomId, userId);

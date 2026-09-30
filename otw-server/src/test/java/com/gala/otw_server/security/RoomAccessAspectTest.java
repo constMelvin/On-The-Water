@@ -3,6 +3,9 @@ package com.gala.otw_server.security;
 import com.gala.otw_server.cache.CacheService;
 import com.gala.otw_server.common.DomainExceptions.InsufficientRoomRoleException;
 import com.gala.otw_server.common.DomainExceptions.NotARoomMemberException;
+import com.gala.otw_server.common.DomainExceptions.RoomArchivedException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import com.gala.otw_server.common.DomainExceptions.RoomNotFoundException;
 import com.gala.otw_server.security.auth.CurrentUserProvider;
 import com.gala.otw_server.security.auth.RequireRoomRole;
@@ -54,9 +57,19 @@ class RoomAccessAspectTest {
     private final UUID userId = UUID.randomUUID();
     private final UUID roomId = UUID.randomUUID();
 
-    // Helper dummy method for parameter reflection
+    // Helper dummy methods for parameter/annotation reflection
     @SuppressWarnings("unused")
+    @GetMapping("/dummy")
     public void dummyRoomMethod(UUID roomId) {}
+
+    @SuppressWarnings("unused")
+    @PostMapping("/dummy")
+    public void dummyWriteMethod(UUID roomId) {}
+
+    private void useWriteMethod() throws NoSuchMethodException {
+        Method method = getClass().getMethod("dummyWriteMethod", UUID.class);
+        when(methodSignature.getMethod()).thenReturn(method);
+    }
 
     @BeforeEach
     void setUp() throws NoSuchMethodException {
@@ -117,6 +130,45 @@ class RoomAccessAspectTest {
 
         assertThatThrownBy(() -> aspect.enforce(joinPoint, requireRoomRole))
                 .isInstanceOf(RoomNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Write to an archived gala is rejected with RoomArchivedException")
+    void archivedRoom_write_rejected() throws NoSuchMethodException {
+        useWriteMethod();
+        when(requireRoomRole.value()).thenReturn(RoomRole.MEMBER);
+        when(requireRoomRole.allowArchived()).thenReturn(false);
+        when(cacheService.get(anyString())).thenReturn(Optional.of("MEMBER"));
+        when(jdbc.queryForObject(eq("SELECT status FROM rooms WHERE id = ?"), eq(String.class), eq(roomId)))
+                .thenReturn("ARCHIVED");
+
+        assertThatThrownBy(() -> aspect.enforce(joinPoint, requireRoomRole))
+                .isInstanceOf(RoomArchivedException.class);
+    }
+
+    @Test
+    @DisplayName("Write to an archived gala passes when the endpoint allows archived (restore/delete/leave)")
+    void archivedRoom_allowArchived_passes() throws NoSuchMethodException {
+        useWriteMethod();
+        when(requireRoomRole.value()).thenReturn(RoomRole.HOST);
+        when(requireRoomRole.allowArchived()).thenReturn(true);
+        when(cacheService.get(anyString())).thenReturn(Optional.of("HOST"));
+
+        assertThatCode(() -> aspect.enforce(joinPoint, requireRoomRole)).doesNotThrowAnyException();
+        verifyNoInteractions(jdbc);
+    }
+
+    @Test
+    @DisplayName("Write to an active gala passes after the status check")
+    void activeRoom_write_passes() throws NoSuchMethodException {
+        useWriteMethod();
+        when(requireRoomRole.value()).thenReturn(RoomRole.MEMBER);
+        when(requireRoomRole.allowArchived()).thenReturn(false);
+        when(cacheService.get(anyString())).thenReturn(Optional.of("MEMBER"));
+        when(jdbc.queryForObject(eq("SELECT status FROM rooms WHERE id = ?"), eq(String.class), eq(roomId)))
+                .thenReturn("ACTIVE");
+
+        assertThatCode(() -> aspect.enforce(joinPoint, requireRoomRole)).doesNotThrowAnyException();
     }
 
     @Test

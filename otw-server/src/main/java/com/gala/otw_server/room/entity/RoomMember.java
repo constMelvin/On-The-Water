@@ -46,7 +46,15 @@ public class RoomMember {
     @Column(name = "rsvp_status", nullable = false, length = 20)
     private RsvpStatus rsvpStatus = RsvpStatus.PENDING;
 
-    @Column(name = "joined_at", nullable = false, updatable = false)
+    /** True once this member's Supabase user is a registered account (not anonymous). */
+    @Column(name = "has_account", nullable = false)
+    private boolean hasAccount = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "travel_status", nullable = false, length = 20)
+    private TravelStatus travelStatus = TravelStatus.STILL_HOME;
+
+    @Column(name = "joined_at", nullable = false)
     private OffsetDateTime joinedAt;
 
     @Column(name = "left_at")

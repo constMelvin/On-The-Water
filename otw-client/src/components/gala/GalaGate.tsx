@@ -24,13 +24,31 @@ export function GalaNotFound() {
   );
 }
 
+/** The backend couldn't be reached or failed; shows why and lets me retry. */
+function GalaError({ message }: { message: string }) {
+  return (
+    <main className="bg-cream" style={{ minHeight: '100dvh', display: 'flex', padding: '0 var(--pad)' }}>
+      <div className="empty err">
+        <div className="ico xl" style={{ ...blob(3), color: 'var(--rosy-dark)' }}>
+          <Icon name="alert" size={44} />
+        </div>
+        <h3>Hindi ma-load ang gala.</h3>
+        <p className="fine">{message}</p>
+        <button type="button" className="btn rosy" onClick={() => window.location.reload()}>
+          Try again
+        </button>
+      </div>
+    </main>
+  );
+}
+
 /**
- * Decides what /gala/[code] shows once the gala has been read from storage:
+ * Decides what /gala/[code] shows once the gala has been loaded from the backend:
  * the shell (I'm in it), the not-found state (unknown code), or Enter a Gala
- * (the gala exists but nobody on this device has joined it yet).
+ * (this device isn't a member of the gala yet), or the error state.
  */
 export function GalaGate({ children }: { children: ReactNode }) {
-  const { status, gala } = useGala();
+  const { status, gala, error } = useGala();
   const router = useRouter();
 
   useEffect(() => {
@@ -38,6 +56,7 @@ export function GalaGate({ children }: { children: ReactNode }) {
   }, [status, gala.code, router]);
 
   if (status === 'missing') return <GalaNotFound />;
+  if (status === 'error') return <GalaError message={error} />;
   if (status !== 'ready') return null;
   return <GalaShell>{children}</GalaShell>;
 }

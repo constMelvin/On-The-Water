@@ -42,9 +42,11 @@ public class PhotoController {
     @RequireRoomRole(RoomRole.MEMBER)
     public PageResponse<PhotoDto> getPhotos(
             @PathVariable UUID roomId,
+            @RequestParam(defaultValue = "false") boolean mine,
             @RequestParam(required = false) UUID cursor,
             @RequestParam(defaultValue = "50") int limit) {
-        return photoService.getPhotos(roomId, cursor, Math.min(limit, 50));
+        UUID uploadedBy = mine ? currentUser.getUserId() : null;
+        return photoService.getPhotos(roomId, uploadedBy, cursor, Math.min(limit, 50));
     }
 
     // ── DELETE /rooms/{roomId}/photos/{photoId} — remove photo metadata ───────

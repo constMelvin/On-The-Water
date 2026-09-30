@@ -69,9 +69,43 @@ class RateLimitFilterTest {
     }
 
     @Test
+    @DisplayName("Gala code preview and Enter a Gala share a 10 req/min anti-guessing limit")
+    void codeLookupEndpoints_enforceAntiGuessingLimit() throws Exception {
+        when(rateLimiterService.tryAcquireCount(contains("ratelimit:code:"), eq(10), any(Duration.class)))
+                .thenReturn(true);
+
+        for (MockHttpServletRequest request : new MockHttpServletRequest[]{
+                new MockHttpServletRequest("GET", "/api/v1/rooms/preview"),
+                new MockHttpServletRequest("POST", "/api/v1/rooms/enter"),
+                new MockHttpServletRequest("POST", "/api/v1/rooms/enter/claim")}) {
+            request.setRemoteAddr("192.168.1.7");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            filter.doFilterInternal(request, response, filterChain);
+            verify(filterChain).doFilter(request, response);
+        }
+        verify(rateLimiterService, times(3)).tryAcquireCount(contains("ratelimit:code:"), eq(10), any(Duration.class));
+    }
+
+    @Test
+    @DisplayName("Creating a gala is capped at 10 per hour per client")
+    void createRoom_enforcesHourlyLimit() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/rooms");
+        request.setRemoteAddr("192.168.1.50");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        when(rateLimiterService.tryAcquireCount(contains("ratelimit:create:"), eq(10), eq(Duration.ofHours(1))))
+                .thenReturn(false);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verifyNoInteractions(filterChain);
+        assertThat(response.getStatus()).isEqualTo(429);
+    }
+
+    @Test
     @DisplayName("Write operations enforce 60 req/min limit")
     void writeEndpoint_enforcesWriteLimit() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/rooms");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/rooms/some-id/checklist");
         request.setRemoteAddr("192.168.1.50");
         MockHttpServletResponse response = new MockHttpServletResponse();
 

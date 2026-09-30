@@ -15,16 +15,25 @@ STACK:
   marking a photo READY, see the `photo` package's GoogleDriveFileValidator)
 - Flyway for migrations
 
-AUTH MODEL (already decided — do not revisit):
+AUTH MODEL (already decided — do not revisit; revised 2026-09-29 by the project owner to
+match the product artifact — see the master plan changelog):
 
 - Register/login is email/OTP or password, via Supabase Auth, handled entirely on the
   frontend. The backend NEVER issues, stores, or refreshes tokens.
 - Backend only VERIFIES incoming JWTs using Spring Security's OAuth2 Resource Server
   against Supabase's JWKS endpoint (see doc §5.1.1) — signature, expiry, aud, iss.
-- Anonymous Supabase sessions are rejected (2026-09-29 decision, requires a registered
-  account for security and abuse-prevention) — a token with `is_anonymous: true` or no
-  `email` claim fails verification with `401 ACCOUNT_REQUIRED`, not the generic
-  `401 UNAUTHENTICATED`. See `NotAnonymousJwtValidator` and doc §5.1.
+- Anonymous-first: Supabase anonymous sessions are ACCEPTED for everything inside a
+  gala (plan, join, all room features). An account is optional and only gates the
+  personal cross-gala features under `/me/` (My Galas, calendar, history,
+  notifications): those endpoints carry `@RequireAccount`, which returns
+  `401 ACCOUNT_REQUIRED` (not the generic `401 UNAUTHENTICATED`) when `is_anonymous`
+  is true or there is no `email` claim. See `AccountRequiredAspect` and doc §5.1.
+- Saving a gala to an account keeps the same `sub` (frontend upgrades the anonymous
+  user with `updateUser`/`linkIdentity`, then calls `POST /me/link-account`).
+- "Enter a Gala" (Gala Code + BCrypt-hashed Gala Password → "Which one are you?")
+  rebinds an anonymous member row to a new session via `MemberIdentityRemapper`;
+  account-linked members can't be claimed. Any new room-scoped user-id column must
+  be added to `MemberIdentityRemapper`.
 - `userId` comes from the JWT `sub` claim only. There is no local `users` table —
   Supabase `auth.users` is the identity source of truth; Postgres only stores
   `room_members` rows keyed by that `userId`.
@@ -56,7 +65,7 @@ CORE DATA MODEL RULES (do not violate):
 6. Optimistic locking (version column) on itinerary_items and checklist_items — concurrent
    edits return 409, not silent overwrite.
 7. Every feature package (room, rsvp, itinerary, checklist, budget, expense, location,
-   photo) follows the same five-folder shape: controller/, dto/, entity/, repository/,
+   photo, chat, couple, notification) follows the same five-folder shape: controller/, dto/, entity/, repository/,
    service/ (see doc §1). Controllers never bind to entities directly — always through
    dto/.
 8. A room-member nickname is unique per room among active members, case-insensitive,

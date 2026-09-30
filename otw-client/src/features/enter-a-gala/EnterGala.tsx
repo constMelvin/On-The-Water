@@ -5,66 +5,93 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar, Button, Icon, Tag } from '@/components/otw';
 import { FocusLayout } from '@/features/plan-a-gala';
-import { G, demoGalaRecord } from '@/lib/otw/data';
 import { burst, toast } from '@/lib/otw/feedback';
-import {
-  galaRoute,
-  getGala,
-  normCode,
-  saveGala,
-  setCurrentMember,
-  type GalaRecord,
-} from '@/lib/otw/gala-registry';
+import { galaRoute, isValidCode, normCode, rememberRoom } from '@/lib/otw/gala-registry';
+import type { Tone } from '@/lib/otw/data';
+import { isApiError } from '@/lib/api/client';
+import { claimMember, enterRoom, type EnterRoomResponse } from '@/lib/api/rooms';
 import './enter-a-gala.css';
 
 const CODE_ERR = "Hmm, hindi namin makita 'yan. Check the code and try again.";
 const PW_ERR = 'Hindi tugma ang password. Try again, or ask your Gala Leader.';
-const DEV = process.env.NODE_ENV !== 'production';
+const TONES: Tone[] = ['rosy', 'teal', 'zest', 'blossom'];
 
-/** OTW-XXXX as you type (reference input handler). */
+/** OTW-XXXX-XXXX as you type. */
 function formatCode(v: string) {
-  let s = v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
-  if (s.length > 3) s = `${s.slice(0, 3)}-${s.slice(3)}`;
-  return s;
+  let s = v.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!s.startsWith('OTW')) s = 'OTW' + s;
+  s = s.slice(0, 11);
+  return [s.slice(0, 3), s.slice(3, 7), s.slice(7)].filter(Boolean).join('-');
 }
 
 /**
  * Enter a Gala: accountless people come back with Gala Code + Gala Password,
- * then say who they are. Works for leaders and members (reference views.enter).
+ * then say who they are. Works for leaders and members (POST /rooms/enter + /enter/claim).
  */
 export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
   const router = useRouter();
-  const [code, setCode] = useState(formatCode(initialCode));
+  const [code, setCode] = useState(initialCode ? formatCode(initialCode) : '');
   const [pw, setPw] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [err, setErr] = useState<'' | 'code' | 'pw'>('');
-  const [gala, setGala] = useState<GalaRecord | null>(null);
+  const [err, setErr] = useState<'' | 'code' | 'pw' | 'other'>('');
+  const [errMsg, setErrMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [gala, setGala] = useState<EnterRoomResponse | null>(null);
 
-  const submit = (e: FormEvent) => {
+  const fail = (e: unknown) => {
+    if (isApiError(e, 'INVALID_CODE') || isApiError(e, 'ROOM_NOT_FOUND')) setErr('code');
+    else if (isApiError(e, 'INVALID_GALA_PASSWORD')) setErr('pw');
+    else {
+      setErr('other');
+      setErrMsg(e instanceof Error ? e.message : 'Something went wrong. Try again.');
+    }
+  };
+
+  const open = (roomId: string, name?: string) => {
+    rememberRoom(code, roomId);
+    toast(name ? `Welcome back, ${name}.` : 'Welcome back.');
+    burst(window.innerWidth / 2, window.innerHeight * 0.4);
+    router.push(galaRoute(code));
+  };
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    let rec = getGala(code);
-    // Development only: the demo gala works without creating one first.
-    if (!rec && DEV && normCode(code) === G.code) rec = saveGala(demoGalaRecord());
-    if (!rec) {
+    if (busy) return;
+    if (!isValidCode(code)) {
       setErr('code');
       return;
     }
-    // TODO(team): verify the password with the real API. Galas joined from another
-    // device have no password stored here, so they can't be checked locally.
-    if (rec.password !== undefined && pw !== rec.password) {
-      setErr('pw');
-      return;
-    }
     setErr('');
-    setGala(rec);
+    setBusy(true);
+    try {
+      const res = await enterRoom(normCode(code), pw);
+      if (res.alreadyMember) open(res.roomId);
+      else setGala(res);
+    } catch (e2) {
+      fail(e2);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const pick = (name: string, role: 'leader' | 'member') => {
-    if (!gala) return;
-    setCurrentMember(gala.code, { name, role });
-    toast(`Welcome back, ${name}.`);
-    burst(window.innerWidth / 2, window.innerHeight * 0.4);
-    router.push(galaRoute(gala.code));
+  const pick = async (memberId: string, name: string) => {
+    if (!gala || busy) return;
+    setBusy(true);
+    try {
+      await claimMember(normCode(code), pw, memberId);
+      open(gala.roomId, name);
+    } catch (e) {
+      toast(
+        isApiError(e, 'MEMBER_HAS_ACCOUNT')
+          ? `${name} has an account. Log in instead.`
+          : e instanceof Error
+            ? e.message
+            : "Couldn't pick that member.",
+        'err'
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (gala) {
@@ -74,12 +101,19 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
           <h1 className="h1 wq">Welcome back. Which one are you?</h1>
           <p className="sub">Pick your name so the gala knows it&apos;s you.</p>
           <div className="who">
-            {gala.members.map((m) => (
-              <button key={m.name} type="button" className="whob" onClick={() => pick(m.name, m.role)}>
-                <Avatar name={m.name} tone={m.color} size={44} />
+            {gala.members.map((m, i) => (
+              <button
+                key={m.memberId}
+                type="button"
+                className="whob"
+                disabled={busy || m.hasAccount}
+                title={m.hasAccount ? 'Has an account: log in instead' : undefined}
+                onClick={() => pick(m.memberId, m.nickname)}
+              >
+                <Avatar name={m.nickname} tone={TONES[i % TONES.length]} size={44} />
                 <span>
-                  {m.name}
-                  {m.role === 'leader' && <Tag variant="zest">Leader</Tag>}
+                  {m.nickname}
+                  {m.role === 'HOST' && <Tag variant="zest">Leader</Tag>}
                 </span>
               </button>
             ))}
@@ -105,8 +139,8 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
                   setCode(formatCode(e.target.value));
                   setErr('');
                 }}
-                placeholder="OTW-XXXX"
-                maxLength={8}
+                placeholder="OTW-XXXX-XXXX"
+                maxLength={13}
                 autoComplete="off"
                 aria-invalid={err === 'code'}
                 autoFocus={!initialCode}
@@ -149,18 +183,11 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
                 {PW_ERR}
               </p>
             )}
-            {DEV && (
-              <button
-                type="button"
-                className="chip"
-                onClick={() => {
-                  setCode(G.code);
-                  setPw(G.pw);
-                  setErr('');
-                }}
-              >
-                <Icon name="sparkle" size={12} /> Demo: {G.code} / {G.pw}
-              </button>
+            {err === 'other' && (
+              <p className="ferr" role="alert">
+                <Icon name="alert" size={18} />
+                {errMsg}
+              </p>
             )}
           </div>
           <p className="fine">
@@ -175,7 +202,9 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
           <Button variant="ghost" onClick={() => router.push('/')}>
             Back
           </Button>
-          <Button type="submit">Enter Gala</Button>
+          <Button type="submit" disabled={busy}>
+            {busy ? 'Checking…' : 'Enter Gala'}
+          </Button>
         </div>
       </form>
     </FocusLayout>

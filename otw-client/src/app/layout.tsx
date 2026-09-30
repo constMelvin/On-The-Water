@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '../index.css';
 import '../styles/otw.css';
+import { QueryProvider } from '@/providers';
 
 export const metadata: Metadata = {
   title: 'OTW — Tara G!',
@@ -15,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

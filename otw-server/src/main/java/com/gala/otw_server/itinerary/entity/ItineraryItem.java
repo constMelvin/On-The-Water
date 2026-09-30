@@ -38,6 +38,10 @@ public class ItineraryItem {
     @Column(name = "starts_at")
     private OffsetDateTime startsAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "stop_type", nullable = false, length = 20)
+    private StopType stopType = StopType.ACTIVITY;
+
     @Column(name = "position", nullable = false)
     private int position;
 

@@ -13,6 +13,7 @@ public record PhotoDto(
         UUID roomId,
         String driveFileId,
         UUID uploadedBy,
+        String caption,
         String status,
         OffsetDateTime createdAt
 ) {
@@ -22,6 +23,7 @@ public record PhotoDto(
                 photo.getRoom().getId(),
                 photo.getDriveFileId(),
                 photo.getUploadedBy(),
+                photo.getCaption(),
                 photo.getStatus(),
                 photo.getCreatedAt()
         );

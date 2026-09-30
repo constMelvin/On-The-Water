@@ -19,7 +19,27 @@ public final class DomainExceptions {
         }
     }
 
+    public static class AccountRequiredException extends BaseException {
+        public AccountRequiredException() {
+            super(ErrorCode.ACCOUNT_REQUIRED, HttpStatus.UNAUTHORIZED,
+                    "Create an account or log in to use this feature");
+        }
+    }
+
+    public static class InvalidGalaPasswordException extends BaseException {
+        public InvalidGalaPasswordException() {
+            super(ErrorCode.INVALID_GALA_PASSWORD, HttpStatus.UNAUTHORIZED,
+                    "That gala password doesn't match");
+        }
+    }
+
     // ── 403 Forbidden ───────────────────────────────────────────────────────
+
+    public static class PermissionDisabledException extends BaseException {
+        public PermissionDisabledException(String message) {
+            super(ErrorCode.PERMISSION_DISABLED, HttpStatus.FORBIDDEN, message);
+        }
+    }
 
     public static class ForbiddenException extends BaseException {
         public ForbiddenException(String message) {
@@ -78,6 +98,30 @@ public final class DomainExceptions {
         }
     }
 
+    public static class PaymentNotFoundException extends BaseException {
+        public PaymentNotFoundException() {
+            super(ErrorCode.PAYMENT_NOT_FOUND, HttpStatus.NOT_FOUND, "Payment not found");
+        }
+    }
+
+    public static class ChatMessageNotFoundException extends BaseException {
+        public ChatMessageNotFoundException() {
+            super(ErrorCode.CHAT_MESSAGE_NOT_FOUND, HttpStatus.NOT_FOUND, "Message not found");
+        }
+    }
+
+    public static class NotificationNotFoundException extends BaseException {
+        public NotificationNotFoundException() {
+            super(ErrorCode.NOTIFICATION_NOT_FOUND, HttpStatus.NOT_FOUND, "Notification not found");
+        }
+    }
+
+    public static class NotACoupleRoomException extends BaseException {
+        public NotACoupleRoomException() {
+            super(ErrorCode.NOT_A_COUPLE_ROOM, HttpStatus.NOT_FOUND, "This gala is not in Couple Mode");
+        }
+    }
+
     // ── 400 Bad Request ─────────────────────────────────────────────────────
 
     public static class InvalidRequestException extends BaseException {
@@ -126,6 +170,45 @@ public final class DomainExceptions {
     public static class InvalidCodeException extends BaseException {
         public InvalidCodeException() {
             super(ErrorCode.INVALID_CODE, HttpStatus.NOT_FOUND, "Invalid or expired join code");
+        }
+    }
+
+    public static class RoomArchivedException extends BaseException {
+        public RoomArchivedException() {
+            super(ErrorCode.ROOM_ARCHIVED, HttpStatus.CONFLICT,
+                    "This gala is archived — revive it before making changes");
+        }
+    }
+
+    public static class RoomFullException extends BaseException {
+        public RoomFullException() {
+            super(ErrorCode.ROOM_FULL, HttpStatus.CONFLICT, "This couple gala already has two people");
+        }
+    }
+
+    public static class MemberHasAccountException extends BaseException {
+        public MemberHasAccountException() {
+            super(ErrorCode.MEMBER_HAS_ACCOUNT, HttpStatus.CONFLICT,
+                    "That member saved this gala to an account — log in instead");
+        }
+    }
+
+    public static class HostCannotLeaveException extends BaseException {
+        public HostCannotLeaveException() {
+            super(ErrorCode.HOST_CANNOT_LEAVE, HttpStatus.CONFLICT,
+                    "The Gala Leader can't leave — archive or delete the gala instead");
+        }
+    }
+
+    public static class AlreadyClaimedException extends BaseException {
+        public AlreadyClaimedException() {
+            super(ErrorCode.ALREADY_CLAIMED, HttpStatus.CONFLICT, "Someone already claimed this item");
+        }
+    }
+
+    public static class SettlementMismatchException extends BaseException {
+        public SettlementMismatchException(String message) {
+            super(ErrorCode.SETTLEMENT_MISMATCH, HttpStatus.CONFLICT, message);
         }
     }
 }

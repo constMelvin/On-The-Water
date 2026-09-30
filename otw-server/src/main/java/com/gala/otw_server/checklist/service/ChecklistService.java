@@ -10,7 +10,8 @@ import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import com.gala.otw_server.room.entity.Room;
 import com.gala.otw_server.room.repository.RoomMemberRepository;
-import com.gala.otw_server.room.repository.RoomRepository;
+import com.gala.otw_server.room.service.RoomPermissionService;
+import com.gala.otw_server.room.service.RoomPermissionService.Permission;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,27 +28,28 @@ import java.util.UUID;
 public class ChecklistService {
 
     private final ChecklistItemRepository itemRepo;
-    private final RoomRepository roomRepo;
     private final RoomMemberRepository memberRepo;
+    private final RoomPermissionService permissions;
     private final RealtimeEventPublisher realtime;
 
     public ChecklistService(ChecklistItemRepository itemRepo,
-                            RoomRepository roomRepo,
                             RoomMemberRepository memberRepo,
+                            RoomPermissionService permissions,
                             RealtimeEventPublisher realtime) {
         this.itemRepo = itemRepo;
-        this.roomRepo = roomRepo;
         this.memberRepo = memberRepo;
+        this.permissions = permissions;
         this.realtime = realtime;
     }
 
-    // ── Get checklist items ───────────────────────────────────────────────────
+    // ── Get checklist items (All / Mine / Done) ───────────────────────────────
 
     @Transactional(readOnly = true)
-    public PageResponse<ChecklistItemDto> getItems(UUID roomId, Boolean isDone, UUID cursor, int limit) {
+    public PageResponse<ChecklistItemDto> getItems(UUID roomId, Boolean isDone, UUID assignedTo, UUID cursor, int limit) {
         List<ChecklistItem> items = itemRepo.findItems(
                 roomId,
                 isDone,
+                assignedTo,
                 cursor,
                 PageRequest.of(0, limit + 1)
         );
@@ -68,9 +70,7 @@ public class ChecklistService {
     // ── Create checklist item ─────────────────────────────────────────────────
 
     public ChecklistItemDto createItem(UUID roomId, UUID callerId, CreateChecklistItemRequest req) {
-        Room room = roomRepo.findById(roomId)
-                .filter(r -> "ACTIVE".equals(r.getStatus()))
-                .orElseThrow(RoomNotFoundException::new);
+        Room room = permissions.require(roomId, callerId, Permission.EDIT_PLAN);
 
         if (req.assignedTo() != null) {
             validateMemberOfRoom(roomId, req.assignedTo());
@@ -91,6 +91,10 @@ public class ChecklistService {
 
     // ── Update checklist item ─────────────────────────────────────────────────
 
+    /**
+     * Ticking an item done/undone is always allowed ("Tap to check"). Renaming or
+     * reassigning counts as editing the plan and follows the "Edit the plan" toggle.
+     */
     public ChecklistItemDto updateItem(UUID roomId, UUID itemId, UUID callerId, UpdateChecklistItemRequest req) {
         ChecklistItem item = itemRepo.findByIdAndRoom_Id(itemId, roomId)
                 .orElseThrow(ChecklistItemNotFoundException::new);
@@ -98,6 +102,13 @@ public class ChecklistService {
         // Optimistic locking check: client must supply the version it read
         if (req.version() != item.getVersion()) {
             throw new OptimisticLockConflictException();
+        }
+
+        boolean editsPlan = (req.label() != null && !req.label().isBlank())
+                || Boolean.TRUE.equals(req.clearAssignment())
+                || req.assignedTo() != null;
+        if (editsPlan) {
+            permissions.require(roomId, callerId, Permission.EDIT_PLAN);
         }
 
         if (req.label() != null && !req.label().isBlank()) {
@@ -130,9 +141,33 @@ public class ChecklistService {
         return dto;
     }
 
+    // ── Claim ("Claim" button on unassigned items) ────────────────────────────
+
+    public ChecklistItemDto claimItem(UUID roomId, UUID itemId, UUID callerId, int version) {
+        ChecklistItem item = itemRepo.findByIdAndRoom_Id(itemId, roomId)
+                .orElseThrow(ChecklistItemNotFoundException::new);
+
+        if (version != item.getVersion()) {
+            throw new OptimisticLockConflictException();
+        }
+        if (item.getAssignedTo() != null) {
+            if (item.getAssignedTo().equals(callerId)) return ChecklistItemDto.from(item);
+            throw new AlreadyClaimedException();
+        }
+
+        item.setAssignedTo(callerId);
+        ChecklistItem saved = itemRepo.save(item);
+        ChecklistItemDto dto = ChecklistItemDto.from(saved);
+
+        publishAfterCommit(roomId, "checklist.updated", dto);
+        return dto;
+    }
+
     // ── Delete checklist item ─────────────────────────────────────────────────
 
     public void deleteItem(UUID roomId, UUID itemId, UUID callerId) {
+        permissions.require(roomId, callerId, Permission.EDIT_PLAN);
+
         ChecklistItem item = itemRepo.findByIdAndRoom_Id(itemId, roomId)
                 .orElseThrow(ChecklistItemNotFoundException::new);
 

@@ -10,5 +10,8 @@ public record RegisterPhotoRequest(
 
         @NotBlank(message = "Google Drive file ID is required")
         @Size(max = 200, message = "Drive file ID must be at most 200 characters")
-        String driveFileId
+        String driveFileId,
+
+        @Size(max = 140, message = "Caption must be at most 140 characters")
+        String caption
 ) {}

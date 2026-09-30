@@ -30,4 +30,9 @@ public interface ItineraryItemRepository extends JpaRepository<ItineraryItem, UU
 
     @Query("SELECT COALESCE(MAX(i.position), 0) FROM ItineraryItem i WHERE i.room.id = :roomId")
     int findMaxPosition(@Param("roomId") UUID roomId);
+
+    /** The whole route, for reorder. Bounded by the reorder request's 200-stop cap. */
+    List<ItineraryItem> findByRoom_IdOrderByPositionAscIdAsc(UUID roomId);
+
+    long countByRoom_Id(UUID roomId);
 }

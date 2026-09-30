@@ -1,6 +1,7 @@
 package com.gala.otw_server.expense.dto;
 
 import com.gala.otw_server.expense.entity.Expense;
+import com.gala.otw_server.expense.entity.ExpenseCategory;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -16,6 +17,8 @@ public record ExpenseDto(
         String description,
         BigDecimal amount,
         UUID paidBy,
+        ExpenseCategory category,
+        String note,
         List<ExpenseShareDto> shares,
         OffsetDateTime createdAt
 ) {
@@ -30,6 +33,8 @@ public record ExpenseDto(
                 expense.getDescription(),
                 expense.getAmount(),
                 expense.getPaidBy(),
+                expense.getCategory(),
+                expense.getNote(),
                 shareDtos,
                 expense.getCreatedAt()
         );

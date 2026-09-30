@@ -4,8 +4,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './join.module.css';
-import { lookupGala, joinGala, type GalaEvent } from './mockJoin';
-import { galaRoute, registerJoinedGala } from '@/lib/otw/gala-registry';
+import { useRouter } from 'next/navigation';
+import { lookupGala, joinGala, type GalaEvent } from './joinApi';
+import { galaRoute, isValidCode, normCode, roomIdFor } from '@/lib/otw/gala-registry';
 
 // Dashboard route for the gala the member just joined
 const MEMBER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
@@ -17,21 +18,10 @@ interface Sparkle {
 }
 
 /**
- * Normalizes input code to standard format OTW-XXXX.
- * Accepts formats like 7K2P, otw7k2p, OTW7K2P, or OTW-7K2P.
+ * Normalizes input code to the standard format OTW-XXXX-XXXX.
+ * Accepts formats like 7K2PABCD, otw7k2pabcd, or OTW-7K2P-ABCD.
  */
-function normalizeGalaCode(value: string): string {
-  const stripped = value.replace(/[\s-]+/g, '').toUpperCase();
-  if (!stripped) return '';
-  if (stripped.startsWith('OTW')) {
-    const suffix = stripped.slice(3);
-    return suffix ? `OTW-${suffix}` : 'OTW-';
-  }
-  if (stripped.length === 4) {
-    return `OTW-${stripped}`;
-  }
-  return stripped;
-}
+const normalizeGalaCode = (value: string): string => normCode(value);
 
 /** Low-opacity floating background shapes */
 function BackgroundShapes() {
@@ -105,6 +95,7 @@ function BackgroundShapes() {
 }
 
 export default function JoinPage() {
+  const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [isSuccess, setIsSuccess] = useState(false);
   const [event, setEvent] = useState<GalaEvent | null>(null);
@@ -184,9 +175,8 @@ export default function JoinPage() {
     const normalized = normalizeGalaCode(code);
     setCode(normalized);
 
-    const codeRegex = /^OTW-[A-Z0-9]{4}$/;
-    if (!codeRegex.test(normalized)) {
-      setCodeError('Enter the full code, like OTW-7K2P.');
+    if (!isValidCode(normalized)) {
+      setCodeError('Enter the full code, like OTW-7K2P-ABCD.');
       setCodeShake(true);
       setTimeout(() => setCodeShake(false), 400);
       codeInputRef.current?.focus();
@@ -200,7 +190,13 @@ export default function JoinPage() {
       const result = await lookupGala(normalized);
 
       if (!result.ok) {
-        setCodeError("Hmm, we can't find that code. Check your group chat and try again.");
+        setCodeError(
+          result.error === 'ROOM_FULL'
+            ? 'This gala is already full.'
+            : result.error === 'OTHER'
+              ? (result.message ?? 'Something went wrong. Try again.')
+              : "Hmm, we can't find that code. Check your group chat and try again."
+        );
         setCodeShake(true);
         setTimeout(() => setCodeShake(false), 400);
         codeInputRef.current?.focus();
@@ -246,18 +242,21 @@ export default function JoinPage() {
         if (result.error === 'NOT_FOUND') {
           setStep(1);
           setCodeError("Hmm, we can't find that code. Check your group chat and try again.");
+        } else if (result.error === 'ALREADY_A_MEMBER') {
+          // Already in this gala on this device: open it (or re-enter if the id was lost).
+          const c = normalizeGalaCode(code);
+          router.push(roomIdFor(c) ? MEMBER_DASHBOARD_ROUTE(c) : `/enter?code=${encodeURIComponent(c)}`);
+        } else if (result.error === 'DUPLICATE_NICKNAME') {
+          setNicknameError('Someone in this gala already uses that nickname. Pick another one.');
+        } else if (result.error === 'ROOM_FULL') {
+          setNicknameError('This gala is already full.');
+        } else if (result.error === 'OTHER') {
+          setNicknameError(result.message ?? 'Something went wrong. Try again.');
         } else {
           setNicknameError('Add a nickname (at least 2 characters).');
         }
         return;
       }
-
-      // Hand the join to the shared gala store; the joiner is a member under their nickname.
-      registerJoinedGala(
-        normalizeGalaCode(code),
-        trimmedNick,
-        event ? { name: event.name, location: event.location, attendees: event.attendees } : undefined
-      );
 
       // Store joined gala details for session retrieval
       try {
@@ -415,7 +414,7 @@ export default function JoinPage() {
                   </div>
                 ) : (
                   <div id="gala-code-hint" className={styles.hint}>
-                    Looks like OTW-7K2P
+                    Looks like OTW-7K2P-ABCD
                   </div>
                 )}
               </div>

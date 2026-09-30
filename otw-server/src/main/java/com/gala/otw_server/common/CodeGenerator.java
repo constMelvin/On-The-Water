@@ -19,6 +19,20 @@ public final class CodeGenerator {
 
     private CodeGenerator() {}
 
+    /**
+     * Normalizes a code as typed by a person: uppercases it, drops dashes/spaces and
+     * an optional {@code OTW} display prefix ("otw-7k2p-abcd" → "7K2PABCD").
+     * Returns whatever is left; callers treat anything that isn't a stored code as invalid.
+     */
+    public static String normalize(String input) {
+        if (input == null) return "";
+        String code = input.toUpperCase().replaceAll("[^A-Z0-9]", "");
+        if (code.length() == CODE_LENGTH + 3 && code.startsWith("OTW")) {
+            code = code.substring(3);
+        }
+        return code;
+    }
+
     /** Generates a random 8-character alphanumeric join code. */
     public static String generate() {
         StringBuilder sb = new StringBuilder(CODE_LENGTH);

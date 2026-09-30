@@ -1,197 +1,71 @@
 /**
- * Shared gala store used by Plan a Gala, Join a Gala, Enter a Gala and the dashboard.
+ * Gala helpers shared by Plan a Gala, Join a Gala, Enter a Gala and the dashboard.
  *
- * The teammates' flows only had mock APIs + sessionStorage, so this is the single place
- * that remembers a gala on this device:
- *   - localStorage  "otw:galas"         -> { [CODE]: GalaRecord }
- *   - sessionStorage + localStorage "otw:me:<CODE>" -> CurrentMember
- *     (sessionStorage first, so two tabs can be two different people; localStorage keeps
- *      the last identity for a fresh tab / after the browser restarts)
- *
- * TODO(team): when the real API exists, replace the bodies of getGala / saveGala / addMember /
- * setMemberStatus with API calls. Keep the function signatures and the dashboard keeps working.
+ * The backend (otw-server) is the source of truth for galas. This device only remembers
+ * which room id a gala code maps to (localStorage "otw:rooms" -> { [CODE]: roomId }),
+ * written after a successful create / join / enter. Who "I" am is the Supabase session.
  */
-import type { AttendanceKey, Tone } from './data';
 
-export type GalaRole = 'leader' | 'member';
+const ROOMS_KEY = 'otw:rooms';
+const CODE_CHARS = /^[A-Z0-9]{8}$/;
 
-export interface MemberRecord {
-  name: string;
-  role: GalaRole;
-  status: AttendanceKey;
-  color: Tone;
+/** The raw 8-character room code, from anything a person might type ("otw-7k2p-abcd" -> "7K2PABCD"). */
+export function rawCode(code: string): string {
+  let s = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (s.length === 11 && s.startsWith('OTW')) s = s.slice(3);
+  return s;
 }
 
-export interface GalaRecord {
-  code: string;
-  title: string;
-  /** yyyy-mm-dd */
-  date: string;
-  /** Number of days (1 for a day tour). */
-  days: number;
-  /** hh:mm, optional */
-  startTime?: string;
-  endTime?: string;
-  destination: string;
-  /**
-   * MOCK ONLY: kept on this device so "Enter a Gala" can check it.
-   * TODO(team): never store this client-side once the real API verifies it server-side.
-   */
-  password?: string;
-  members: MemberRecord[];
-  createdAt: number;
-  /** Seeded from the demo data module (dev fallback), not created by a real flow. */
-  demo?: boolean;
+/** Display form used in URLs and on screen: OTW-XXXX-XXXX. Partial input is formatted as far as it goes. */
+export function normCode(code: string): string {
+  const s = rawCode(code);
+  return CODE_CHARS.test(s) ? `OTW-${s.slice(0, 4)}-${s.slice(4)}` : code.trim().toUpperCase();
 }
 
-export interface CurrentMember {
-  name: string;
-  role: GalaRole;
-}
-
-const GALAS_KEY = 'otw:galas';
-const meKey = (code: string) => `otw:me:${normCode(code)}`;
-const TONES: Tone[] = ['rosy', 'teal', 'zest', 'blossom'];
-
-/** Same shape the Join page uses: OTW-XXXX, upper case. */
-export const normCode = (code: string) => code.trim().toUpperCase();
-export const isValidCode = (code: string) => /^OTW-[A-Z0-9]{4}$/.test(normCode(code));
+export const isValidCode = (code: string) => CODE_CHARS.test(rawCode(code));
 export const galaRoute = (code: string) => `/gala/${encodeURIComponent(normCode(code))}`;
 
-/* ---------------- storage helpers (never throw) ---------------- */
+/* ---------------- code -> roomId on this device (never throws) ---------------- */
 
-function readJSON<T>(store: Storage | undefined, key: string): T | null {
-  try {
-    const raw = store?.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
-
-/* Same-tab change notifications (the browser's storage event only fires in OTHER tabs). */
 const listeners = new Set<() => void>();
-const emit = () => listeners.forEach((l) => l());
 
-function writeJSON(store: Storage | undefined, key: string, value: unknown) {
+function readRooms(): Record<string, string> {
   try {
-    store?.setItem(key, JSON.stringify(value));
+    return JSON.parse(window.localStorage.getItem(ROOMS_KEY) ?? '{}') as Record<string, string>;
   } catch {
-    /* storage full or blocked: the flow still works for this page view */
+    return {};
   }
-  emit();
 }
 
-const local = () => (typeof window === 'undefined' ? undefined : window.localStorage);
-const session = () => (typeof window === 'undefined' ? undefined : window.sessionStorage);
-
-function allGalas(): Record<string, GalaRecord> {
-  return readJSON<Record<string, GalaRecord>>(local(), GALAS_KEY) ?? {};
-}
-
-/* ---------------- galas ---------------- */
-
-export function getGala(code: string): GalaRecord | null {
-  return allGalas()[normCode(code)] ?? null;
-}
-
-export function saveGala(record: GalaRecord): GalaRecord {
-  const galas = allGalas();
-  const rec = { ...record, code: normCode(record.code) };
-  galas[rec.code] = rec;
-  writeJSON(local(), GALAS_KEY, galas);
-  return rec;
-}
-
-/** Called by Plan a Gala after the gala is created. The creator becomes the Gala Leader. */
-export function registerCreatedGala(input: {
-  code: string;
-  title: string;
-  date: string;
-  days: number;
-  startTime?: string;
-  endTime?: string;
-  destination: string;
-  password?: string;
-  leaderName?: string;
-}): GalaRecord {
-  const leaderName = input.leaderName?.trim() || 'Gala Leader';
-  const rec = saveGala({
-    code: input.code,
-    title: input.title,
-    date: input.date,
-    days: Math.max(1, input.days || 1),
-    startTime: input.startTime || undefined,
-    endTime: input.endTime || undefined,
-    destination: input.destination,
-    password: input.password,
-    members: [{ name: leaderName, role: 'leader', status: 'g', color: TONES[0] }],
-    createdAt: Date.now(),
-  });
-  setCurrentMember(rec.code, { name: leaderName, role: 'leader' });
-  return rec;
-}
-
-/** Adds a member (or returns the existing one with the same name). */
-export function addMember(code: string, name: string, role: GalaRole = 'member'): MemberRecord | null {
-  const rec = getGala(code);
-  if (!rec) return null;
-  const existing = rec.members.find((m) => m.name.toLowerCase() === name.trim().toLowerCase());
-  if (existing) return existing;
-  const m: MemberRecord = { name: name.trim(), role, status: 'g', color: TONES[rec.members.length % TONES.length] };
-  saveGala({ ...rec, members: [...rec.members, m] });
-  return m;
-}
-
-/**
- * Called by Join a Gala after a successful join. If this device has never seen the gala
- * (joined via a code created elsewhere), it is stored from the looked-up preview.
- */
-export function registerJoinedGala(
-  code: string,
-  nickname: string,
-  preview?: { name: string; location: string; attendees?: string[] }
-): void {
-  if (!getGala(code) && preview) {
-    saveGala({
-      code,
-      title: preview.name,
-      date: '',
-      days: 1,
-      destination: preview.location,
-      // The preview doesn't say who leads, so everyone already in is listed as a member.
-      members: (preview.attendees ?? []).map((n, i) => ({
-        name: n,
-        role: 'member',
-        status: 'g',
-        color: TONES[i % TONES.length],
-      })),
-      createdAt: Date.now(),
-    });
+function writeRooms(rooms: Record<string, string>) {
+  try {
+    window.localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms));
+  } catch {
+    /* storage blocked: the gala still opens for this page view */
   }
-  const m = addMember(code, nickname, 'member');
-  if (m) setCurrentMember(code, { name: m.name, role: m.role });
+  listeners.forEach((l) => l());
 }
 
-export function setMemberStatus(code: string, name: string, status: AttendanceKey) {
-  const rec = getGala(code);
-  if (!rec) return;
-  saveGala({ ...rec, members: rec.members.map((m) => (m.name === name ? { ...m, status } : m)) });
+/** Remembers that `code` is room `roomId` (after create / join / enter). */
+export function rememberRoom(code: string, roomId: string) {
+  writeRooms({ ...readRooms(), [rawCode(code)]: roomId });
 }
 
-/* ---------------- current member ---------------- */
-
-export function getCurrentMember(code: string): CurrentMember | null {
-  return readJSON<CurrentMember>(session(), meKey(code)) ?? readJSON<CurrentMember>(local(), meKey(code));
+/** Forgets a gala on this device (e.g. the backend says I'm no longer a member). */
+export function forgetRoom(code: string) {
+  const rooms = readRooms();
+  delete rooms[rawCode(code)];
+  writeRooms(rooms);
 }
 
-export function setCurrentMember(code: string, me: CurrentMember) {
-  writeJSON(session(), meKey(code), me);
-  writeJSON(local(), meKey(code), me);
+/** The room id for `code` on this device, or null when this device hasn't joined it. */
+export function roomIdFor(code: string): string | null {
+  if (typeof window === 'undefined') return null;
+  return readRooms()[rawCode(code)] ?? null;
 }
 
-/** Calls `cb` whenever a gala or the current member changes, in this tab or another one. */
-export function subscribeGalas(cb: () => void): () => void {
+/** Calls `cb` when the code -> roomId map changes, in this tab or another one. */
+export function subscribeRooms(cb: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
   listeners.add(cb);
   window.addEventListener('storage', cb);
@@ -201,20 +75,19 @@ export function subscribeGalas(cb: () => void): () => void {
   };
 }
 
-/**
- * Raw, comparable snapshot of one gala + the current member (for useSyncExternalStore).
- * Returns strings so unchanged storage gives an identical snapshot.
- */
-export function galaSnapshot(code: string): string {
-  const rec = getGala(code);
-  const me = getCurrentMember(code);
-  return JSON.stringify([rec, me]);
+/** Number of days a gala spans (1 for a day tour). */
+export function daysBetween(startIso: string, endIso?: string | null): number {
+  if (!endIso) return 1;
+  const ms = Date.parse(endIso) - Date.parse(startIso);
+  return Number.isFinite(ms) ? Math.max(1, Math.round(ms / 86_400_000) + 1) : 1;
 }
 
-export const parseSnapshot = (snap: string): { rec: GalaRecord | null; me: CurrentMember | null } => {
-  const [rec, me] = JSON.parse(snap) as [GalaRecord | null, CurrentMember | null];
-  return { rec, me };
-};
+/** yyyy-mm-dd plus `days` days. */
+export function addDays(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d + days));
+  return t.toISOString().slice(0, 10);
+}
 
 /* ---------------- display helpers ---------------- */
 

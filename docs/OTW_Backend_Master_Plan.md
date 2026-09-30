@@ -1,7 +1,9 @@
 # OTW — Backend Master Plan
 **Scope: Backend only (Spring Boot 21 + Supabase Postgres + Redis + Supabase Auth/Realtime)**
 
-> **2026-09-29:** Group/barkada tier removed — see docs/OTW - WEB.pdf's flat Room-only tasking. Backend now has one authorization tier (Room), not two. Anonymous Supabase sessions are rejected; a registered account is required (overrides the PDF's no-login flow).
+> **2026-09-29:** Group/barkada tier removed — see docs/OTW - WEB.pdf's flat Room-only tasking. Backend now has one authorization tier (Room), not two. ~~Anonymous Supabase sessions are rejected; a registered account is required (overrides the PDF's no-login flow).~~
+>
+> **2026-09-29 (later) — aligned with the product prototype artifact ("From “G tayo?” to “OTW na.”"):** reversed by the project owner. The app is **anonymous-first**: Supabase anonymous sessions are accepted for everything inside a gala; an account is optional and only gates the personal, cross-gala features (My Galas, calendar, history, notifications) via `@RequireAccount` → `401 ACCOUNT_REQUIRED`. Also added: Gala Password + "Enter a Gala" (code + password → "Which one are you?"), gala dates/destination/lifecycle (archive/restore/delete, leave, new code), member permission toggles, travel status, itinerary stop type + reorder, checklist claim, budget categories, expense category + recorded "Mark paid" payments, photo caption, dashboard summary, Chat, Couple Mode, and notification preferences + in-app feed. Design + rationale: `docs/superpowers/specs/2026-09-29-artifact-alignment-design.md`. Migrations V6–V15.
 
 This guide takes the OTW Master Project Management Plan and narrows it to everything the backend team needs, from an empty repo to a production-ready API. Frontend/UI/branding work is intentionally out of scope here.
 
@@ -27,8 +29,8 @@ otw-backend/
 │   ├── config/              # SecurityConfig, RedisConfig, CacheConfig, CorsConfig, WebSocketConfig, RateLimitConfig
 │   ├── common/               # BaseException, ApiResponse, ErrorCode, AuditFields, PageResponse
 │   ├── security/
-│   │   ├── jwt/               # Supabase JWT filter + JWK verification (+ NotAnonymousJwtValidator)
-│   │   ├── authz/              # @RequireRoomRole annotation + aspect, access guard
+│   │   ├── jwt/               # Supabase JWT filter + JWK verification (anonymous sessions accepted)
+│   │   ├── authz/              # @RequireRoomRole + RoomAccessAspect; @RequireAccount + AccountRequiredAspect
 │   ├── room/
 │   │   ├── controller/
 │   │   ├── dto/
@@ -77,6 +79,9 @@ otw-backend/
 │   │   ├── entity/
 │   │   ├── repository/
 │   │   └── service/
+│   ├── chat/                    # Chismis: messages, heart reactions, read markers, system/card lines (same five folders)
+│   ├── couple/                  # Couple Mode saved date ideas (same five folders)
+│   ├── notification/            # preferences, in-app feed, after-commit fan-out, reminder scheduler (same five folders)
 │   ├── realtime/                # RealtimeEventPublisher (Supabase Broadcast client) — cross-cutting, no controller
 │   ├── cache/                   # CacheKeys, CacheEvictionService — cross-cutting, no controller
 │   └── ratelimit/                # cross-cutting, no controller
@@ -88,7 +93,7 @@ otw-backend/
 └── src/test/java/com/otw/       # mirrors main packages
 ```
 
-Every feature package (`room`, `rsvp`, `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`) follows the same five-folder shape:
+Every feature package (`room`, `rsvp`, `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`, `chat`, `couple`, `notification`) follows the same five-folder shape (RSVP lives in `room` — there is no separate `rsvp` package in code):
 
 - **`controller/`** — REST endpoints only. No business logic, no direct repository calls — delegates to `service/`.
 - **`dto/`** — request/response objects (e.g. `CreateRoomRequest`, `RoomSummaryDto`). Controllers bind to these, never to entities directly (prevents mass assignment — §9).
@@ -229,8 +234,43 @@ photos (
 );
 ```
 
+#### 3.1.1 Added by V6–V15 (artifact alignment, 2026-09-29)
+
+```sql
+-- V6 rooms: gala details + Gala Password (schedule_at kept, written as start date+time)
+rooms += destination VARCHAR(150), start_date DATE, end_date DATE, start_time TIME, end_time TIME,
+         password_hash VARCHAR(100)          -- BCrypt; NULL for pre-V6 rooms (Enter a Gala unavailable until set)
+         CHECK (end_date >= start_date)
+-- V7 rooms: Couple Mode + "What members can do"
+rooms += room_type VARCHAR(10) DEFAULT 'GROUP' CHECK IN ('GROUP','COUPLE'),
+         members_can_edit_plan, members_can_add_photos, members_can_delete_own_photos,
+         location_sharing_enabled  BOOLEAN DEFAULT true;  status CHECK IN ('ACTIVE','ARCHIVED')
+-- V8 room_members
+room_members += has_account BOOLEAN DEFAULT false,   -- backfilled true (pre-V8 members were all accounts)
+                travel_status VARCHAR(20) DEFAULT 'STILL_HOME'  -- STILL_HOME, ON_THE_WAY, ALMOST_THERE, ARRIVED
+-- V9 itinerary_items += stop_type VARCHAR(20) DEFAULT 'ACTIVITY'   -- MEET_UP, ACTIVITY, FOOD
+-- V10 budget_estimates += transport/stay/food/activities/other_amount NUMERIC(12,2) DEFAULT 0,
+--                         participant_count INT DEFAULT 1   (estimated_amount = sum, written by the service)
+-- V11 expenses += category VARCHAR(20) DEFAULT 'OTHER', note VARCHAR(255)
+settlement_payments (id, room_id FK CASCADE, from_user_id, to_user_id, amount NUMERIC(12,2) > 0,
+                     recorded_by, created_at, CHECK from <> to)
+-- V12 photos += caption VARCHAR(140)
+-- V13 chat
+chat_messages (id, room_id FK CASCADE, sender_user_id NULL, kind TEXT|SYSTEM|CARD, body VARCHAR(1000),
+               ref_type, ref_id, created_at)
+chat_reactions (message_id FK CASCADE, user_id, created_at, PK(message_id, user_id))   -- heart only
+chat_read_markers (room_id FK CASCADE, user_id, last_read_at, PK(room_id, user_id))
+-- V14 couple_saved_ideas (room_id FK CASCADE, idea_key, saved_by, created_at, PK(room_id, idea_key))
+-- V15 notification_preferences (user_id PK, 7 BOOLEAN toggles, updated_at)
+notifications (id, user_id, room_id FK CASCADE NULL, type, title, body, dedupe_key, created_at, read_at,
+               UNIQUE(user_id, dedupe_key))
+```
+Every new table has an RLS SELECT policy (members of the room, or `user_id = auth.uid()` for per-user tables). Every column holding a user id inside a room must also be listed in `MemberIdentityRemapper` (see §5.1 "Enter a Gala").
+
 ### 3.2 Indexes (minimum set)
 - `rooms(room_code)` — unique, used on every "join" call
+- `rooms(status, start_date)` — My Galas buckets + reminder scheduler
+- `chat_messages(room_id, created_at DESC, id DESC)`, `notifications(user_id, created_at DESC, id DESC)`, `settlement_payments(room_id, created_at DESC)`, `photos(room_id, created_at DESC)`
 - `room_members(room_id, user_id)` — unique composite, used on every authorization check
 - `room_members(room_id, LOWER(nickname)) WHERE left_at IS NULL` — unique partial index, enforces per-room nickname uniqueness among active members
 - `room_members(user_id)` — "my rooms" queries
@@ -257,13 +297,19 @@ erDiagram
   EXPENSES ||--o{ EXPENSE_SHARES : splits_into
   ROOMS ||--o{ MEMBER_LOCATIONS : tracks
   ROOMS ||--o{ PHOTOS : stores
+  ROOMS ||--o{ SETTLEMENT_PAYMENTS : records
+  ROOMS ||--o{ CHAT_MESSAGES : has
+  CHAT_MESSAGES ||--o{ CHAT_REACTIONS : has
+  ROOMS ||--o{ CHAT_READ_MARKERS : tracks
+  ROOMS ||--o{ COUPLE_SAVED_IDEAS : saves
+  ROOMS ||--o{ NOTIFICATIONS : about
 ```
 
 ---
 
 ## 4. API Contract (`/api/v1`)
 
-Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call, including `POST /rooms/join` — every non-public endpoint requires a registered account (see §5.1), cursor-based pagination (`?cursor=...&limit=20`), errors as `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
+Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — an anonymous Supabase session is enough everywhere except the account-only `/me/...` endpoints (see §5.1), cursor-based pagination (`?cursor=...&limit=20`), errors as `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
 
 | Method | Path | Purpose | Role |
 |---|---|---|---|
@@ -289,19 +335,57 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call, includi
 | GET | `/rooms/{roomId}/locations` | Current shared locations | Member |
 | POST | `/rooms/{roomId}/photos` | Register uploaded photo metadata | Member |
 
+**Added 2026-09-29 (artifact alignment).** "HOST ✱" / "Member ✱" = also allowed on an archived gala (`allowArchived`); every other non-GET room endpoint returns `409 ROOM_ARCHIVED` on an archived gala.
+
+| Method | Path | Purpose | Role |
+|---|---|---|---|
+| GET | `/rooms/preview?code=` | "Is this the one?" preview (title, dates, destination, type, member count, ≤12 nicknames, full) | Authenticated, rate-limited |
+| POST | `/rooms/enter` | Enter a Gala: `{roomCode, password}` → members for "Which one are you?" | Authenticated, rate-limited |
+| POST | `/rooms/enter/claim` | `{roomCode, password, memberId}` → rebind that anonymous member to the caller | Authenticated, rate-limited |
+| GET | `/rooms/{roomId}/summary` | Dashboard cards + recap counts | Member |
+| PATCH | `/rooms/{roomId}` | Edit gala details + member permission toggles | Host |
+| PUT | `/rooms/{roomId}/password` | Change Gala Password | Host |
+| POST | `/rooms/{roomId}/code` | Make a new gala code | Host |
+| POST | `/rooms/{roomId}/archive` · `/restore` | Shelve to "Mga Drawing" · revive | Host · Host ✱ |
+| DELETE | `/rooms/{roomId}` | Delete gala (cascade) | Host ✱ |
+| POST | `/rooms/{roomId}/members/{userId}/nudge` | Nudge a Maybe | Host |
+| PATCH | `/rooms/{roomId}/members/me` | Change own nickname | Member |
+| PUT | `/rooms/{roomId}/members/me/travel-status` | STILL_HOME / ON_THE_WAY / ALMOST_THERE / ARRIVED | Member |
+| POST | `/rooms/{roomId}/members/me/leave` | Leave gala (host → `409 HOST_CANNOT_LEAVE`) | Member ✱ |
+| POST | `/rooms/{roomId}/itinerary/reorder` | Full ordered list with versions | Member (edit-plan permission) |
+| POST | `/rooms/{roomId}/checklist/{itemId}/claim` | Assign to me (needs `version`) | Member |
+| GET | `/rooms/{roomId}/checklist?mine=true` / `/photos?mine=true` | "Mine" filters | Member |
+| POST | `/rooms/{roomId}/expenses/settlement/payments` | "Mark paid" (from/to/host only; ≤ outstanding) | Member |
+| DELETE | `/rooms/{roomId}/expenses/settlement/payments/{paymentId}` | Undo (recorder or host) | Member |
+| GET / POST | `/rooms/{roomId}/chat/messages` | Newest-first page · send (20/min/member) | Member |
+| PUT / DELETE | `/rooms/{roomId}/chat/messages/{messageId}/heart` | Heart reaction on/off | Member |
+| PUT | `/rooms/{roomId}/chat/read` · GET `/chat/unread` | Mark read · unread count + first unread id | Member ✱ · Member |
+| GET | `/rooms/{roomId}/couple/ideas` | Date idea catalog + saved flags (couple galas only) | Member |
+| PUT / DELETE | `/rooms/{roomId}/couple/ideas/{key}` | Save / unsave an idea | Member |
+| GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` | My Galas / calendar (≤62-day range) | Account |
+| GET | `/me/rooms/stats` | Gala History tiles | Account |
+| POST | `/me/link-account` | After upgrading an anonymous session: mark all its memberships `has_account` | Account |
+| GET / PUT | `/me/notification-preferences` | Seven reminder toggles | Account |
+| GET | `/me/notifications` · `/me/notifications/unread-count` | Feed (cursor) · bell badge | Account |
+| PATCH / POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | Mark read | Account |
+
+Changed existing endpoints: `POST /rooms` now takes `startDate` (required), `endDate`, `startTime`, `endTime`, `destination`, `password` (6–72), `type` (GROUP/COUPLE); `POST /rooms/join` accepts codes typed with an `OTW-` prefix/dashes, reactivates a member who left, and enforces the 2-person couple cap; `PUT /budget` takes the five categories + `participantCount` and is open to members while "Edit the plan" is on; `POST /expenses` takes optional `paidBy`, `category`, `note` and defaults the split to members who are GOING; `GET /expenses/settlement` now includes recorded `payments`, the caller's `me` totals and `settled`.
+
 Every write endpoint: Bean Validation on the request DTO, ownership/role check via the `@RequireRoomRole` aspect (see §5.3), and — where relevant — emits a realtime event (§8) and evicts a cache key (§6).
 
-Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST /rooms/join` (nickname already taken by an active member of that room) and `401 ACCOUNT_REQUIRED` on any endpoint when the token belongs to a rejected anonymous session (distinct from the generic `401 UNAUTHENTICATED` — see §5.1).
+Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST /rooms/join` (nickname already taken by an active member of that room); `401 ACCOUNT_REQUIRED` on account-only endpoints for anonymous sessions (distinct from the generic `401 UNAUTHENTICATED` — see §5.1); `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `404 NOT_A_COUPLE_ROOM`, `PAYMENT_NOT_FOUND`, `CHAT_MESSAGE_NOT_FOUND`, `NOTIFICATION_NOT_FOUND`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `MEMBER_HAS_ACCOUNT`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`.
 
 ---
 
 ## 5. Authentication & Authorization
 
 ### 5.1 Authentication (who are you)
-- Supabase Auth issues JWTs. Although Supabase supports anonymous auth, this backend rejects those sessions — see the rejection rule immediately below.
+- Supabase Auth issues JWTs — including **anonymous** sessions (`signInAnonymously()`), which this backend accepts.
 - Spring Boot does **not** re-implement login, signup, or token refresh — the frontend talks to Supabase Auth directly and just attaches the resulting token as `Authorization: Bearer <token>`. The backend's only job is to **verify** that token on every request.
 - Reject any token whose `aud`/`iss` doesn't match your Supabase project.
-- **Anonymous Supabase sessions are rejected (2026-09-29, overrides the PDF's no-login flow).** A `NotAnonymousJwtValidator` in the `JwtDecoder`'s validator chain fails any token with `is_anonymous: true` or a blank `email` claim, fail-closed. The auth entry point maps that specific rejection to `401 {"code":"ACCOUNT_REQUIRED"}` (distinct from the generic `401 UNAUTHENTICATED`) so the frontend can route the user to sign-in. Every non-public endpoint requires a registered account (email/OTP or password via Supabase Auth).
+- **Anonymous-first (2026-09-29, reverses the earlier same-day rule; matches the product artifact).** No sign-up is needed to plan, join, or use any feature inside a gala. The account-only features (My Galas, calendar, history, notifications — everything under `/me/`) are marked `@RequireAccount`; `AccountRequiredAspect` returns `401 {"code":"ACCOUNT_REQUIRED"}` when `is_anonymous` is true or the token has no email (fail-closed), so the frontend can route to "Create an Account".
+- **Saving a gala to an account** keeps the same user id: the frontend upgrades the anonymous user with Supabase `updateUser`/`linkIdentity` (not a fresh sign-up), then calls `POST /me/link-account`, which sets `room_members.has_account = true` for every gala that user joined.
+- **Enter a Gala** (new device / cleared session → new anonymous `sub`): `POST /rooms/enter` checks the Gala Code + Gala Password (BCrypt) and lists members; `POST /rooms/enter/claim` rebinds the picked member row to the caller and `MemberIdentityRemapper` moves every room-scoped user-id column (items, shares, payments, photos, chat, …) in the same transaction. Members with `has_account = true` can't be claimed (`409 MEMBER_HAS_ACCOUNT`) — they log in instead. Both steps are rate-limited per client. Wrong code → `404 INVALID_CODE`; wrong password → `401 INVALID_GALA_PASSWORD`.
 
 #### 5.1.1 Implementation — verifying Supabase JWTs in Spring Boot
 
@@ -439,15 +523,25 @@ This layered guard is the single most important control against "guessing/manipu
 |---|---|---|---|
 | Create room | ✅ (becomes host) | ✅ | ❌ |
 | Join room | ✅ | ✅ | ❌ |
-| Edit room details | ✅ | ❌ | ❌ |
-| Remove member | ✅ | ❌ | ❌ |
-| RSVP (own) | ✅ | ✅ | ❌ |
-| Itinerary/checklist add | ✅ | ✅ | ❌ |
-| Itinerary/checklist edit/delete | ✅ | owner only | ❌ |
+| Edit room details, permissions, password, code; archive/restore/delete | ✅ | ❌ | ❌ |
+| Remove member, nudge a Maybe | ✅ | ❌ | ❌ |
+| RSVP, nickname, travel status (own) | ✅ | ✅ | ❌ |
+| Leave gala | ❌ (archive/delete instead) | ✅ | ❌ |
+| Itinerary/checklist add | ✅ | ✅ while "Edit the plan" is on | ❌ |
+| Itinerary/checklist edit/delete | ✅ | owner only, while "Edit the plan" is on | ❌ |
+| Itinerary reorder (room-level) | ✅ | ✅ while "Edit the plan" is on | ❌ |
+| Checklist tick done/undone, claim | ✅ | ✅ | ❌ |
+| Set budget estimate | ✅ | ✅ while "Edit the plan" is on | ❌ |
 | Add expense | ✅ | ✅ | ❌ |
 | Delete expense | ✅ | payer only | ❌ |
-| Share location | ✅ | ✅ (opt-in) | ❌ |
+| Mark paid / undo | ✅ | the two people involved / whoever recorded it | ❌ |
+| Add photo | ✅ | ✅ while "Add photos" is on | ❌ |
+| Delete photo | ✅ any | own only, while "Delete only their own photos" is on | ❌ |
+| Share location | ✅ | ✅ (opt-in) while "Share live location" is on; closes 3 h after the gala ends | ❌ |
+| Chat, hearts, couple ideas | ✅ | ✅ | ❌ |
 | View another room's data | ❌ | ❌ | ❌ |
+
+"Unauthenticated" means no valid token at all; an anonymous Supabase session counts as authenticated. Member permission toggles never restrict the host.
 
 ### 5.4 Row-Level Security as a second layer
 Even though Spring Boot enforces authorization, if the mobile team ever queries Supabase directly (e.g. Realtime subscription payloads, or a future direct-to-Supabase read), **RLS policies on every table must independently enforce room membership**. Defense in depth: don't rely on the API being the only door.
@@ -486,6 +580,8 @@ Two distinct modes, both opt-in per user, per room:
 - `expires_at` = now + short window (e.g. 2 minutes). A live share that stops sending updates auto-expires — the client doesn't have to explicitly "stop," it just goes stale. A scheduled job (or Redis key TTL) sweeps expired rows every minute.
 - Broadcast `location.updated` on a private room channel on every update (§8) so other clients update the map without polling.
 
+**Gala-day rules (2026-09-29)**: `expires_at` is capped at the gala's end (last day + end time, or 23:59:59 in `otw.timezone`) + 3 hours, and sharing after that returns `403 PERMISSION_DISABLED` ("It stops 3 hours after the gala ends"). The host can switch sharing off for the whole gala (`location_sharing_enabled`). Separately, every member has a manual **travel status** (`room_members.travel_status`: still home / on the way / almost there / arrived) that works with or without GPS. ETA text ("2 minutes away") is computed on the client.
+
 **Security specific to this feature**:
 - GPS permission is a client concern, but the backend must never leak a user's last known location to a non-member — same `@RequireRoomRole` guard as everything else.
 - Add a hard rate limit on the location-update endpoint (e.g. max 1 write per 3–5 seconds per user) — this is a realistic abuse/cost vector (battery-draining tight client loops, or a malicious client hammering the endpoint), not just theoretical.
@@ -507,6 +603,16 @@ Event catalog (subset most relevant to backend implementation):
 | `checklist.updated` | checklist write | full item DTO | room members |
 | `expense.created` | expense write | expense DTO (settlement recomputed client-side or via follow-up fetch) | room members |
 | `location.updated` | location write | `{userId, lat, lng, mode}` | room members who opted into seeing locations |
+| `room.updated` / `room.code.changed` / `room.archived` / `room.restored` / `room.deleted` | gala settings | room DTO or `{roomId, …}` | room members |
+| `member.reclaimed` / `member.updated` / `member.travel.changed` / `member.nudged` | Enter a Gala claim, nickname, travel status, nudge | `{memberId, userId}` / member DTO / `{userId, status}` / `{userId}` | room members |
+| `itinerary.reordered` | reorder | `[{id, position, version}]` | room members |
+| `budget.updated` | budget write | budget DTO | room members |
+| `expense.deleted`, `settlement.payment.recorded` / `.deleted` | expense delete, Mark paid, undo | `{id}` / payment DTO | room members |
+| `photo.added` / `photo.deleted` | photo write | photo DTO / `{id}` | room members |
+| `chat.message.created` / `chat.reaction.changed` | chat send, system/card line, heart | message DTO / `{messageId, userId, hearted, heartCount}` | room members |
+| `couple.idea.changed` | save/unsave idea | `{key, saved}` | room members |
+
+Notifications are not realtime: the frontend polls `/me/notifications` (no per-user channel, so this section's channel model is unchanged). "Online now" uses Supabase Realtime **presence** on the same room channel, entirely client-side.
 
 Implementation notes:
 - Centralize publishing in a single `RealtimeEventPublisher` service so every feature module calls one thing (`publisher.publish(roomId, "itinerary.updated", dto)`) instead of each module talking to Supabase directly.
@@ -583,8 +689,8 @@ Suggested acceptance targets to start from (refine after real load tests): P95 <
 
 ## 13. Open Items to Confirm With the Team (don't assume these)
 
-- Exact room-code format/length and collision-retry strategy.
-- Whether expense settlement should support partial payments/"marked as settled" state, or stay a pure calculated view (recommended for MVP: pure calculated view, no settlement persistence).
+- Exact room-code format/length and collision-retry strategy. (Current: 8 random chars from a 32-char unambiguous alphabet, 5 retries; the artifact's `OTW-` prefix is display-only and stripped on input.)
 - Live-location update interval and auto-expiry window (defaults suggested above, tune after testing).
 
-**Resolved 2026-09-29:** Anonymous Supabase auth is not acceptable — a registered account (email/OTP or password) is required for every non-public endpoint. See §5.1.
+**Resolved 2026-09-29:** ~~Anonymous Supabase auth is not acceptable.~~ **Superseded the same day:** anonymous-first, account optional — see §5.1.
+**Resolved 2026-09-29:** Settlement supports recorded payments ("Mark paid", partial allowed) while staying a computed view — payments are insert/delete rows folded into the balance math on read, never a stored running total.

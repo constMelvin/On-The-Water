@@ -213,17 +213,22 @@ function RouteStrip() {
 /* ---------------- feature grid + rail ---------------- */
 
 function FeatureGrid() {
-  const { gala, members, stops, items, budget, expenses, phase, unread } = useGala();
+  const { gala, members, stops, items, budget, expenses, phase, unread, summary } = useGala();
   const c = counts(members);
-  const packed = items.filter((i) => i.d).length;
-  const photos = photoCountFor(phase);
+  // Real counts from GET /summary; the local lists are only a fallback until it loads.
+  const stopCount = summary?.itineraryStops ?? stops.length;
+  const packed = summary?.checklistDone ?? items.filter((i) => i.d).length;
+  const itemCount = summary?.checklistTotal ?? items.length;
+  const perPerson = summary ? summary.budgetPerPerson : budTotal(budget) / budget.n;
+  const spentSoFar = summary ? summary.totalSpent : spent(expenses);
+  const photos = summary ? summary.photoCount : photoCountFor(phase);
 
   const F: [seg: string, title: string, sub: string, icon: IconName, tone: Tone, tag: string][] = [
     ['attendance', "Who's G?", `${c.g} going · ${c.m} maybe`, 'users', 'blossom', 'Attendance'],
-    ['route', "What's the plan?", `${stops.length} stops on the route`, 'route', 'zest', 'Itinerary'],
-    ['budget', 'How much?', `${peso(budTotal(budget) / budget.n)} per person`, 'calc', 'cream', 'Budget'],
-    ['ambagan', 'Who paid?', `${peso(spent(expenses))} spent so far`, 'wallet', 'teal', 'Ambagan'],
-    ['checklist', 'What are we bringing?', `${packed} of ${items.length} packed`, 'checklist', 'blossom', 'Checklist'],
+    ['route', "What's the plan?", `${stopCount} stops on the route`, 'route', 'zest', 'Itinerary'],
+    ['budget', 'How much?', `${peso(perPerson)} per person`, 'calc', 'cream', 'Budget'],
+    ['ambagan', 'Who paid?', `${peso(spentSoFar)} spent so far`, 'wallet', 'teal', 'Ambagan'],
+    ['checklist', 'What are we bringing?', `${packed} of ${itemCount} packed`, 'checklist', 'blossom', 'Checklist'],
     ['map', 'Where is everyone?', phase === 'planning' ? 'Opens on gala day' : "Tap to see who's OTW", 'nav', 'rosy', 'Live location'],
     ['chat', "What's the chismis?", `${unread} new messages`, 'chat', 'zest', 'Chat'],
     ['dump', 'What did we get?', photos ? `${photos} photos so far` : 'No memories yet', 'image', 'cream', 'Gala Dump'],

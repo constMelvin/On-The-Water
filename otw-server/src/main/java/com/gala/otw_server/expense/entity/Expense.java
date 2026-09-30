@@ -41,6 +41,13 @@ public class Expense {
     @Column(name = "paid_by", nullable = false)
     private UUID paidBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false, length = 20)
+    private ExpenseCategory category = ExpenseCategory.OTHER;
+
+    @Column(name = "note", length = 255)
+    private String note;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

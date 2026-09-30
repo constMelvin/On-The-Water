@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gala.otw_server.cache.CacheKeys;
 import com.gala.otw_server.cache.CacheService;
 import com.gala.otw_server.common.DomainExceptions.MemberNotFoundException;
+import com.gala.otw_server.common.DomainExceptions.PermissionDisabledException;
+import com.gala.otw_server.room.service.GalaClock;
+import com.gala.otw_server.room.service.RoomPermissionService;
+import com.gala.otw_server.room.service.RoomPermissionService.Permission;
 import com.gala.otw_server.common.DomainExceptions.RoomNotFoundException;
 import com.gala.otw_server.location.dto.MemberLocationDto;
 import com.gala.otw_server.location.dto.ShareMode;
@@ -35,6 +39,7 @@ import java.util.UUID;
 public class LocationService {
 
     private static final Logger log = LoggerFactory.getLogger(LocationService.class);
+    private static final Duration SHARING_AFTER_GALA_END = Duration.ofHours(3);
 
     private final MemberLocationRepository locationRepo;
     private final RoomRepository roomRepo;
@@ -43,6 +48,8 @@ public class LocationService {
     private final RateLimiterService rateLimiter;
     private final RealtimeEventPublisher realtime;
     private final ObjectMapper objectMapper;
+    private final RoomPermissionService permissions;
+    private final GalaClock galaClock;
 
     public LocationService(MemberLocationRepository locationRepo,
                            RoomRepository roomRepo,
@@ -50,7 +57,9 @@ public class LocationService {
                            CacheService cacheService,
                            RateLimiterService rateLimiter,
                            RealtimeEventPublisher realtime,
-                           ObjectMapper objectMapper) {
+                           ObjectMapper objectMapper,
+                           RoomPermissionService permissions,
+                           GalaClock galaClock) {
         this.locationRepo = locationRepo;
         this.roomRepo = roomRepo;
         this.memberRepo = memberRepo;
@@ -58,12 +67,14 @@ public class LocationService {
         this.rateLimiter = rateLimiter;
         this.realtime = realtime;
         this.objectMapper = objectMapper;
+        this.permissions = permissions;
+        this.galaClock = galaClock;
     }
 
     // ── Update location (PIN or LIVE) ─────────────────────────────────────────
 
     public MemberLocationDto updateLocation(UUID roomId, UUID callerId, UpdateLocationRequest req) {
-        Room room = verifyActiveRoom(roomId);
+        Room room = permissions.require(roomId, callerId, Permission.SHARE_LOCATION);
         verifyMemberOfRoom(roomId, callerId);
 
         // Rate limit: max 1 write per 3 seconds per user to prevent battery drain and API hammering
@@ -73,6 +84,18 @@ public class LocationService {
         OffsetDateTime expiresAt = (req.shareMode() == ShareMode.LIVE)
                 ? now.plusMinutes(2)
                 : now.plusDays(30);
+
+        // "It stops 3 hours after the gala ends."
+        OffsetDateTime galaEnd = galaClock.endOf(room);
+        if (galaEnd != null) {
+            OffsetDateTime cutoff = galaEnd.plus(SHARING_AFTER_GALA_END);
+            if (!now.isBefore(cutoff)) {
+                throw new PermissionDisabledException("Location sharing closed 3 hours after the gala ended");
+            }
+            if (expiresAt.isAfter(cutoff)) {
+                expiresAt = cutoff;
+            }
+        }
 
         MemberLocationId id = new MemberLocationId(roomId, callerId);
         MemberLocation location = locationRepo.findById(id).orElseGet(() -> {
@@ -149,9 +172,9 @@ public class LocationService {
         }
     }
 
+    /** Archived rooms stay readable; writes are already blocked by {@code RoomAccessAspect}. */
     private Room verifyActiveRoom(UUID roomId) {
         return roomRepo.findById(roomId)
-                .filter(r -> "ACTIVE".equals(r.getStatus()))
                 .orElseThrow(RoomNotFoundException::new);
     }
 

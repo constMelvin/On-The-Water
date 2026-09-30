@@ -2,7 +2,11 @@ package com.gala.otw_server.security.auth;
 
 import com.gala.otw_server.common.DomainExceptions.InsufficientRoomRoleException;
 import com.gala.otw_server.common.DomainExceptions.NotARoomMemberException;
+import com.gala.otw_server.common.DomainExceptions.RoomArchivedException;
 import com.gala.otw_server.common.DomainExceptions.RoomNotFoundException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -70,7 +74,7 @@ public class RoomAccessAspect {
                     SELECT rm.role
                     FROM room_members rm
                     JOIN rooms r ON r.id = rm.room_id
-                    WHERE rm.room_id = ? AND rm.user_id = ? AND r.status = 'ACTIVE' AND rm.left_at IS NULL
+                    WHERE rm.room_id = ? AND rm.user_id = ? AND rm.left_at IS NULL
                     """;
 
             try {
@@ -91,6 +95,12 @@ public class RoomAccessAspect {
             log.debug("User {} has role {} but {} is required for room {}", userId, actual, required, roomId);
             throw new InsufficientRoomRoleException(required.name());
         }
+
+        // Archived galas are read-only. Status is read fresh (never cached) so archive/restore
+        // takes effect immediately; reads skip the query entirely.
+        if (!requireRoomRole.allowArchived() && !isReadEndpoint(jp) && isArchived(roomId)) {
+            throw new RoomArchivedException();
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -106,6 +116,23 @@ public class RoomAccessAspect {
         }
         throw new IllegalStateException(
                 "@RequireRoomRole used on a method without a UUID roomId parameter: " + sig.getMethod());
+    }
+
+    private boolean isReadEndpoint(JoinPoint jp) {
+        java.lang.reflect.Method method = ((MethodSignature) jp.getSignature()).getMethod();
+        if (method.isAnnotationPresent(GetMapping.class)) return true;
+        RequestMapping mapping = method.getAnnotation(RequestMapping.class);
+        return mapping != null && java.util.Arrays.asList(mapping.method()).contains(RequestMethod.GET);
+    }
+
+    private boolean isArchived(UUID roomId) {
+        try {
+            String status = jdbc.queryForObject(
+                    "SELECT status FROM rooms WHERE id = ?", String.class, roomId);
+            return "ARCHIVED".equals(status);
+        } catch (org.springframework.dao.EmptyResultDataAccessException ex) {
+            throw new RoomNotFoundException();
+        }
     }
 
     private boolean roomExists(UUID roomId) {

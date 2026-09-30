@@ -6,12 +6,15 @@ import com.gala.otw_server.checklist.dto.UpdateChecklistItemRequest;
 import com.gala.otw_server.checklist.entity.ChecklistItem;
 import com.gala.otw_server.checklist.repository.ChecklistItemRepository;
 import com.gala.otw_server.checklist.service.ChecklistService;
+import com.gala.otw_server.common.DomainExceptions.AlreadyClaimedException;
 import com.gala.otw_server.common.DomainExceptions.MemberNotFoundException;
 import com.gala.otw_server.common.DomainExceptions.OptimisticLockConflictException;
+import com.gala.otw_server.common.DomainExceptions.PermissionDisabledException;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import com.gala.otw_server.room.entity.Room;
 import com.gala.otw_server.room.repository.RoomMemberRepository;
-import com.gala.otw_server.room.repository.RoomRepository;
+import com.gala.otw_server.room.service.RoomPermissionService;
+import com.gala.otw_server.room.service.RoomPermissionService.Permission;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,10 +37,10 @@ class ChecklistServiceTest {
     private ChecklistItemRepository itemRepo;
 
     @Mock
-    private RoomRepository roomRepo;
+    private RoomMemberRepository memberRepo;
 
     @Mock
-    private RoomMemberRepository memberRepo;
+    private RoomPermissionService permissions;
 
     @Mock
     private RealtimeEventPublisher realtime;
@@ -48,20 +51,30 @@ class ChecklistServiceTest {
     private final UUID callerId = UUID.randomUUID();
     private final UUID assigneeId = UUID.randomUUID();
     private final UUID itemId = UUID.randomUUID();
+    private Room room;
 
     @BeforeEach
     void setUp() {
-        checklistService = new ChecklistService(itemRepo, roomRepo, memberRepo, realtime);
+        checklistService = new ChecklistService(itemRepo, memberRepo, permissions, realtime);
+        room = new Room();
+        room.setId(roomId);
+        room.setStatus("ACTIVE");
+    }
+
+    private ChecklistItem existing(int version) {
+        ChecklistItem item = new ChecklistItem();
+        item.setId(itemId);
+        item.setRoom(room);
+        item.setLabel("Bring ice");
+        item.setDone(false);
+        item.setVersion(version);
+        return item;
     }
 
     @Test
     @DisplayName("createItem validates assignee is room member and saves item")
     void createItem_Success() {
-        Room room = new Room();
-        room.setId(roomId);
-        room.setStatus("ACTIVE");
-
-        when(roomRepo.findById(roomId)).thenReturn(Optional.of(room));
+        when(permissions.require(roomId, callerId, Permission.EDIT_PLAN)).thenReturn(room);
         when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, assigneeId)).thenReturn(true);
         when(itemRepo.save(any(ChecklistItem.class))).thenAnswer(inv -> {
             ChecklistItem item = inv.getArgument(0);
@@ -81,11 +94,7 @@ class ChecklistServiceTest {
     @Test
     @DisplayName("createItem throws MemberNotFoundException if assignee is not a room member")
     void createItem_InvalidAssignee() {
-        Room room = new Room();
-        room.setId(roomId);
-        room.setStatus("ACTIVE");
-
-        when(roomRepo.findById(roomId)).thenReturn(Optional.of(room));
+        when(permissions.require(roomId, callerId, Permission.EDIT_PLAN)).thenReturn(room);
         when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, assigneeId)).thenReturn(false);
 
         CreateChecklistItemRequest req = new CreateChecklistItemRequest("Rent Van", assigneeId);
@@ -97,19 +106,9 @@ class ChecklistServiceTest {
     }
 
     @Test
-    @DisplayName("updateItem toggling isDone sets doneBy and doneAt")
+    @DisplayName("updateItem toggling isDone sets doneBy and doneAt — allowed even with plan editing off")
     void updateItem_ToggleDone() {
-        Room room = new Room();
-        room.setId(roomId);
-
-        ChecklistItem existing = new ChecklistItem();
-        existing.setId(itemId);
-        existing.setRoom(room);
-        existing.setLabel("Bring ice");
-        existing.setDone(false);
-        existing.setVersion(0);
-
-        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing));
+        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing(0)));
         when(itemRepo.save(any(ChecklistItem.class))).thenAnswer(inv -> inv.getArgument(0));
 
         UpdateChecklistItemRequest req = new UpdateChecklistItemRequest(
@@ -121,20 +120,26 @@ class ChecklistServiceTest {
         assertThat(result.isDone()).isTrue();
         assertThat(result.doneBy()).isEqualTo(callerId);
         assertThat(result.doneAt()).isNotNull();
+        verifyNoInteractions(permissions);
+    }
+
+    @Test
+    @DisplayName("updateItem renaming follows the 'Edit the plan' toggle")
+    void updateItem_RenameNeedsPermission() {
+        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing(0)));
+        when(permissions.require(roomId, callerId, Permission.EDIT_PLAN))
+                .thenThrow(new PermissionDisabledException("off"));
+
+        assertThatThrownBy(() -> checklistService.updateItem(roomId, itemId, callerId,
+                new UpdateChecklistItemRequest("New label", null, null, null, 0)))
+                .isInstanceOf(PermissionDisabledException.class);
+        verify(itemRepo, never()).save(any());
     }
 
     @Test
     @DisplayName("updateItem throws OptimisticLockConflictException on stale version")
     void updateItem_StaleVersionConflict() {
-        Room room = new Room();
-        room.setId(roomId);
-
-        ChecklistItem existing = new ChecklistItem();
-        existing.setId(itemId);
-        existing.setRoom(room);
-        existing.setVersion(3);
-
-        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing));
+        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing(3)));
 
         // Client sent stale version 2
         UpdateChecklistItemRequest req = new UpdateChecklistItemRequest(
@@ -145,5 +150,38 @@ class ChecklistServiceTest {
                 .isInstanceOf(OptimisticLockConflictException.class);
 
         verify(itemRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("claimItem assigns an unassigned item to the caller")
+    void claimItem_Success() {
+        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing(1)));
+        when(itemRepo.save(any(ChecklistItem.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ChecklistItemDto dto = checklistService.claimItem(roomId, itemId, callerId, 1);
+
+        assertThat(dto.assignedTo()).isEqualTo(callerId);
+        verify(realtime).publish(eq(roomId), eq("checklist.updated"), any());
+    }
+
+    @Test
+    @DisplayName("claimItem on someone else's item is rejected with AlreadyClaimedException")
+    void claimItem_AlreadyClaimed() {
+        ChecklistItem item = existing(1);
+        item.setAssignedTo(assigneeId);
+        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> checklistService.claimItem(roomId, itemId, callerId, 1))
+                .isInstanceOf(AlreadyClaimedException.class);
+        verify(itemRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("claimItem with a stale version is rejected with 409")
+    void claimItem_Stale() {
+        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing(2)));
+
+        assertThatThrownBy(() -> checklistService.claimItem(roomId, itemId, callerId, 1))
+                .isInstanceOf(OptimisticLockConflictException.class);
     }
 }

@@ -3,6 +3,7 @@ package com.gala.otw_server.itinerary.controller;
 import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.itinerary.dto.CreateItineraryItemRequest;
 import com.gala.otw_server.itinerary.dto.ItineraryItemDto;
+import com.gala.otw_server.itinerary.dto.ReorderItineraryRequest;
 import com.gala.otw_server.itinerary.dto.UpdateItineraryItemRequest;
 import com.gala.otw_server.itinerary.service.ItineraryService;
 import com.gala.otw_server.security.auth.CurrentUserProvider;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -57,6 +59,16 @@ public class ItineraryController {
             @PathVariable UUID itemId,
             @Valid @RequestBody UpdateItineraryItemRequest req) {
         return itineraryService.updateItem(roomId, itemId, currentUser.getUserId(), req);
+    }
+
+    // ── POST /rooms/{roomId}/itinerary/reorder — move stops ────────────────────
+
+    @PostMapping("/reorder")
+    @RequireRoomRole(RoomRole.MEMBER)
+    public List<ItineraryItemDto> reorder(
+            @PathVariable UUID roomId,
+            @Valid @RequestBody ReorderItineraryRequest req) {
+        return itineraryService.reorder(roomId, currentUser.getUserId(), req);
     }
 
     // ── DELETE /rooms/{roomId}/itinerary/{itemId} — remove item ────────────────

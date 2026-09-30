@@ -1,9 +1,7 @@
 package com.gala.otw_server.expense.controller;
 
 import com.gala.otw_server.common.PageResponse;
-import com.gala.otw_server.expense.dto.CreateExpenseRequest;
-import com.gala.otw_server.expense.dto.ExpenseDto;
-import com.gala.otw_server.expense.dto.SettlementDto;
+import com.gala.otw_server.expense.dto.*;
 import com.gala.otw_server.expense.service.ExpenseService;
 import com.gala.otw_server.security.auth.CurrentUserProvider;
 import com.gala.otw_server.security.auth.RequireRoomRole;
@@ -64,6 +62,28 @@ public class ExpenseController {
     @GetMapping("/settlement")
     @RequireRoomRole(RoomRole.MEMBER)
     public SettlementDto getSettlement(@PathVariable UUID roomId) {
-        return expenseService.calculateSettlement(roomId);
+        return expenseService.calculateSettlement(roomId, currentUser.getUserId());
+    }
+
+    // ── POST /rooms/{roomId}/expenses/settlement/payments — "Mark paid" ────────
+
+    @PostMapping("/settlement/payments")
+    @ResponseStatus(HttpStatus.CREATED)
+    @RequireRoomRole(RoomRole.MEMBER)
+    public SettlementPaymentDto recordPayment(
+            @PathVariable UUID roomId,
+            @Valid @RequestBody RecordPaymentRequest req) {
+        return expenseService.recordPayment(roomId, currentUser.getUserId(), req);
+    }
+
+    // ── DELETE /rooms/{roomId}/expenses/settlement/payments/{paymentId} — undo ─
+
+    @DeleteMapping("/settlement/payments/{paymentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @RequireRoomRole(RoomRole.MEMBER)
+    public void deletePayment(
+            @PathVariable UUID roomId,
+            @PathVariable UUID paymentId) {
+        expenseService.deletePayment(roomId, paymentId, currentUser.getUserId());
     }
 }

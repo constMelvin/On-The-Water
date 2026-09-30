@@ -4,8 +4,12 @@ import React, { useState, useRef, useEffect, useId } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './plan.module.css';
-import { createGala } from './mockCreate';
-import { registerCreatedGala } from '@/lib/otw/gala-registry';
+import { createRoom } from '@/lib/api/rooms';
+import { addDays, normCode, rememberRoom } from '@/lib/otw/gala-registry';
+import { toast } from '@/lib/otw/feedback';
+
+/** The wizard doesn't ask the leader's name yet; the backend needs a nickname, so this is it. */
+const LEADER_NICKNAME = 'Gala Leader';
 
 /**
  * Returns today's date formatted as YYYY-MM-DD in local time (not UTC).
@@ -259,28 +263,20 @@ export default function PlanPage() {
 
       try {
         const finalDays = tripType === 'DAY_TOUR' ? 1 : Number(daysInput) || 3;
-        const result = await createGala({
-          name: name.trim(),
-          tripType,
-          date,
-          days: finalDays,
-          startTime,
-          endTime,
-          destination: destination.trim(),
-          password,
-        });
-
-        // Hand the created gala to the shared gala store; the creator is the Gala Leader.
-        registerCreatedGala({
-          code: result.code,
+        // POST /rooms: the creator becomes the Gala Leader (host).
+        const room = await createRoom({
           title: name.trim(),
-          date,
-          days: finalDays,
+          nickname: LEADER_NICKNAME,
+          startDate: date,
+          endDate: finalDays > 1 ? addDays(date, finalDays - 1) : undefined,
           startTime,
           endTime,
           destination: destination.trim(),
           password,
+          type: 'GROUP',
         });
+        const code = normCode(room.roomCode);
+        rememberRoom(code, room.id);
 
         // Save password to sessionStorage
         // TODO(D3-01): replace with real state
@@ -288,8 +284,9 @@ export default function PlanPage() {
           sessionStorage.setItem('otw:gala-password', password);
         }
 
-        router.push(`/code-confirm?code=${encodeURIComponent(result.code)}`);
-      } catch {
+        router.push(`/code-confirm?code=${encodeURIComponent(code)}`);
+      } catch (err) {
+        toast(err instanceof Error ? err.message : "Couldn't create the gala. Try again.", 'err');
         setIsSubmitting(false);
       }
     }

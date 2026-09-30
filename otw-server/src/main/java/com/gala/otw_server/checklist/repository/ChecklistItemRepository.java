@@ -20,12 +20,14 @@ public interface ChecklistItemRepository extends JpaRepository<ChecklistItem, UU
             SELECT c FROM ChecklistItem c
             WHERE c.room.id = :roomId
               AND (:isDone IS NULL OR c.done = :isDone)
+              AND (:assignedTo IS NULL OR c.assignedTo = :assignedTo)
               AND (:cursor IS NULL OR c.id > :cursor)
             ORDER BY c.createdAt ASC, c.id ASC
             """)
     List<ChecklistItem> findItems(
             @Param("roomId") UUID roomId,
             @Param("isDone") Boolean isDone,
+            @Param("assignedTo") UUID assignedTo,
             @Param("cursor") UUID cursor,
             Pageable pageable);
 }

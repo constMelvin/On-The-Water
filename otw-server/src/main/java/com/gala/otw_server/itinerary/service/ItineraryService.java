@@ -1,17 +1,21 @@
 package com.gala.otw_server.itinerary.service;
 
+import com.gala.otw_server.chat.service.ChatSystemMessageService;
 import com.gala.otw_server.common.DomainExceptions.*;
 import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.itinerary.dto.CreateItineraryItemRequest;
 import com.gala.otw_server.itinerary.dto.ItineraryItemDto;
+import com.gala.otw_server.itinerary.dto.ReorderItineraryRequest;
 import com.gala.otw_server.itinerary.dto.UpdateItineraryItemRequest;
 import com.gala.otw_server.itinerary.entity.ItineraryItem;
+import com.gala.otw_server.itinerary.entity.StopType;
 import com.gala.otw_server.itinerary.repository.ItineraryItemRepository;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import com.gala.otw_server.room.entity.Room;
 import com.gala.otw_server.room.entity.RoomMember;
 import com.gala.otw_server.room.repository.RoomMemberRepository;
-import com.gala.otw_server.room.repository.RoomRepository;
+import com.gala.otw_server.room.service.RoomPermissionService;
+import com.gala.otw_server.room.service.RoomPermissionService.Permission;
 import com.gala.otw_server.security.auth.RoomRole;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -19,27 +23,31 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @Transactional
 public class ItineraryService {
 
+    private static final DateTimeFormatter CARD_TIME = DateTimeFormatter.ofPattern("h:mm a");
+
     private final ItineraryItemRepository itemRepo;
-    private final RoomRepository roomRepo;
     private final RoomMemberRepository memberRepo;
+    private final RoomPermissionService permissions;
     private final RealtimeEventPublisher realtime;
+    private final ChatSystemMessageService chatSystem;
 
     public ItineraryService(ItineraryItemRepository itemRepo,
-                            RoomRepository roomRepo,
                             RoomMemberRepository memberRepo,
-                            RealtimeEventPublisher realtime) {
+                            RoomPermissionService permissions,
+                            RealtimeEventPublisher realtime,
+                            ChatSystemMessageService chatSystem) {
         this.itemRepo = itemRepo;
-        this.roomRepo = roomRepo;
         this.memberRepo = memberRepo;
+        this.permissions = permissions;
         this.realtime = realtime;
+        this.chatSystem = chatSystem;
     }
 
     // ── Get itinerary items ───────────────────────────────────────────────────
@@ -77,12 +85,10 @@ public class ItineraryService {
         return PageResponse.of(page, nextCursor, limit);
     }
 
-    // ── Create itinerary item ─────────────────────────────────────────────────
+    // ── Create itinerary item ("Add a Stop") ──────────────────────────────────
 
     public ItineraryItemDto createItem(UUID roomId, UUID callerId, CreateItineraryItemRequest req) {
-        Room room = roomRepo.findById(roomId)
-                .filter(r -> "ACTIVE".equals(r.getStatus()))
-                .orElseThrow(RoomNotFoundException::new);
+        Room room = permissions.require(roomId, callerId, Permission.EDIT_PLAN);
 
         int position = (req.position() != null)
                 ? req.position()
@@ -93,6 +99,7 @@ public class ItineraryService {
         item.setTitle(req.title().trim());
         item.setNotes(req.notes());
         item.setStartsAt(req.startsAt());
+        item.setStopType(req.stopType() != null ? req.stopType() : StopType.ACTIVITY);
         item.setPosition(position);
         item.setCreatedBy(callerId);
         item.setCompleted(false);
@@ -101,12 +108,17 @@ public class ItineraryService {
         ItineraryItemDto dto = ItineraryItemDto.from(saved);
 
         publishAfterCommit(roomId, "itinerary.created", dto);
+        String when = saved.getStartsAt() != null ? " · " + saved.getStartsAt().format(CARD_TIME) : "";
+        chatSystem.card(roomId, callerId, "added a new itinerary stop: " + saved.getTitle() + when,
+                ChatSystemMessageService.REF_ITINERARY_ITEM, saved.getId());
         return dto;
     }
 
     // ── Edit itinerary item ───────────────────────────────────────────────────
 
     public ItineraryItemDto updateItem(UUID roomId, UUID itemId, UUID callerId, UpdateItineraryItemRequest req) {
+        permissions.require(roomId, callerId, Permission.EDIT_PLAN);
+
         ItineraryItem item = itemRepo.findByIdAndRoom_Id(itemId, roomId)
                 .orElseThrow(ItineraryItemNotFoundException::new);
 
@@ -126,6 +138,9 @@ public class ItineraryService {
         if (req.startsAt() != null) {
             item.setStartsAt(req.startsAt());
         }
+        if (req.stopType() != null) {
+            item.setStopType(req.stopType());
+        }
         if (req.position() != null) {
             item.setPosition(req.position());
         }
@@ -140,9 +155,59 @@ public class ItineraryService {
         return dto;
     }
 
+    // ── Reorder (drag-and-drop / up-down arrows) ──────────────────────────────
+
+    /**
+     * Rewrites positions 0..n-1 in one transaction. Reordering is a room-level action:
+     * any member may move any stop (while "Edit the plan" is on), but only with the
+     * current versions of every stop — otherwise 409 and the client refetches.
+     */
+    public List<ItineraryItemDto> reorder(UUID roomId, UUID callerId, ReorderItineraryRequest req) {
+        permissions.require(roomId, callerId, Permission.EDIT_PLAN);
+
+        List<ItineraryItem> current = itemRepo.findByRoom_IdOrderByPositionAscIdAsc(roomId);
+        Map<UUID, ItineraryItem> byId = new HashMap<>();
+        for (ItineraryItem i : current) byId.put(i.getId(), i);
+
+        Set<UUID> requested = new HashSet<>();
+        for (ReorderItineraryRequest.Item r : req.items()) requested.add(r.id());
+        if (requested.size() != req.items().size() || !requested.equals(byId.keySet())) {
+            // Someone added or removed a stop since this client loaded the route.
+            throw new OptimisticLockConflictException();
+        }
+
+        for (ReorderItineraryRequest.Item r : req.items()) {
+            if (byId.get(r.id()).getVersion() != r.version()) {
+                throw new OptimisticLockConflictException();
+            }
+        }
+
+        List<ItineraryItem> changed = new ArrayList<>();
+        for (int pos = 0; pos < req.items().size(); pos++) {
+            ItineraryItem item = byId.get(req.items().get(pos).id());
+            if (item.getPosition() != pos) {
+                item.setPosition(pos);
+                changed.add(item);
+            }
+        }
+        if (!changed.isEmpty()) {
+            itemRepo.saveAllAndFlush(changed);
+        }
+
+        List<ItineraryItemDto> result = req.items().stream()
+                .map(r -> ItineraryItemDto.from(byId.get(r.id())))
+                .toList();
+        publishAfterCommit(roomId, "itinerary.reordered", result.stream()
+                .map(d -> Map.of("id", d.id(), "position", d.position(), "version", d.version()))
+                .toList());
+        return result;
+    }
+
     // ── Delete itinerary item ─────────────────────────────────────────────────
 
     public void deleteItem(UUID roomId, UUID itemId, UUID callerId) {
+        permissions.require(roomId, callerId, Permission.EDIT_PLAN);
+
         ItineraryItem item = itemRepo.findByIdAndRoom_Id(itemId, roomId)
                 .orElseThrow(ItineraryItemNotFoundException::new);
 

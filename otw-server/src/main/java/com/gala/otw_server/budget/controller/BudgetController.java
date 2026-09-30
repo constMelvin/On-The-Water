@@ -31,10 +31,10 @@ public class BudgetController {
         return budgetService.getBudget(roomId);
     }
 
-    // ── PUT /rooms/{roomId}/budget — set estimate (Host only) ──────────────────
+    // ── PUT /rooms/{roomId}/budget — set estimate (host, or members while "Edit the plan" is on) ──
 
     @PutMapping
-    @RequireRoomRole(RoomRole.HOST)
+    @RequireRoomRole(RoomRole.MEMBER)
     public BudgetDto setBudget(
             @PathVariable UUID roomId,
             @Valid @RequestBody UpdateBudgetRequest req) {

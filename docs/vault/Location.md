@@ -15,6 +15,12 @@ Sharing is opt-in, per user and per room.
   - `expires_at` = now + about 2 min, so a share that stops updating goes stale on its own. A job or Redis TTL sweeps expired rows every minute.
   - Every update broadcasts `location.updated`.
 
+## Gala-day rules (2026-09-29)
+- `expires_at` is capped at gala end (last day + end time, or 23:59:59 local) + 3 h; sharing after that → `403 PERMISSION_DISABLED`.
+- The host can turn sharing off for the whole gala (`location_sharing_enabled`).
+- Manual **travel status** (`room_members.travel_status`) works with or without GPS: `PUT /rooms/{roomId}/members/me/travel-status`. ETA text is computed on the client.
+- Leaving a gala deletes the member's location row.
+
 ## Security
 - Use the same `@RequireRoomRole` guard. Never leak a location to a non-member.
 - Apply a **hard rate limit**: at most one write per 3–5 s per user.

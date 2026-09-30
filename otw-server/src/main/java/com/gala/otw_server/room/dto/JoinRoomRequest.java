@@ -4,12 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Request body for {@code POST /rooms/join} — join by room code.
+ * Request body for {@code POST /rooms/join} — join by room code. The code may be
+ * typed with an {@code OTW-} prefix, dashes or spaces; the service normalizes it.
  */
 public record JoinRoomRequest(
 
         @NotBlank(message = "Room code is required")
-        @Size(min = 8, max = 8, message = "Room code must be exactly 8 characters")
+        @Size(max = 16, message = "Room code is too long")
         String roomCode,
 
         @NotBlank(message = "Nickname is required")

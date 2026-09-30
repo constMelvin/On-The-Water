@@ -1,12 +1,14 @@
 package com.gala.otw_server.itinerary.dto;
 
 import com.gala.otw_server.itinerary.entity.ItineraryItem;
+import com.gala.otw_server.itinerary.entity.StopType;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * Public response DTO for an itinerary item.
+ * Public response DTO for an itinerary item (a stop on "The Gala Route";
+ * {@code title} is the place).
  */
 public record ItineraryItemDto(
         UUID id,
@@ -14,6 +16,7 @@ public record ItineraryItemDto(
         String title,
         String notes,
         OffsetDateTime startsAt,
+        StopType stopType,
         int position,
         UUID createdBy,
         boolean completed,
@@ -28,6 +31,7 @@ public record ItineraryItemDto(
                 item.getTitle(),
                 item.getNotes(),
                 item.getStartsAt(),
+                item.getStopType(),
                 item.getPosition(),
                 item.getCreatedBy(),
                 item.isCompleted(),

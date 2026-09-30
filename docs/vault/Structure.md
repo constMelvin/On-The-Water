@@ -18,9 +18,10 @@ Back to [[00-Index]]
 Root `com.gala.otw_server`:
 - `config/`: SecurityConfig, RedisConfig, CacheConfig, CorsConfig, WebSocketConfig, RateLimitConfig
 - `common/`: BaseException, ApiResponse, ErrorCode, AuditFields, PageResponse
-- `security/jwt/`: Supabase JWT verification
-- `security/authz/`: `@RequireRoomRole` + aspect
-- **Feature packages**: `room`, `rsvp`, `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`
+- `security/jwt/`: Supabase JWT verification (anonymous sessions accepted)
+- `security/authz/`: `@RequireRoomRole` + `RoomAccessAspect`; `@RequireAccount` + `AccountRequiredAspect`
+- **Feature packages**: `room` (incl. RSVP, settings, My Galas, summary), `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`, `chat`, `couple`, `notification`
+- Room helpers everyone reuses: `GalaClock` (today/phase in `otw.timezone`), `RoomPermissionService` (member permission toggles), `MemberIdentityRemapper` (**add every new room-scoped user-id column here**)
 - **Cross-cutting (no controller, no five-folder split)**: `realtime/` (RealtimeEventPublisher), `cache/` (CacheKeys, CacheEvictionService), `ratelimit/`
 - Resources: `application.yml`, `application-local.yml`, `application-prod.yml`, `db/migration/`
 - Tests mirror the main packages under `src/test/java/com/gala/otw_server/`

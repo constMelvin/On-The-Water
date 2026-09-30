@@ -24,4 +24,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequireRoomRole {
     RoomRole value() default RoomRole.MEMBER;
+
+    /**
+     * Archived ("Mga Drawing") galas are read-only: GET endpoints always pass, but any
+     * other endpoint gets {@code 409 ROOM_ARCHIVED} unless it sets this to true
+     * (restore, delete, leave).
+     */
+    boolean allowArchived() default false;
 }

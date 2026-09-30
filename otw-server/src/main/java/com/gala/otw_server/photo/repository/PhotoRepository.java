@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,14 +17,20 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
 
     Optional<Photo> findByIdAndRoom_Id(UUID id, UUID roomId);
 
+    /** Newest first (the Dump shows new photos at the top); keyset on (createdAt, id). */
     @Query("""
             SELECT p FROM Photo p
             WHERE p.room.id = :roomId
-              AND (:cursor IS NULL OR p.id > :cursor)
+              AND (:uploadedBy IS NULL OR p.uploadedBy = :uploadedBy)
+              AND (:cursorAt IS NULL
+                   OR p.createdAt < :cursorAt
+                   OR (p.createdAt = :cursorAt AND p.id < :cursorId))
             ORDER BY p.createdAt DESC, p.id DESC
             """)
     List<Photo> findPhotos(
             @Param("roomId") UUID roomId,
-            @Param("cursor") UUID cursor,
+            @Param("uploadedBy") UUID uploadedBy,
+            @Param("cursorAt") OffsetDateTime cursorAt,
+            @Param("cursorId") UUID cursorId,
             Pageable pageable);
 }

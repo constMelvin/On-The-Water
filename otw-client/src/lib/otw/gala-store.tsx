@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * Gala state for everything inside /gala/[code]. Reads the REAL gala that Plan a Gala /
- * Join a Gala / Enter a Gala stored in the gala registry, plus who "I" am on this device,
- * and stays in sync when another tab changes it (e.g. a friend joins).
- * The demo data module is only a development fallback for the demo code.
+ * Gala state for everything inside /gala/[code], loaded from the OTW backend:
+ * GET /rooms/{id}, /rooms/{id}/members and /rooms/{id}/summary. The room id comes from
+ * this device's code -> roomId map (written by Plan / Join / Enter a Gala); "me" is the
+ * member row whose userId is this device's Supabase user.
+ * Data refreshes every 15 s and on window focus (no realtime subscription yet).
  */
 import {
   createContext,
@@ -16,51 +17,53 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { AttendanceKey, Budget, ChecklistItem, Expense, Gala, Member, Stop, Tone } from './data';
 import {
-  BUD0,
-  EXP0,
-  G,
-  ITEMS0,
-  STOPS0,
-  demoGalaRecord,
-  type AttendanceKey,
-  type Budget,
-  type ChecklistItem,
-  type Expense,
-  type Gala,
-  type Member,
-  type Stop,
-} from './data';
-import {
+  daysBetween,
+  forgetRoom,
   formatDay,
   formatRange,
   formatTimes,
-  galaSnapshot,
-  getGala,
-  getCurrentMember,
   isValidCode,
   normCode,
-  parseSnapshot,
-  phaseFor,
-  saveGala,
-  setCurrentMember,
-  setMemberStatus,
-  subscribeGalas,
-  type GalaRecord,
+  roomIdFor,
+  subscribeRooms,
 } from './gala-registry';
+import { toast } from './feedback';
+import { isApiError } from '@/lib/api/client';
+import { currentUserId } from '@/lib/api/supabase';
+import {
+  getAllMembers,
+  getRoom,
+  getSummary,
+  updateRsvp,
+  type GalaPhase,
+  type RoomDto,
+  type RoomSummaryDto,
+  type RsvpStatus,
+} from '@/lib/api/rooms';
 
 export type Role = 'leader' | 'member';
 export type Phase = 'planning' | 'day' | 'done';
 export type SheetKey = 'more' | 'share' | 'account';
 /** Screen state for loading / empty / error / offline variants. */
 export type ViewState = 'default' | 'loading' | 'empty' | 'error' | 'offline';
-/** loading = reading storage; missing = unknown code; guest = gala exists but I'm not in it on this device. */
-export type LoadStatus = 'loading' | 'missing' | 'guest' | 'ready';
+/**
+ * loading = talking to the backend; missing = unknown code; guest = this device isn't a
+ * member (goes to Enter a Gala); error = backend unreachable or failed; ready = in.
+ */
+export type LoadStatus = 'loading' | 'missing' | 'guest' | 'error' | 'ready';
 
 export interface GalaState {
   status: LoadStatus;
+  /** Why status is 'error'. */
+  error: string;
+  roomId: string | null;
   gala: Gala;
   members: Member[];
+  /** Counts for the dashboard cards, straight from GET /summary (null until loaded). */
+  summary: RoomSummaryDto | null;
   /** My display name in this gala. */
   me: string;
   role: Role;
@@ -79,12 +82,12 @@ export interface GalaState {
   /** The dashboard's account banner; dismissing hides it for the session. */
   bannerOpen: boolean;
 
-  /** Dev switcher override; the real role comes from how I joined. */
+  /** Dev switcher override; the real role comes from the backend. */
   setRole: (role: Role) => void;
-  /** Dev switcher override; the real phase comes from the gala date. */
+  /** Dev switcher override; the real phase comes from the backend. */
   setPhase: (phase: Phase) => void;
   setHasAccount: (v: boolean) => void;
-  /** Updates my attendance everywhere (and persists it for this gala). */
+  /** PATCH /members/me/rsvp, then refreshes members + summary. */
   setMyStatus: (status: AttendanceKey) => void;
   setStops: (v: Stop[]) => void;
   setItems: (v: ChecklistItem[]) => void;
@@ -99,52 +102,69 @@ export interface GalaState {
 
 const GalaContext = createContext<GalaState | null>(null);
 
-/** Registry record -> the dashboard's view model. */
-function toGala(r: GalaRecord): Gala {
+const TONES: Tone[] = ['rosy', 'teal', 'zest', 'blossom'];
+const PHASE: Record<GalaPhase, Phase> = { PLANNING: 'planning', GALA_DAY: 'day', DONE: 'done' };
+/** PENDING (hasn't answered yet) shows as Maybe: the dashboard only has three states. */
+const ATTEND: Record<RsvpStatus, AttendanceKey> = { GOING: 'g', MAYBE: 'm', NOT_GOING: 'x', PENDING: 'm' };
+const RSVP: Record<AttendanceKey, RsvpStatus> = { g: 'GOING', m: 'MAYBE', x: 'NOT_GOING' };
+
+const NO_STOPS: Stop[] = [];
+const NO_ITEMS: ChecklistItem[] = [];
+const NO_EXPENSES: Expense[] = [];
+
+const hhmm = (t: string | null) => (t ? t.slice(0, 5) : undefined);
+
+/** Backend room -> the dashboard's view model. */
+function toGala(r: RoomDto): Gala {
+  const days = daysBetween(r.startDate, r.endDate);
   return {
     title: r.title,
-    code: r.code,
+    code: normCode(r.roomCode),
     pw: '',
     dest: r.destination,
-    date: formatDay(r.date),
-    range: formatRange(r.date, r.days),
-    time: formatTimes(r.startTime, r.endTime),
-    dateISO: r.date || undefined,
-    startTime: r.startTime,
-    days: r.days,
+    date: formatDay(r.startDate),
+    range: formatRange(r.startDate, days),
+    time: formatTimes(hhmm(r.startTime), hhmm(r.endTime)),
+    dateISO: r.startDate,
+    startTime: hhmm(r.startTime),
+    days,
   };
 }
 
+const noRetryOn4xx = (n: number, e: unknown) => !(isApiError(e) && e.status >= 400 && e.status < 500) && n < 2;
+
 export function GalaProvider({ code, children }: { code: string; children: ReactNode }) {
   const valid = isValidCode(code);
+  const qc = useQueryClient();
 
-  // null on the server and during hydration -> "loading"; then the stored gala.
-  const snap = useSyncExternalStore(
-    subscribeGalas,
-    () => (valid ? galaSnapshot(code) : 'invalid'),
-    () => null
+  // undefined on the server and during hydration -> "loading"; then the id or null.
+  const roomId = useSyncExternalStore(
+    subscribeRooms,
+    () => (valid ? roomIdFor(code) : null),
+    () => undefined
   );
+  const enabled = !!roomId;
+  const live = { enabled, retry: noRetryOn4xx, refetchInterval: 15_000 } as const;
 
-  // Development only: the demo code works without creating a gala first.
+  const roomQ = useQuery({ queryKey: ['room', roomId], queryFn: () => getRoom(roomId!), ...live });
+  const membersQ = useQuery({ queryKey: ['room', roomId, 'members'], queryFn: () => getAllMembers(roomId!), ...live });
+  const summaryQ = useQuery({ queryKey: ['room', roomId, 'summary'], queryFn: () => getSummary(roomId!), ...live });
+  const userQ = useQuery({ queryKey: ['me'], queryFn: currentUserId, enabled, staleTime: Infinity });
+
+  // The backend says this device isn't in the gala (removed, left, or someone reclaimed
+  // the member): forget the stale room id so the gate sends me to Enter a Gala.
+  const notMember = isApiError(roomQ.error) && (roomQ.error.status === 403 || roomQ.error.code === 'NOT_A_ROOM_MEMBER');
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || normCode(code) !== G.code || getGala(code)) return;
-    const rec = saveGala(demoGalaRecord());
-    if (!getCurrentMember(code)) setCurrentMember(code, { name: rec.members[0].name, role: 'leader' });
-  }, [code]);
+    if (notMember) forgetRoom(code);
+  }, [notMember, code]);
 
-  const { rec, me } = useMemo(
-    () => (snap && snap !== 'invalid' ? parseSnapshot(snap) : { rec: null, me: null }),
-    [snap]
-  );
+  const room = roomQ.data;
+  const myUserId = userQ.data ?? null;
 
-  const status: LoadStatus =
-    snap === null ? 'loading' : snap === 'invalid' || !rec ? 'missing' : !me ? 'guest' : 'ready';
-  const demo = !!rec?.demo;
-
-  // Overrides (dev switcher / local edits). null = use the value derived from the gala.
+  // Overrides (dev switcher / local edits). null = use the value from the backend.
   const [roleOverride, setRole] = useState<Role | null>(null);
   const [phaseOverride, setPhase] = useState<Phase | null>(null);
-  const [hasAccount, setHasAccount] = useState(false);
+  const [accountOverride, setHasAccount] = useState<boolean | null>(null);
   const [stopsEdit, setStops] = useState<Stop[] | null>(null);
   const [itemsEdit, setItems] = useState<ChecklistItem[] | null>(null);
   const [budgetEdit, setBudget] = useState<Budget | null>(null);
@@ -154,32 +174,73 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const [viewState, setViewState] = useState<ViewState>('default');
   const [bannerOpen, setBannerOpen] = useState(true);
 
-  const members = useMemo<Member[]>(
-    () => (rec ? rec.members.map((m) => ({ n: m.name, c: m.color, s: m.status, on: m.name === me?.name ? 1 : 0 })) : []),
-    [rec, me]
-  );
-  const myName = me?.name ?? '';
-  const myStatus: AttendanceKey = members.find((m) => m.n === myName)?.s ?? 'g';
-  const role: Role = roleOverride ?? me?.role ?? 'member';
-  const phase: Phase = phaseOverride ?? (rec && !demo ? phaseFor(rec.date, rec.days) : 'planning');
-  const stops = stopsEdit ?? (demo ? STOPS0 : []);
-  const items = itemsEdit ?? (demo ? ITEMS0 : []);
-  const budget = budgetEdit ?? (demo ? BUD0 : { tr: 0, st: 0, fo: 0, ac: 0, ot: 0, n: Math.max(1, members.length) });
-  const expenses = expensesEdit ?? (demo ? EXP0 : []);
-  const unread = unreadEdit ?? (demo ? 2 : 0);
+  const rows = useMemo(() => membersQ.data ?? [], [membersQ.data]);
+  const mine = rows.find((m) => m.userId === myUserId);
 
-  const setMyStatus = useCallback((s: AttendanceKey) => setMemberStatus(code, myName, s), [code, myName]);
+  const members = useMemo<Member[]>(
+    () =>
+      rows.map((m, i) => ({
+        n: m.nickname,
+        c: TONES[i % TONES.length],
+        s: ATTEND[m.rsvpStatus],
+        on: m.userId === myUserId ? 1 : 0,
+      })),
+    [rows, myUserId]
+  );
+
+  const myName = mine?.nickname ?? '';
+  const myStatus: AttendanceKey = mine ? ATTEND[mine.rsvpStatus] : 'm';
+  const role: Role = roleOverride ?? (room?.myRole === 'HOST' ? 'leader' : 'member');
+  const phase: Phase = phaseOverride ?? (room ? PHASE[room.phase] : 'planning');
+  const hasAccount = accountOverride ?? !!mine?.hasAccount;
+  const summary = summaryQ.data ?? null;
+  const stops = stopsEdit ?? NO_STOPS;
+  const items = itemsEdit ?? NO_ITEMS;
+  const budget = useMemo<Budget>(
+    () => budgetEdit ?? { tr: 0, st: 0, fo: 0, ac: 0, ot: 0, n: Math.max(1, members.length) },
+    [budgetEdit, members.length]
+  );
+  const expenses = expensesEdit ?? NO_EXPENSES;
+  const unread = unreadEdit ?? summary?.unreadChat ?? 0;
+
+  const firstError = roomQ.error ?? membersQ.error;
+  const status: LoadStatus =
+    roomId === undefined
+      ? 'loading'
+      : !valid || (isApiError(roomQ.error) && roomQ.error.status === 404)
+        ? 'missing'
+        : roomId === null || notMember
+          ? 'guest'
+          : firstError
+            ? 'error'
+            : room && membersQ.data && userQ.isSuccess
+              ? 'ready'
+              : 'loading';
+  const error = firstError instanceof Error ? firstError.message : '';
+
+  const setMyStatus = useCallback(
+    (s: AttendanceKey) => {
+      if (!roomId) return;
+      updateRsvp(roomId, RSVP[s])
+        .then(() => qc.invalidateQueries({ queryKey: ['room', roomId] }))
+        .catch((e: unknown) => toast(e instanceof Error ? e.message : "Couldn't update your status.", 'err'));
+    },
+    [roomId, qc]
+  );
 
   const gala = useMemo<Gala>(
-    () => (rec ? toGala(rec) : { title: '', code: normCode(code), pw: '', dest: '', date: '', range: '', time: '' }),
-    [rec, code]
+    () => (room ? toGala(room) : { title: '', code: normCode(code), pw: '', dest: '', date: '', range: '', time: '' }),
+    [room, code]
   );
 
   const value = useMemo<GalaState>(
     () => ({
       status,
+      error,
+      roomId: roomId ?? null,
       gala,
       members,
+      summary,
       me: myName,
       role,
       phase,
@@ -207,7 +268,7 @@ export function GalaProvider({ code, children }: { code: string; children: React
       setViewState,
       dismissBanner: () => setBannerOpen(false),
     }),
-    [status, gala, members, myName, role, phase, hasAccount, myStatus, stops, items, budget, expenses, unread, sheet, viewState, bannerOpen, setMyStatus]
+    [status, error, roomId, gala, members, summary, myName, role, phase, hasAccount, myStatus, stops, items, budget, expenses, unread, sheet, viewState, bannerOpen, setMyStatus]
   );
 
   return <GalaContext.Provider value={value}>{children}</GalaContext.Provider>;

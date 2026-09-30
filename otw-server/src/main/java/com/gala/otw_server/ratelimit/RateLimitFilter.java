@@ -63,6 +63,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
             // Anti-brute force for 8-char codes: max 10 requests per minute
             allowed = rateLimiterService.tryAcquireCount(
                     "ratelimit:join:" + clientIdentifier, 10, Duration.ofMinutes(1));
+        } else if (isCodeLookupEndpoint(path, method)) {
+            // Code preview + "Enter a Gala" (code + password guessing): same budget as join
+            allowed = rateLimiterService.tryAcquireCount(
+                    "ratelimit:code:" + clientIdentifier, 10, Duration.ofMinutes(1));
+        } else if (isCreateRoomEndpoint(path, method)) {
+            // Anonymous sessions are free to mint, so cap gala creation per client
+            allowed = rateLimiterService.tryAcquireCount(
+                    "ratelimit:create:" + clientIdentifier, 10, Duration.ofHours(1));
         } else if (isWriteMethod(method)) {
             // Write operations: max 60 requests per minute
             allowed = rateLimiterService.tryAcquireCount(
@@ -88,6 +96,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private boolean isJoinEndpoint(String path, String method) {
         return HttpMethod.POST.matches(method) &&
                 (path.endsWith("/rooms/join") || path.endsWith("/groups/join"));
+    }
+
+    private boolean isCodeLookupEndpoint(String path, String method) {
+        return (HttpMethod.GET.matches(method) && path.endsWith("/rooms/preview"))
+                || (HttpMethod.POST.matches(method)
+                    && (path.endsWith("/rooms/enter") || path.endsWith("/rooms/enter/claim")));
+    }
+
+    private boolean isCreateRoomEndpoint(String path, String method) {
+        return HttpMethod.POST.matches(method) && path.equals("/api/v1/rooms");
     }
 
     private boolean isWriteMethod(String method) {
