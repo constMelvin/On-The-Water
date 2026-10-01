@@ -173,6 +173,8 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const [sheet, setSheet] = useState<SheetKey | null>(null);
   const [viewState, setViewState] = useState<ViewState>('default');
   const [bannerOpen, setBannerOpen] = useState(true);
+  // My RSVP shown right away while PATCH /members/me/rsvp is in flight (cleared once the refetch lands).
+  const [statusOverride, setStatusOverride] = useState<AttendanceKey | null>(null);
 
   const rows = useMemo(() => membersQ.data ?? [], [membersQ.data]);
   const mine = rows.find((m) => m.userId === myUserId);
@@ -182,14 +184,14 @@ export function GalaProvider({ code, children }: { code: string; children: React
       rows.map((m, i) => ({
         n: m.nickname,
         c: TONES[i % TONES.length],
-        s: ATTEND[m.rsvpStatus],
+        s: m.userId === myUserId && statusOverride ? statusOverride : ATTEND[m.rsvpStatus],
         on: m.userId === myUserId ? 1 : 0,
       })),
-    [rows, myUserId]
+    [rows, myUserId, statusOverride]
   );
 
   const myName = mine?.nickname ?? '';
-  const myStatus: AttendanceKey = mine ? ATTEND[mine.rsvpStatus] : 'm';
+  const myStatus: AttendanceKey = statusOverride ?? (mine ? ATTEND[mine.rsvpStatus] : 'm');
   const role: Role = roleOverride ?? (room?.myRole === 'HOST' ? 'leader' : 'member');
   const phase: Phase = phaseOverride ?? (room ? PHASE[room.phase] : 'planning');
   const hasAccount = accountOverride ?? !!mine?.hasAccount;
@@ -221,9 +223,11 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const setMyStatus = useCallback(
     (s: AttendanceKey) => {
       if (!roomId) return;
+      setStatusOverride(s); // instant: card counts, "Who's in" and the status control update now
       updateRsvp(roomId, RSVP[s])
         .then(() => qc.invalidateQueries({ queryKey: ['room', roomId] }))
-        .catch((e: unknown) => toast(e instanceof Error ? e.message : "Couldn't update your status.", 'err'));
+        .catch((e: unknown) => toast(e instanceof Error ? e.message : "Couldn't update your status.", 'err'))
+        .finally(() => setStatusOverride(null)); // back to the server value (new on success, old on failure)
     },
     [roomId, qc]
   );

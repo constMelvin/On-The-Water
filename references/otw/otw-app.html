@@ -1,0 +1,1307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OTW: From “G tayo?” to “OTW na.”</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--rosy:#e0417c;--rosy-dark:#c22e64;--zest:#f8e140;--zest-dark:#c9b418;--blossom:#eac7df;--teal:#2f8aa3;--teal-dark:#1f6376;--cream:#fff8f2;
+--fd:'Fredoka','Nunito',system-ui,sans-serif;--fb:'Nunito',system-ui,-apple-system,sans-serif;
+--pad:44px;--gap:20px;--n3:3;--n2:2;--n4:4;--nf:3;--h1:58px;--h2:40px;
+color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(72px + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--teal-dark);font-family:var(--fb);font-weight:700;font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--fd);font-weight:600;margin:0;line-height:1.1}
+h3{font-size:20px}h4{font-size:16px}p{margin:0}ul,ol{margin:0;padding:0;list-style:none}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}svg{display:block;flex:none}a{color:inherit}
+:focus-visible{outline:3px solid var(--teal-dark);outline-offset:3px}
+.bg-rosy :focus-visible,.bg-teal :focus-visible,.bg-tdark :focus-visible,.side :focus-visible,.lb :focus-visible{outline-color:var(--zest)}
+.fine{font-size:14px;font-weight:600;opacity:.85}.ctr{text-align:center}.ctr-t{text-align:center}
+.bg-rosy{background:var(--rosy);color:var(--cream)}.bg-zest{background:var(--zest);color:var(--teal-dark)}.bg-teal{background:var(--teal);color:var(--cream)}.bg-blossom{background:var(--blossom);color:var(--teal-dark)}.bg-tdark{background:var(--teal-dark);color:var(--cream)}.bg-cream{background:var(--cream)}
+.c-rosy{background:var(--rosy);color:var(--cream);--sh:var(--rosy-dark)}.c-zest{background:var(--zest);color:var(--teal-dark);--sh:var(--zest-dark)}.c-teal{background:var(--teal);color:var(--cream);--sh:var(--teal-dark)}.c-blossom{background:var(--blossom);color:var(--teal-dark);--sh:var(--rosy)}.c-cream{background:var(--cream);color:var(--teal-dark);--sh:var(--blossom)}
+.skip{position:absolute;left:-999px}.skip:focus{left:12px;top:12px;z-index:99;background:var(--zest);padding:8px 14px;border-radius:99px}
+
+/* buttons */
+.btn{--bg:var(--rosy);--sh:var(--rosy-dark);--fg:var(--cream);display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--fd);font-weight:600;font-size:19px;line-height:1;padding:15px 28px;border:0;border-radius:999px;background:var(--bg);color:var(--fg);box-shadow:0 7px 0 var(--sh);margin-bottom:7px;cursor:pointer;white-space:nowrap;text-decoration:none;transition:transform .09s ease,box-shadow .09s ease}
+.btn:active{transform:translateY(5px);box-shadow:0 2px 0 var(--sh)}
+.btn.zest{--bg:var(--zest);--sh:var(--zest-dark);--fg:var(--teal-dark)}.btn.teal{--bg:var(--teal);--sh:var(--teal-dark)}.btn.cream{--bg:var(--cream);--sh:var(--blossom);--fg:var(--teal-dark)}
+.btn.ghost{--bg:transparent;--fg:currentColor;box-shadow:none;border:3px solid currentColor;padding:12px 25px;margin-bottom:7px}.btn.ghost:active{transform:translateY(2px)}
+.btn.sm{font-size:16px;padding:10px 18px;box-shadow:0 4px 0 var(--sh);margin-bottom:4px}.btn.sm:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sh)}.btn.sm.ghost{padding:7px 15px;box-shadow:none}
+.btn.icon{padding:0;width:54px;height:54px}.btn[disabled]{opacity:.5;pointer-events:none}.btn.fw{width:100%}
+.lnk{background:none;border:0;padding:0;font:inherit;font-weight:800;color:inherit;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}
+.ibtn{background:none;border:0;width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;color:inherit;flex:none}.ibtn:hover{background:var(--blossom)}.ibtn[disabled]{opacity:.35;pointer-events:none}
+.ibtn.dark{background:var(--blossom);color:var(--teal-dark)}
+.iconbtn{width:44px;height:44px;padding:0}.btn.sm.iconbtn{padding:0;border-width:3px}
+
+/* inputs */
+.in{width:100%;font:inherit;font-weight:700;font-size:17px;color:var(--teal-dark);background:var(--cream);border:3px solid var(--teal);border-radius:20px;padding:12px 18px;box-shadow:0 4px 0 var(--blossom);outline:none}
+.in:focus{border-color:var(--rosy);box-shadow:0 4px 0 var(--rosy-dark)}.in.big{font-size:20px;padding:15px 20px}.in.code{font-family:var(--fd);font-weight:600;letter-spacing:.06em;font-size:24px}
+.in.bad{border-color:var(--rosy-dark);box-shadow:0 4px 0 var(--rosy-dark)}.in.sel{width:auto;padding:9px 16px;font-size:15px}.in.num{padding:8px 12px;font-size:17px;text-align:right}
+.fl{display:flex;flex-direction:column;gap:8px;font-size:15px;font-weight:800}.fl>.in,.fl>.inwrap{font-weight:700}
+.inwrap{position:relative}.inwrap .in{padding-right:56px}.inwrap .ic-in{padding-left:52px;padding-right:20px}.inwrap>.ic{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--teal);pointer-events:none}
+.eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;color:var(--teal-dark)}.eye:hover{background:var(--blossom)}
+.ferr{display:flex;gap:8px;align-items:flex-start;font-weight:800;font-size:15px;background:var(--cream);color:var(--rosy-dark);border-radius:16px;padding:10px 14px;border:3px solid var(--rosy-dark)}.ferr.sm{font-size:13px;padding:6px 10px;margin-top:6px}
+.two-in{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.seg{display:inline-flex;background:var(--blossom);border-radius:999px;padding:4px;gap:2px;flex-wrap:wrap;max-width:100%}
+.seg button{border:0;background:transparent;border-radius:999px;padding:8px 15px;font-weight:800;font-size:15px;color:var(--teal-dark);display:inline-flex;gap:6px;align-items:center}
+.seg button[aria-pressed="true"]{background:var(--teal);color:var(--cream);box-shadow:0 3px 0 var(--teal-dark)}
+.wrapseg{display:flex;margin-top:10px}.wrapseg button{flex:1 1 40%;justify-content:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--cream);color:var(--teal-dark);border:3px solid var(--blossom);border-radius:999px;padding:6px 14px;font-weight:800;font-size:14px}
+.chip:hover,.chip[aria-pressed="true"]{border-color:var(--rosy);background:var(--blossom)}.chips{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:54px;height:32px;border-radius:99px;border:0;background:var(--blossom);padding:3px;box-shadow:inset 0 0 0 3px var(--teal);flex:none}.sw i{display:block;width:26px;height:26px;border-radius:50%;background:var(--teal);transition:transform .15s}
+.sw.on{background:var(--teal);box-shadow:0 3px 0 var(--teal-dark)}.sw.on i{transform:translateX(22px);background:var(--cream)}
+.cbox{width:32px;height:32px;border-radius:11px;border:3px solid var(--teal);background:var(--cream);display:grid;place-items:center;color:var(--cream);flex:none;padding:0}
+.cbox[aria-checked="true"],.cbox.on{background:var(--teal);box-shadow:0 3px 0 var(--teal-dark)}.cbox:not(.on):not([aria-checked="true"]) svg{display:none}
+.tag{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 12px;font-size:13px;font-weight:800;background:var(--zest);color:var(--teal-dark);white-space:nowrap}
+.tag.rosy{background:var(--rosy);color:var(--cream)}.tag.teal,.st-g,.l-otw{background:var(--teal);color:var(--cream)}.tag.blossom{background:var(--blossom)}.tag.cream{background:var(--cream)}
+.st-m,.l-almost{background:var(--zest);color:var(--teal-dark)}.st-x{background:var(--blossom);color:var(--rosy-dark)}.l-home{background:var(--cream);color:var(--teal-dark);box-shadow:inset 0 0 0 2px var(--teal-dark)}.l-there{background:var(--rosy);color:var(--cream)}
+.tag.zest{background:var(--zest)}
+.av{border-radius:50%;display:inline-grid;place-items:center;font-family:var(--fd);font-weight:600;border:3px solid var(--cream);flex:none;position:relative}
+.av.on::after{content:'';position:absolute;right:-3px;bottom:-3px;width:11px;height:11px;border-radius:50%;background:var(--teal);border:2px solid var(--cream)}
+.stack{display:inline-flex}.stack .av{margin-left:-10px}.stack .av:first-child{margin-left:0}
+.badge{font-style:normal;background:var(--zest);color:var(--teal-dark);border-radius:99px;font-size:12px;font-weight:800;min-width:20px;height:20px;display:inline-grid;place-items:center;padding:0 6px}
+.ico{width:52px;height:52px;border-radius:44% 56% 52% 48%/52% 44% 56% 48%;background:var(--cream);color:var(--rosy);display:grid;place-items:center;flex:none}.ico.sm{width:38px;height:38px}.ico.xl{width:96px;height:96px}
+.card{background:var(--cream);color:var(--teal-dark);border:3px solid var(--cream);border-radius:26px;padding:20px;box-shadow:0 6px 0 var(--sh,var(--blossom))}
+.card.c-blossom{border-color:var(--cream)}.card p{font-size:15px;font-weight:600}
+.blobcard{border-radius:46% 54% 38% 62%/50% 42% 58% 50%}.card.blobcard{border-radius:46% 54% 38% 62%/50% 42% 58% 50%;padding:26px 28px}
+.lift{transition:transform .18s ease}@media (hover:hover){.lift:hover{transform:translateY(-4px) rotate(-1deg)}}
+.tbl{width:100%;border-collapse:collapse;font-size:15px;background:var(--cream);color:var(--teal-dark);border-radius:22px;overflow:hidden}.tbl th,.tbl td{padding:10px 14px;text-align:left;border-bottom:3px solid var(--blossom)}.tbl thead th{background:var(--teal-dark);color:var(--cream);font-family:var(--fd)}.tbl tbody th{font-weight:800}
+
+/* motion */
+.spark{position:fixed;z-index:9999;pointer-events:none;margin:-8px 0 0 -8px;animation:pop .7s ease-out forwards}
+@keyframes pop{0%{transform:translate(0,0) scale(.4);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(1.1) rotate(40deg);opacity:0}}
+@keyframes pulse{50%{opacity:.5}}@keyframes ping{from{transform:scale(1);opacity:.8}to{transform:scale(1.8);opacity:0}}@keyframes tin{from{transform:translate(-50%,12px);opacity:0}}
+.sk{background:var(--blossom);border-radius:18px;animation:pulse 1.4s ease-in-out infinite}
+.toast{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:var(--teal-dark);color:var(--cream);padding:12px 20px;border-radius:999px;font-weight:800;font-size:15px;box-shadow:0 5px 0 var(--teal);display:flex;gap:8px;align-items:center;z-index:60;animation:tin .22s ease-out;max-width:90%;width:max-content}
+.toast.err{background:var(--rosy-dark);box-shadow:0 5px 0 var(--rosy)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ===== doc page ===== */
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}.pg{padding:84px 0}
+.dnav{position:sticky;top:0;z-index:50;background:var(--rosy);color:var(--cream);padding-top:env(safe-area-inset-top,0px)}.dnav .wrap{display:flex;align-items:center;gap:22px;height:68px}
+.dnav nav{display:flex;gap:20px;margin:0 auto}.dnav nav a{text-decoration:none;font-weight:800}.dnav nav a:hover{text-decoration:underline;text-underline-offset:5px}
+.logo{display:inline-flex;align-items:center;gap:6px;font-family:var(--fd);font-weight:700;font-size:28px;letter-spacing:-.02em}.logo b{font-weight:700}.logo .ic{color:var(--zest)}.logo.cr .ic{color:var(--zest)}
+.hero-d .wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:center}.hero-d h1{font-size:clamp(40px,6vw,72px);letter-spacing:-.025em;margin:18px 0}
+.hero-d .lead{max-width:38ch;font-size:21px}.hero-d .ctas{display:flex;gap:16px;flex-wrap:wrap;margin:26px 0 12px}.hero-d .tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.h2d{font-size:clamp(32px,4.4vw,52px);letter-spacing:-.02em}.intro{font-size:19px;max-width:60ch;margin:12px 0 28px;font-weight:700}
+.ctl{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-end;background:var(--cream);border-radius:26px;padding:18px 22px;margin-bottom:18px}.cg{display:flex;flex-direction:column;gap:6px}.cl{font-size:13px;font-weight:800}
+.jrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:18px;margin-bottom:26px}.jlist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.jbtn{display:flex;gap:10px;align-items:center;text-align:left;background:var(--cream);border:3px solid var(--cream);border-radius:18px;padding:8px 12px;font-weight:800;font-size:14px;line-height:1.2}.jbtn b{background:var(--blossom);border-radius:50%;width:26px;height:26px;display:grid;place-items:center;flex:none;font-family:var(--fd)}
+.jbtn.on{border-color:var(--rosy);background:var(--blossom)}.jbtn:hover{border-color:var(--teal)}
+.jsteps{background:var(--cream);border-radius:22px;padding:16px 18px}.jd{display:flex;flex-direction:column;margin-bottom:10px}.jd span{font-size:14px;font-weight:600}.jchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.jc{display:inline-flex;gap:6px;align-items:center;border:3px solid var(--blossom);background:var(--cream);border-radius:99px;padding:5px 12px;font-weight:800;font-size:14px}.jc i{font-style:normal;background:var(--blossom);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-size:12px}
+.jc.now{background:var(--rosy);border-color:var(--rosy);color:var(--cream)}.jc.now i{background:var(--cream);color:var(--rosy)}.jc.past{background:var(--teal);border-color:var(--teal);color:var(--cream)}
+.stagewrap{position:relative;overflow:hidden;width:100%}.scaler{position:absolute;left:0;top:0;transform-origin:top left;width:max-content}
+.pstage{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+.notes{background:var(--cream);border-radius:26px;padding:22px 26px;margin-top:26px}.notes h3{margin-bottom:10px}.notes dl{display:grid;grid-template-columns:170px 1fr;gap:8px 18px;margin:0 0 12px}.notes dt{font-weight:800;font-family:var(--fd)}.notes dd{margin:0;font-weight:600}
+.smgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:26px}.smcol h3{margin-bottom:4px}.smcol ul{margin-top:12px;display:grid;gap:8px}.node{width:100%;display:flex;align-items:center;gap:8px;text-align:left;background:var(--cream);border:3px solid var(--teal);border-radius:99px;padding:7px 14px;font-weight:800;font-size:15px}.node .ic:last-child{margin-left:auto}.node:hover{border-color:var(--rosy)}
+.access{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:34px}.access .card h3{margin:12px 0 6px}
+.tblrow{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:34px}.tblrow h3{margin-bottom:10px;font-size:24px}
+.spfilt{display:flex;gap:8px;margin:18px 0 22px}.spec{background:var(--cream);border-radius:24px;margin-bottom:12px;border:3px solid var(--cream)}.spec[open]{border-color:var(--rosy)}
+.spec summary{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;list-style:none;font-size:18px}.spec summary::-webkit-details-marker{display:none}.spec summary b{font-family:var(--fd);font-weight:600;font-size:21px;margin-right:auto}.spec[open] summary .sc{transform:rotate(180deg)}
+.sn2{width:32px;height:32px;border-radius:50%;background:var(--zest);display:grid;place-items:center;font-family:var(--fd);font-size:15px;flex:none}
+.spb{padding:0 22px 22px}.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 22px;margin:0}.sgrid dt{font-family:var(--fd);font-weight:600;color:var(--rosy-dark);font-size:15px;margin-bottom:2px}.sgrid dd{margin:0;font-weight:600;font-size:15px}.pp{margin-bottom:14px}
+.dspart{background:var(--cream);color:var(--teal-dark);border-radius:30px;padding:26px 28px;margin-bottom:22px}.dsh{font-size:28px;margin-bottom:16px}.dsg{display:grid;gap:18px}.dsg.two{grid-template-columns:1fr 1fr}.dsg.g3x{grid-template-columns:repeat(3,minmax(0,1fr))}.dsg.sw{grid-template-columns:repeat(4,1fr)}
+.dsb{background:var(--cream);border:3px solid var(--blossom);border-radius:22px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;min-width:0}.dsb h4{font-size:15px}.dsb.dk-b{background:var(--teal-dark)}.dsb.bgr{background:var(--rosy);color:var(--cream)}.cr{color:var(--cream)}
+.dsrow{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.dsrow.bgz{background:var(--blossom);border-radius:22px;padding:18px 20px}.dsrow.mk{margin-top:14px}
+.swc{display:flex;flex-direction:column;gap:2px}.swc i{font-style:normal;border-radius:22px;padding:34px 12px 12px;font-family:var(--fd);font-size:15px;box-shadow:inset 0 0 0 3px var(--blossom)}.swc span{font-size:13px;font-weight:600}
+.tdisp{font-family:var(--fd);font-weight:600;font-size:38px;line-height:1.05;margin:10px 0}.tdisp.s2{font-size:28px}.tdisp.s3{font-size:20px}.tb1{font-size:18px;font-weight:700;margin:10px 0}.tb2{font-size:15px;font-weight:600}
+.mini-sheet{background:var(--cream);border:3px solid var(--teal);border-radius:26px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;width:100%}.mini-sheet .row{gap:8px}
+.ddw{position:relative}.ddm{position:absolute;top:100%;left:0;background:var(--cream);border:3px solid var(--teal);border-radius:18px;padding:6px;min-width:150px;z-index:5}.ddm li{padding:6px 12px;border-radius:12px;font-weight:800}.ddm li:hover{background:var(--blossom)}
+.tipb{position:relative}.tipb::after{content:attr(data-tip);position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:var(--teal-dark);color:var(--cream);padding:5px 10px;border-radius:12px;font-size:13px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}.tipb:hover::after,.tipb:focus-visible::after{opacity:1}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px}.icons span{background:var(--blossom);border-radius:16px;display:grid;place-items:center;height:52px;color:var(--teal-dark)}
+.rg-b{fill:none;stroke:var(--blossom);stroke-width:8}.rg-f{fill:none;stroke:var(--teal);stroke-width:8;stroke-linecap:round}.rg-t{font-family:var(--fd);font-weight:600;font-size:16px;fill:var(--teal-dark)}
+.dsside{background:var(--teal-dark);border-radius:18px;padding:8px;width:220px}.dsbn{display:flex;gap:18px}.dsbn .bn,.bn{position:relative}.badge.s{position:static}
+.notesec ul{display:grid;gap:12px;margin-top:20px}.dec{background:var(--cream);border-radius:22px;padding:16px 20px}.dec b{font-family:var(--fd);font-weight:600;font-size:19px;display:block}.dec p{font-size:16px;font-weight:600;margin-top:4px}.dgrid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+.foot{padding:48px 0}.foot .wrap{display:flex;flex-direction:column;gap:14px}.foot .flinks{display:flex;gap:18px;flex-wrap:wrap}
+#ptoast{position:fixed;left:0;right:0;bottom:24px;height:0;z-index:80}#ptoast .toast{position:fixed}
+
+/* ===== device frames ===== */
+.device{--h1:58px;--h2:40px;--pad:44px;--n3:3;--n2:2;--n4:4;--nf:3;--gap:20px;position:relative;flex:none;background:var(--teal-dark);color:var(--teal-dark);width:1120px;border-radius:26px;padding:0 0 8px}
+.device[data-device=tablet]{--h1:46px;--h2:32px;--pad:30px;--n3:2;--n4:2;--nf:2;width:790px;border-radius:40px;padding:16px}
+.device[data-device=mobile]{--h1:36px;--h2:28px;--pad:18px;--n3:1;--n2:1;--n4:2;--nf:2;--gap:14px;width:396px;border-radius:52px;padding:14px}
+.chrome{height:46px;display:flex;align-items:center;gap:12px;padding:0 18px;color:var(--cream)}.dots{display:flex;gap:7px}.dots i{width:12px;height:12px;border-radius:50%;background:var(--rosy)}.dots i:nth-child(2){background:var(--zest)}.dots i:nth-child(3){background:var(--teal)}
+.urlbar{flex:1;max-width:560px;margin:0 auto;background:var(--teal);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px}
+.statusbar{display:none;justify-content:space-between;align-items:center;color:var(--cream);font-weight:800;font-size:13px;padding:0 20px 8px}
+.device:not([data-device=desktop]) .chrome{display:none}.device:not([data-device=desktop]) .statusbar{display:flex;padding-top:0}
+.device[data-device=mobile] .statusbar{padding:2px 22px 8px}
+.viewport{position:relative;overflow:hidden;background:var(--cream);height:690px;border-radius:0 0 20px 20px;margin:0 8px}
+.device[data-device=tablet] .viewport{height:830px;border-radius:26px;margin:0}.device[data-device=mobile] .viewport{height:770px;border-radius:34px;margin:0}
+#app{position:absolute;inset:0}.scroller{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+.hide-m{}.only-m,.only-m-block{display:none!important}
+.device[data-device=mobile] .hide-m{display:none!important}.device[data-device=mobile] .only-m{display:inline-grid!important}.device[data-device=mobile] .only-m-block{display:block!important}
+
+/* ===== prototype: public + focus ===== */
+.sec{padding:60px var(--pad)}.h1{font-size:var(--h1);letter-spacing:-.025em;line-height:1.02}.h2{font-size:var(--h2);letter-spacing:-.015em}.h1s{font-size:calc(var(--h2) + 6px);letter-spacing:-.02em}.h2s{font-size:26px}
+.lead{font-size:20px;font-weight:700;max-width:34ch;margin:14px 0}.lead2{font-size:18px;margin:8px 0 16px;font-weight:700}.sub{font-size:18px;font-weight:700;margin-top:8px;max-width:52ch}.device[data-device=mobile] .lead{font-size:17px}
+.hero-sec{padding:0 0 10px}.pnav{display:flex;align-items:center;gap:20px;padding:22px var(--pad)}.plinks{display:flex;gap:22px;margin:0 auto;font-size:15px}.device:not([data-device=desktop]) .plinks{display:none}.device:not([data-device=desktop]) .pnav .btn{margin-left:auto}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:center;padding:14px var(--pad) 56px}.device[data-device=mobile] .hero{grid-template-columns:1fr}
+.hero-l h1{margin:16px 0 0}.ctas{display:flex;gap:16px;flex-wrap:wrap;margin:22px 0 8px}.micro{font-size:15px;font-weight:700;margin-top:6px}
+.heroviz{position:relative;display:grid;place-items:center;min-height:300px}.device[data-device=mobile] .heroviz{min-height:270px}
+.bub{position:absolute;font-family:var(--fd);font-weight:600;font-size:18px;padding:10px 18px;border-radius:26px 26px 26px 8px;background:var(--cream);color:var(--teal-dark)}.b1{left:0;top:10%;transform:rotate(-5deg)}.b2{right:2%;top:24%;background:var(--zest);border-radius:26px 26px 8px 26px;transform:rotate(4deg)}.b3{left:2%;bottom:18%;background:var(--blossom);transform:rotate(3deg)}.b4{right:0;bottom:10%;background:var(--teal);color:var(--cream);border-radius:26px 26px 8px 26px;transform:rotate(-3deg)}
+.steps{margin-top:28px}.steps .card{position:relative}.stepn{position:absolute;right:22px;top:16px;font-family:var(--fd);font-size:26px;color:var(--rosy)}.steps h3,.g .card h3{margin:14px 0 6px}.g .card .tag{margin-top:12px}
+.g{display:grid;gap:var(--gap)}.g2{grid-template-columns:repeat(var(--n2),minmax(0,1fr))}.g3{grid-template-columns:repeat(var(--n3),minmax(0,1fr))}.g4{grid-template-columns:repeat(var(--n4),minmax(0,1fr))}.g.two{margin-top:24px}
+.rchips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:30px;justify-content:center}.rc{background:var(--cream);color:var(--teal-dark);border-radius:99px;padding:6px 14px;font-weight:800;font-size:14px}.rc.last{background:var(--rosy);color:var(--cream)}.rc-a{color:var(--teal-dark)}.rchips.all .rc{background:var(--teal);color:var(--cream)}.rchips.all .rc.last{background:var(--rosy)}.bg-teal .rc-a{color:var(--cream)}
+.ticks{display:grid;gap:10px;margin:14px 0}.ticks li{display:flex;gap:10px;align-items:center;font-weight:700}.ticks .ic{color:var(--rosy)}
+.cta-sec{padding:70px var(--pad)}.ctr-row{justify-content:center;display:flex;gap:16px;flex-wrap:wrap;margin-top:24px}
+.foot{padding:40px var(--pad);display:flex;flex-direction:column;gap:12px}
+.focus{display:flex;flex-direction:column}.ftop{display:flex;justify-content:space-between;align-items:center;padding:20px var(--pad)}.fbody{flex:1;display:flex;flex-direction:column;padding:0 var(--pad);position:relative}
+.wiz{width:100%;max-width:640px;margin:18px auto 0;display:flex;flex-direction:column;gap:14px;flex:1;padding-bottom:16px}.wiz.narrow{max-width:520px}.wq{font-size:calc(var(--h2) + 4px)}
+.wprog{display:flex;gap:8px;align-items:center}.wprog i{width:44px;height:12px;border-radius:99px;background:currentColor;opacity:.25}.wprog i.on{opacity:1}.wprog span{font-size:14px;margin-left:8px}
+.wform{display:flex;flex-direction:column;gap:14px;margin-top:8px;align-items:flex-start}.wform>*{width:100%}.wform .chip{width:auto}.wform .chips{width:100%}
+.minimap{position:relative;height:130px;border-radius:24px;overflow:hidden;border:3px solid var(--cream)}.minimap .map{width:100%;height:100%}.minimap span{position:absolute;left:12px;bottom:10px;background:var(--cream);color:var(--teal-dark);border-radius:99px;padding:4px 12px;display:flex;gap:6px;align-items:center;font-size:14px}
+.explain{display:grid;gap:10px}.explain>div{display:flex;gap:12px;align-items:center;background:var(--cream);color:var(--teal-dark);border-radius:20px;padding:10px 14px}.explain .ico{background:var(--blossom)}
+.meter{display:flex;gap:6px;align-items:center}.meter i{width:44px;height:10px;border-radius:99px;background:var(--cream);opacity:.4}.meter i.on{opacity:1;background:var(--teal-dark)}.meter span{font-size:14px;margin-left:6px}
+.fbar{position:sticky;bottom:0;display:flex;justify-content:space-between;gap:14px;padding:14px var(--pad) 10px;margin:auto calc(var(--pad)*-1) 0;background:inherit}.fbar.solo{justify-content:center}.focus>.fbody>.fbar{margin-left:calc(var(--pad)*-1);margin-right:calc(var(--pad)*-1)}
+.focus.bg-rosy .fbar{background:var(--rosy)}.focus.bg-zest .fbar{background:var(--zest)}.focus.bg-teal .fbar{background:var(--teal)}.focus.bg-blossom .fbar{background:var(--blossom)}
+.focus>.fbody{padding-bottom:0}
+.cwrap{display:grid;grid-template-columns:1fr 1fr;gap:34px;max-width:1000px;margin:10px auto 0;width:100%;align-items:start;padding-bottom:20px}.device:not([data-device=desktop]) .cwrap{grid-template-columns:1fr}
+.cel{background:var(--zest);color:var(--rosy);margin-bottom:6px}.ticket{background:var(--cream);color:var(--teal-dark);border-radius:30px 30px 30px 30px;padding:20px 24px;margin-top:20px;display:flex;flex-direction:column;gap:6px;border:3px dashed var(--rosy);position:relative}
+.tk-l{font-size:14px}.tk-c{font-family:var(--fd);font-weight:700;font-size:48px;letter-spacing:.04em;color:var(--rosy);line-height:1.05}.tk-a{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.pwrow{display:flex;gap:12px;align-items:center;background:var(--cream);color:var(--teal-dark);border-radius:24px;padding:12px 14px}.pwrow>div{flex:1}.pwrow b{display:block}.pwv{font-family:var(--fd);font-weight:600;font-size:20px;letter-spacing:.08em}.pwrow .ico{background:var(--blossom)}
+.cream-t{margin:12px 0}.prompt{margin-top:14px}.prompt h3{margin-bottom:6px}.prompt p{margin-bottom:12px}.c-right{display:flex;flex-direction:column}
+.previewc{margin:6px 0 6px}.pmeta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.pmem{display:flex;flex-wrap:wrap;gap:8px}.pm{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:800;background:var(--blossom);border-radius:99px;padding:3px 12px 3px 3px}
+.who{display:grid;grid-template-columns:repeat(var(--n3),1fr);gap:12px;margin-top:10px}.whob{display:flex;align-items:center;gap:10px;background:var(--cream);border:3px solid var(--cream);border-radius:22px;padding:8px 14px;font-weight:800;box-shadow:0 5px 0 var(--rosy)}.whob:hover{border-color:var(--rosy)}.whob span{display:flex;gap:8px;align-items:center}
+.authw{display:grid;grid-template-columns:1fr 300px;gap:30px;max-width:920px;margin:0 auto;width:100%;align-items:start}.device:not([data-device=desktop]) .authw{grid-template-columns:1fr}.authw .wiz{margin-top:6px}
+.ctxbar{display:flex;gap:10px;align-items:center;background:var(--zest);border-radius:18px;padding:10px 14px}.benefits{display:grid;gap:12px}.benefits>div{display:flex;gap:12px;align-items:center}.benefits .ico{background:var(--blossom)}.device[data-device=mobile] .benefits{display:none}
+.row{display:flex;align-items:center;gap:12px}.row.between{justify-content:space-between}.wrapr{flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:var(--gap)}
+
+/* ===== app shell ===== */
+.shell{position:absolute;inset:0;display:flex;background:var(--cream)}
+.side{width:244px;flex:none;background:var(--teal-dark);color:var(--cream);padding:18px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;scrollbar-width:none}
+.gmini{background:var(--teal);border-radius:22px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;font-size:14px}.gmini b{font-family:var(--fd);font-weight:600;font-size:17px;line-height:1.15}.codepill{display:inline-flex;align-items:center;gap:6px;background:var(--cream);color:var(--teal-dark);border:0;border-radius:99px;padding:4px 12px;font-weight:800;font-size:14px;margin-top:6px;width:max-content}
+.snav{display:flex;flex-direction:column;gap:3px;margin-top:4px}.sn{display:flex;align-items:center;gap:12px;background:transparent;border:0;color:var(--cream);border-radius:99px;padding:9px 14px;font-weight:800;font-size:15px;text-align:left;position:relative}.sn:hover{background:var(--teal)}.sn.on{background:var(--cream);color:var(--teal-dark)}.sn .badge{margin-left:auto}
+.sfoot{margin-top:auto;display:flex;flex-direction:column;gap:8px}.savecard{display:flex;gap:8px;align-items:center;background:var(--zest);color:var(--teal-dark);border:0;border-radius:99px;padding:10px 14px;font-weight:800}
+.device[data-device=tablet] .side{width:78px;align-items:center;padding:14px 10px}.device[data-device=tablet] .lbl,.device[data-device=tablet] .side .gmini,.device[data-device=tablet] .side .logo b{display:none}.device[data-device=tablet] .sn{padding:12px;justify-content:center}.device[data-device=tablet] .sn .badge{position:absolute;top:2px;right:0;margin:0}.device[data-device=tablet] .savecard{padding:12px}.device[data-device=tablet] .btn.sm.fw{padding:10px}
+.device[data-device=mobile] .side{display:none}
+.mw{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px var(--pad);border-bottom:3px solid var(--blossom);background:var(--cream);flex:none}.tb-l,.tb-r{display:flex;align-items:center;gap:10px;min-width:0}.tb-t{font-family:var(--fd);font-weight:600;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device[data-device=mobile] .topbar{padding:10px 14px}.device[data-device=mobile] .tb-r .stack,.device[data-device=mobile] .tb-r .tag{display:none}.codepill{cursor:pointer}.topbar .codepill{background:var(--blossom);margin:0}
+.ptabs{display:none;gap:8px;overflow-x:auto;padding:10px var(--pad);flex:none;scrollbar-width:none}.device:not([data-device=desktop]) .ptabs{display:flex}.ptabs.static{display:flex;padding:0}
+.ptabs button{flex:none;border:3px solid var(--blossom);background:var(--cream);border-radius:99px;padding:6px 14px;font-weight:800;font-size:14px}.ptabs button.on{background:var(--teal);color:var(--cream);border-color:var(--teal);box-shadow:0 3px 0 var(--teal-dark)}
+.device[data-device=mobile] .ptabs{padding:10px 14px}
+.main{flex:1;overflow-y:auto;padding:26px var(--pad) 40px;scrollbar-width:thin;position:relative;display:flex;flex-direction:column;gap:var(--gap)}
+.device[data-device=mobile] .main{padding:18px 14px 110px}
+.bnav{display:none;position:absolute;left:0;right:0;bottom:0;justify-content:center;gap:26px;padding:12px 0 16px;background:var(--cream);border-top:3px solid var(--blossom);z-index:20}.device[data-device=mobile] .bnav{display:flex}
+.bn{width:58px;height:58px;border-radius:50%;border:3px solid var(--blossom);background:var(--cream);color:var(--teal);display:grid;place-items:center;padding:0}.bn.on{background:var(--teal);border-color:var(--teal);color:var(--cream);box-shadow:0 5px 0 var(--teal-dark)}.bn:active{transform:translateY(3px)}.bn .badge{position:absolute;top:-4px;right:-4px}
+.fab{display:none;position:absolute;right:18px;bottom:96px;width:62px;height:62px;border-radius:50%;border:0;background:var(--rosy);color:var(--cream);box-shadow:0 6px 0 var(--rosy-dark);place-items:center;z-index:21;transition:transform .09s,box-shadow .09s}.fab:active{transform:translateY(4px);box-shadow:0 2px 0 var(--rosy-dark)}.device[data-device=mobile] .fab{display:grid}.fab.s{display:grid;position:static}
+.phead{display:flex;flex-direction:column;gap:6px;align-items:flex-start}.phead.row{flex-direction:row;align-items:flex-end}.phead .tag{margin-bottom:6px}.phead .sub{font-size:17px;font-weight:600}
+.device[data-device=mobile] .phead.row{flex-direction:column;align-items:flex-start}
+.two-col{display:grid;grid-template-columns:1.25fr 1fr;gap:var(--gap);align-items:start}.device:not([data-device=desktop]) .two-col{grid-template-columns:1fr}.two-col.bud{grid-template-columns:1.1fr 1fr}
+.mlist{display:grid;gap:10px;margin:10px 0 6px}.mlist li{display:flex;align-items:center;gap:10px;font-weight:800}.mlist li>span{flex:1;min-width:0}.mlist .tag{margin-left:auto}.eta{display:block;font-style:normal;font-size:13px;font-weight:600}.clickrow{cursor:pointer}
+.rh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.mini{display:grid;gap:10px;margin-top:8px}.mini li{display:flex;gap:10px;align-items:flex-start;font-size:15px;font-weight:600}.mini .ic{color:var(--teal);margin-top:2px}.mini.big li{font-size:16px}
+
+/* dashboard */
+.dhero{border-radius:32px;padding:26px 30px;display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}.dhero.done{flex-direction:column;align-items:flex-start}.gt{font-family:var(--fd);font-weight:600;font-size:24px;margin:10px 0 4px}
+.dright{display:flex;flex-direction:column;gap:12px;align-items:flex-end}.device:not([data-device=desktop]) .dright{align-items:flex-start;width:100%}
+.cdown{display:flex;gap:10px}.cdown div{background:var(--cream);color:var(--teal-dark);border-radius:22px 22px 22px 10px;padding:8px 16px;text-align:center;min-width:76px}.cdown b{font-family:var(--fd);font-size:34px;display:block;line-height:1.05}.cdown span{font-size:13px}
+.mystat{display:flex;align-items:center;gap:10px;font-size:14px}.sm3{background:var(--cream)}.device:not([data-device=desktop]) .mystat{flex-wrap:wrap}
+.routewrap{overflow-x:auto;padding:4px 0 10px;margin:0 calc(var(--pad)*-1);padding-left:var(--pad);padding-right:var(--pad)}.route{display:flex;gap:0;min-width:max-content}.rs{position:relative;flex:1;min-width:104px}.rs button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;padding:0}.rs:not(:last-child)::after{content:'';position:absolute;top:22px;left:calc(50% + 26px);right:calc(-50% + 26px);border-top:4px dashed var(--blossom)}.rs.done:not(:last-child)::after{border-top-style:solid;border-color:var(--teal)}
+.rs .dot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--cream);border:3px solid var(--blossom);color:var(--teal)}.rs.done .dot{background:var(--teal);border-color:var(--teal);color:var(--cream)}.rs.cur .dot{background:var(--zest);border-color:var(--rosy);color:var(--teal-dark);box-shadow:0 4px 0 var(--rosy)}.rl{font-size:13px;font-weight:800;text-align:center;line-height:1.15}.rs.lock{opacity:.75}
+.banner{display:flex;align-items:center;gap:14px;background:var(--zest);border-radius:26px;padding:12px 16px}.banner>div{flex:1;display:flex;flex-direction:column;font-size:15px}.banner>div span{font-weight:600;font-size:14px}.banner .ico{background:var(--cream)}.device[data-device=mobile] .banner{flex-wrap:wrap}
+.dgrid{display:grid;grid-template-columns:1fr 268px;gap:var(--gap);align-items:start}.device:not([data-device=desktop]) .dgrid{grid-template-columns:1fr}
+.fgrid{display:grid;grid-template-columns:repeat(var(--nf),minmax(0,1fr));gap:var(--gap)}
+.fcard{text-align:left;border:3px solid var(--cream);border-radius:28px 28px 28px 14px;padding:18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 0 var(--sh,var(--blossom));min-height:170px;align-items:flex-start}.fcard h3{font-size:20px;margin-top:6px}.fcard p{font-size:14px;font-weight:700}.fcard .tag{margin-top:auto}.fcard:active{transform:translateY(4px);box-shadow:0 2px 0 var(--sh,var(--blossom))}
+.fcard.c-cream{border-color:var(--blossom)}.fcard.c-zest .tag{background:var(--cream)}.fcard.c-teal .ico,.fcard.c-rosy .ico{background:var(--cream)}.fcard.c-teal .ico{color:var(--teal)}.fcard.c-blossom .ico,.fcard.c-cream .ico,.fcard.c-zest .ico{background:var(--cream);color:var(--rosy)}
+.device[data-device=mobile] .fcard{min-height:150px;padding:14px;border-radius:24px 24px 24px 12px}.device[data-device=mobile] .fcard h3{font-size:17px}
+.rail{display:flex;flex-direction:column;gap:var(--gap)}.codebig{display:flex;align-items:center;gap:10px;background:var(--cream);border:0;border-radius:18px;padding:8px 14px;font-family:var(--fd);font-weight:700;font-size:26px;color:var(--rosy);margin:8px 0;width:100%;justify-content:space-between}
+
+/* attendance / tiles */
+.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}.device[data-device=mobile] .choice{grid-template-columns:1fr}
+.ch{display:flex;align-items:center;justify-content:center;gap:10px;border:3px solid var(--cream);border-radius:99px;padding:14px;font-family:var(--fd);font-size:20px;box-shadow:0 6px 0 var(--sh);opacity:.8;margin-bottom:6px}.ch[aria-pressed="true"]{opacity:1;outline:4px solid var(--rosy);outline-offset:3px}.ch:active{transform:translateY(4px);box-shadow:0 2px 0 var(--sh)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}.tiles.t4{grid-template-columns:repeat(4,1fr)}.device[data-device=mobile] .tiles.t4,.device[data-device=tablet] .tiles.t4{grid-template-columns:1fr 1fr}
+.tile{border-radius:30px 30px 30px 12px;padding:16px 20px;border:3px solid var(--cream);box-shadow:0 5px 0 var(--sh,var(--blossom));display:flex;flex-direction:column}.tile b{font-family:var(--fd);font-size:36px;line-height:1.05}.tile span{font-size:14px;font-weight:800}.device[data-device=mobile] .tile b{font-size:26px}.tile.c-cream{border-color:var(--blossom)}
+.grp{margin-top:6px}.device[data-device=mobile] .g3.grp{grid-template-columns:1fr}
+
+/* itinerary */
+.stops{display:flex;flex-direction:column;gap:14px;position:relative}.stop{display:flex;gap:12px;align-items:stretch;position:relative}.stop:not(:last-child)::before{content:'';position:absolute;left:23px;top:50px;bottom:-16px;border-left:4px dashed var(--teal)}
+.stn{width:48px;height:48px;background:var(--rosy);color:var(--cream);display:grid;place-items:center;font-family:var(--fd);font-size:20px;flex:none;z-index:1;border:3px solid var(--cream)}
+.stopc{flex:1;display:flex;gap:10px;align-items:flex-start;padding:14px 16px;border-color:var(--blossom);min-width:0}.grip{color:var(--teal);cursor:grab;margin-top:2px}.device[data-device=mobile] .grip{display:none}.sbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.sbody b{font-family:var(--fd);font-weight:600;font-size:18px}.srow1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.stime{display:flex;gap:6px;align-items:center;font-weight:800;font-size:14px;color:var(--rosy-dark)}.addby{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700}
+.sact{display:flex;flex-direction:column;gap:0}.device[data-device=mobile] .sact{flex-direction:row}.device:not([data-device=mobile]) .sact{opacity:.3}.stop:hover .sact,.sact:focus-within{opacity:1}
+.stop.drag{opacity:.4}.stop.over .stopc{border-color:var(--rosy);box-shadow:0 6px 0 var(--rosy)}
+.mapcard{padding:10px;position:sticky;top:0}.map{width:100%;height:auto;border-radius:20px}.mapnote{display:flex;gap:6px;align-items:center;padding:10px 6px 2px;font-size:14px}.hint{text-align:center}
+.map .m-bg{fill:var(--blossom)}.map .m-water{fill:var(--teal);opacity:.3}.map .m-blocks rect{fill:var(--cream);opacity:.7}.map .m-roads path{fill:none;stroke:var(--cream);stroke-width:14;stroke-linecap:round}.map .m-route{fill:none;stroke:var(--teal-dark);stroke-width:5;stroke-dasharray:10 8;stroke-linecap:round}
+.map .m-flag{fill:var(--rosy);stroke:var(--cream);stroke-width:4}.map .m-flag-i{fill:none;stroke:var(--cream);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.pin{cursor:pointer}.pin .ring{fill:var(--cream);stroke-width:4;stroke:var(--teal-dark)}.pin.l-home .ring{stroke-dasharray:5 4;opacity:.7}.pin.l-otw .ring{stroke:var(--teal)}.pin.l-almost .ring{stroke:var(--zest-dark)}.pin.l-there .ring{stroke:var(--rosy)}
+.pin .pulse{fill:none;stroke:var(--teal);stroke-width:3;transform-box:fill-box;transform-origin:center;animation:ping 1.8s ease-out infinite}.pin.l-almost .pulse{stroke:var(--zest-dark)}.pin.sel{transform-box:fill-box}.pin.sel .ring{stroke-width:7}
+.pf-rosy{fill:var(--rosy)}.pf-teal{fill:var(--teal)}.pf-zest{fill:var(--zest)}.pf-blossom{fill:var(--blossom)}.pt{font-family:var(--fd);font-weight:600;font-size:18px;pointer-events:none}.pt-rosy,.pt-teal{fill:var(--cream)}.pt-zest,.pt-blossom{fill:var(--teal-dark)}
+.you{fill:var(--zest);stroke:var(--cream);stroke-width:2}.you-t{font-family:var(--fd);font-size:9px;fill:var(--teal-dark);pointer-events:none}.map.mk1{width:68px;height:68px}
+
+/* checklist / budget / expenses */
+.prog .bar,.bar{height:16px;background:var(--blossom);border-radius:99px;overflow:hidden;width:100%}.bar i{display:block;height:100%;background:var(--teal);border-radius:99px;transition:width .3s}.prog .rh{margin-bottom:10px}
+.clist{display:grid;gap:10px}.crow{display:flex;align-items:center;gap:12px;background:var(--cream);border:3px solid var(--blossom);border-radius:22px;padding:10px 14px;min-height:60px}.crow.done .ct{text-decoration:line-through;opacity:.6}.ct{flex:1;font-weight:800;font-size:17px}.asg{display:flex;gap:6px;align-items:center;font-size:14px;font-weight:800;background:var(--blossom);border-radius:99px;padding:3px 12px 3px 3px}
+.brows{display:grid;gap:12px;margin-top:12px}.brow{display:flex;align-items:center;gap:12px}.brow .ico{background:var(--blossom);color:var(--teal-dark)}.bl{flex:1;font-weight:800}.peso{position:relative;width:150px}.peso i{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:800;color:var(--teal)}.peso .in{padding-left:30px}.ppl{margin-top:8px;padding-top:12px;border-top:3px dashed var(--blossom)}
+.stepper{display:flex;align-items:center;gap:6px;background:var(--blossom);border-radius:99px;padding:2px}.stepper b{font-family:var(--fd);font-size:20px;min-width:30px;text-align:center}
+.bres{display:flex;flex-direction:column;gap:var(--gap)}.card.big{display:flex;flex-direction:column;gap:2px}.card.big span{font-weight:800}.card.big b{font-family:var(--fd);font-size:44px;line-height:1.05}.device[data-device=mobile] .card.big b{font-size:34px}
+.splitbar{display:flex;height:22px;border-radius:99px;overflow:hidden;background:var(--blossom)}.splitbar i{display:block;transition:width .25s}.sb-teal{background:var(--teal)}.sb-rosy{background:var(--rosy)}.sb-zest{background:var(--zest)}.sb-blossom{background:var(--blossom);box-shadow:inset 0 0 0 2px var(--teal-dark)}.sb-teal-dark{background:var(--teal-dark)}
+.legend{display:grid;gap:6px;margin-top:12px}.legend li{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}.legend i{width:14px;height:14px;border-radius:50%;display:block}.legend b{margin-left:auto}
+.elist{display:grid;gap:12px;margin-top:10px}.erow{display:flex;align-items:center;gap:12px}.eb{flex:1;display:flex;flex-direction:column;min-width:0}.eb span{font-size:13px;font-weight:600;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ea{font-family:var(--fd);font-size:20px}
+.sh{font-size:15px;margin:14px 0 6px;color:var(--rosy-dark)}.dl{display:grid;gap:10px}.drow{display:flex;align-items:center;gap:10px;font-size:15px}.dt{flex:1}.da{font-family:var(--fd);font-size:18px}.drow.paid{opacity:.6}
+.settled{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0 4px}
+.two-col.exp{grid-template-columns:1.2fr 1fr}.device:not([data-device=desktop]) .two-col.exp{grid-template-columns:1fr}
+
+/* chat */
+.main.chatmain{padding:0;gap:0;overflow:hidden}.chatwrap{display:grid;grid-template-columns:1fr 250px;flex:1;min-height:0}.device:not([data-device=desktop]) .chatwrap{grid-template-columns:1fr}.device:not([data-device=desktop]) .chatside{display:none}
+.chatcol{display:flex;flex-direction:column;min-height:0;min-width:0}.pinned{display:flex;gap:10px;align-items:center;background:var(--zest);margin:14px var(--pad) 0;border-radius:22px;padding:8px 14px;font-size:14px}.pinned>div{flex:1;display:flex;flex-direction:column}.pinned span{font-weight:600}.pinned .ico{background:var(--cream)}
+.device[data-device=mobile] .pinned{margin:10px 14px 0}
+.chatlog{flex:1;overflow-y:auto;padding:16px var(--pad);display:flex;flex-direction:column;gap:12px;min-height:0}.device[data-device=mobile] .chatlog{padding:12px 14px}
+.msys{align-self:center;display:flex;gap:6px;align-items:center;background:var(--blossom);border-radius:99px;padding:4px 14px;font-size:13px;font-weight:800}.msys i{font-style:normal;font-weight:600;opacity:.7}
+.mnew{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:var(--rosy-dark)}.mnew::before,.mnew::after{content:'';flex:1;border-top:3px solid var(--rosy)}
+.mcard{display:flex;align-items:center;gap:10px;align-self:flex-start;background:var(--cream);border:3px dashed var(--teal);border-radius:22px;padding:8px 14px;font-size:14px}.mcard>div{display:flex;flex-direction:column}.mcard .ico{background:var(--blossom)}.mcard span{font-weight:600}
+.msg{display:flex;gap:10px;align-items:flex-end;max-width:82%}.msg.me{align-self:flex-end;flex-direction:row-reverse}.mb{background:var(--blossom);border-radius:24px 24px 24px 8px;padding:8px 14px;position:relative;min-width:0}.msg.me .mb{background:var(--rosy);color:var(--cream);border-radius:24px 24px 8px 24px}
+.mn{display:flex;gap:8px;font-size:13px;font-weight:800}.mn i{font-style:normal;font-weight:600;opacity:.7}.mb p{font-size:16px;font-weight:700}
+.react{position:absolute;right:-8px;bottom:-12px;display:inline-flex;gap:3px;align-items:center;background:var(--cream);color:var(--teal-dark);border:3px solid var(--blossom);border-radius:99px;padding:0 8px;height:26px;font-size:12px;font-weight:800;opacity:.75}.react:hover,.react.on{opacity:1;color:var(--rosy);border-color:var(--rosy)}.msg .mb{margin-bottom:8px}
+.quick{display:flex;gap:8px;padding:6px var(--pad);overflow-x:auto}.device[data-device=mobile] .quick{padding:6px 14px}.composer{display:flex;gap:10px;align-items:center;padding:8px var(--pad) 14px}.device[data-device=mobile] .composer{padding:6px 14px 96px}
+.chatside{border-left:3px solid var(--blossom);padding:16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+
+/* location */
+.lbar{display:flex;gap:14px;align-items:center;background:var(--cream);border:3px solid var(--blossom);border-radius:26px;padding:12px 16px}.lbar>div{flex:1;display:flex;flex-direction:column;font-size:15px}.lbar span{font-weight:600;font-size:14px}.lbar.on{background:var(--teal);color:var(--cream);border-color:var(--teal)}.lbar.deny{border-color:var(--rosy-dark)}.lbar.deny>.ic{color:var(--rosy-dark)}
+.device[data-device=mobile] .lbar{flex-wrap:wrap}.live{width:14px;height:14px;border-radius:50%;background:var(--zest);flex:none;box-shadow:0 0 0 4px var(--teal-dark);animation:pulse 1.6s ease-in-out infinite}
+.locgrid{display:grid;grid-template-columns:1.4fr 1fr;gap:var(--gap);align-items:start}.device:not([data-device=desktop]) .locgrid{grid-template-columns:1fr}.locside{display:flex;flex-direction:column;gap:var(--gap)}
+.locgrid .mapcard{position:relative;top:auto}.mapstat{display:flex;gap:8px;flex-wrap:wrap;padding:10px 6px 4px}.callout{position:absolute;left:18px;right:18px;bottom:64px;background:var(--cream);border:3px solid var(--rosy);border-radius:22px;padding:8px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 5px 0 var(--rosy)}.callout>div{flex:1;display:flex;flex-direction:column}.callout span{font-size:14px;font-weight:600}
+.device[data-device=mobile] .locgrid .mapcard .map{height:300px}
+
+/* dump */
+.masonry{column-count:4;column-gap:14px}.device[data-device=tablet] .masonry{column-count:3}.device[data-device=mobile] .masonry,.masonry.m2{column-count:2}.masonry.m2{column-count:2}.masonry>.sk{margin-bottom:14px}
+.phw{break-inside:avoid;margin-bottom:14px;position:relative}.ph{width:100%;height:100%;border:3px solid var(--cream);border-radius:22px;display:grid;place-items:center;position:relative;overflow:hidden;padding:0;box-shadow:0 4px 0 var(--sh,var(--blossom))}.ph-i{opacity:.55}
+.ph-cap{position:absolute;left:8px;right:8px;bottom:8px;background:var(--cream);color:var(--teal-dark);border-radius:14px;padding:4px 10px;text-align:left;font-size:12px;display:flex;flex-direction:column;line-height:1.2}.ph-cap i{font-style:normal;font-weight:600}
+@media (hover:hover){.device:not([data-device=mobile]) .ph-cap{opacity:0;transition:opacity .15s}.device:not([data-device=mobile]) .ph:hover .ph-cap,.device:not([data-device=mobile]) .ph:focus-visible .ph-cap{opacity:1}}
+.ph-del{position:absolute;top:8px;right:8px;background:var(--cream);width:34px;height:34px}.ph.failed{background:var(--cream);color:var(--rosy-dark);border-color:var(--rosy-dark);border-style:dashed;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;box-shadow:none}
+.lb{position:absolute;inset:0;background:var(--teal-dark);color:var(--cream);z-index:70;display:flex;flex-direction:column;padding:16px}.lb-x{align-self:flex-end;color:var(--cream)}.lb-x:hover,.lb-n:hover{background:var(--teal)}.lb-stage{flex:1;display:flex;align-items:center;gap:10px;min-height:0}.lb-n{color:var(--cream);width:52px;height:52px}
+.device[data-device=mobile] .lb-n{display:none}.lb-img{flex:1;height:100%;max-height:100%;border-radius:30px;display:grid;place-items:center;border:4px solid var(--cream)}.lb-cap{display:flex;gap:16px;align-items:center;justify-content:center;padding:14px;flex-wrap:wrap}.lb-c{background:var(--teal);border-radius:99px;padding:2px 12px}
+
+/* couple / settings / completed / account */
+.cintro{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:20px 0}.cprev{width:100%;margin:14px 0}.cprev .card{display:flex;flex-direction:column;align-items:center;gap:8px}
+.chero{display:flex;gap:16px;align-items:center;border-radius:30px;padding:18px 24px;flex-wrap:wrap}.cpair{display:flex;align-items:center}.heartb{color:var(--cream);background:var(--rosy);width:38px;height:38px;border-radius:50%;display:grid;place-items:center;margin:0 -8px;z-index:1}
+.ctabs{display:flex;gap:8px;overflow-x:auto}.ctabs button{flex:none;border:3px solid var(--blossom);background:var(--cream);border-radius:99px;padding:8px 18px;font-weight:800}.ctabs button.on{background:var(--rosy);color:var(--cream);border-color:var(--rosy);box-shadow:0 4px 0 var(--rosy-dark)}
+.idea{display:flex;align-items:center;gap:10px;justify-content:space-between}.idea>div{display:flex;flex-direction:column}.idea b{font-family:var(--fd);font-weight:600;font-size:18px}.idea span{font-size:14px;font-weight:600}.heart.on{color:var(--rosy)}.heart.on svg{fill:var(--rosy)}.plc li{background:var(--cream);border:3px solid var(--blossom);border-radius:22px;padding:10px 14px}.plc .stn{width:38px;height:38px;font-size:16px}
+.srow2{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:3px dashed var(--blossom)}.srow2>div{display:flex;flex-direction:column}.set .card,.set .col .card{display:flex;flex-direction:column;gap:12px;align-items:flex-start}.set .card>*{width:100%}.set .card .btn,.set .card .lnk{width:auto}.set .card .srow2{width:100%}
+.card.danger{border-color:var(--rosy)}
+.acts{margin-top:8px}.closing{text-align:center;font-family:var(--fd);font-size:26px;margin:10px 0}.dhero.done .ico{margin-bottom:4px}
+.gate{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:40px 0}.gate .ctr-row{margin-top:6px}
+.gh{font-size:22px;margin-top:10px}.gl{display:grid;gap:14px}.gcard{display:flex;align-items:center;gap:14px;padding:14px 18px;flex-wrap:wrap}.gcard.fresh{border-color:var(--rosy);box-shadow:0 6px 0 var(--rosy)}.gcb{flex:1;min-width:150px;display:flex;flex-direction:column;gap:4px}.gcb p{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px}
+.gdate{width:60px;height:60px;border-radius:22px;background:var(--zest);display:grid;place-items:center;align-content:center;font-family:var(--fd);font-size:24px;line-height:1;flex:none}.gdate i{font-style:normal;font-size:13px;font-weight:800}
+.cal{background:var(--cream);border:3px solid var(--blossom);border-radius:26px;padding:14px}.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.cal-w,.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-w span{text-align:center;font-size:13px;font-weight:800}
+.dc{min-height:74px;border-radius:16px;padding:4px 6px;background:var(--cream);border:3px solid var(--blossom);display:flex;flex-direction:column;gap:2px;font-size:13px;overflow:hidden}.dc.empty{border:0;background:none}.dc b{font-family:var(--fd);font-size:14px}.dc.today{background:var(--zest);border-color:var(--zest-dark)}.dc.has{border-color:var(--teal)}
+.device[data-device=mobile] .dc{min-height:52px;padding:2px}.device[data-device=mobile] .dc .ev{font-size:0;height:8px;padding:0;min-height:0}
+.ev{border-radius:99px;padding:1px 7px;font-size:11px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.e-upcoming{background:var(--rosy);color:var(--cream)}.e-ongoing{background:var(--teal);color:var(--cream)}.e-done{background:var(--blossom)}
+.dsc{grid-template-columns:repeat(5,1fr)}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.wd{border:3px solid var(--blossom);border-radius:18px;padding:8px;display:flex;flex-direction:column;gap:4px;min-height:130px;font-size:13px}.wd.has{border-color:var(--teal)}.wd b{font-family:var(--fd);font-size:20px}.device[data-device=mobile] .week{grid-template-columns:1fr 1fr}
+.permb{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.permb>div{flex:1;display:flex;flex-direction:column}.permb .ico{background:var(--blossom)}.permb.on{border-color:var(--teal)}
+.nlist{display:grid;gap:6px}.nlist li{display:flex;align-items:center;gap:10px;border-radius:99px;padding:4px 6px 4px 4px}.nlist li.sel{background:var(--blossom)}.nsel{flex:1;display:flex;align-items:center;gap:10px;background:none;border:0;font-weight:800;text-align:left;padding:2px}.nsel .ico{background:var(--blossom)}.nlist li.sel .ico{background:var(--cream)}
+.push{background:var(--cream);border:3px solid var(--rosy);border-radius:26px;padding:14px 16px;display:flex;gap:12px;box-shadow:0 6px 0 var(--rosy)}.push .ico{background:var(--zest)}.push b{font-family:var(--fd);font-weight:600;font-size:19px}.push i{font-style:normal;font-size:12px;opacity:.7}
+
+/* states + sheets */
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:40px 16px;margin:auto;max-width:440px}.empty .ico{background:var(--zest);color:var(--teal-dark)}.empty.err .ico{background:var(--blossom)}.empty p{font-weight:700}.dsb .empty{padding:10px}
+.skl{display:flex;flex-direction:column;gap:var(--gap)}.offl{display:flex;gap:12px;align-items:center;background:var(--zest);border-radius:22px;padding:10px 16px;font-size:14px}
+.ovl{position:absolute;inset:0;background:var(--teal-dark);opacity:.55;z-index:40}
+.sheet{position:absolute;z-index:41;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 40px));max-height:calc(100% - 40px);overflow-y:auto;background:var(--cream);color:var(--teal-dark);border:3px solid var(--cream);border-radius:32px;box-shadow:0 8px 0 var(--rosy);display:flex;flex-direction:column}
+.sheet header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 4px 24px}.sheet header h3{font-size:22px}.shb{padding:8px 24px 14px;display:flex;flex-direction:column;gap:14px}.sheet footer{display:flex;gap:12px;justify-content:flex-end;padding:8px 24px 18px;flex-wrap:wrap}.grab{display:none}
+.device[data-device=mobile] .sheet{left:0;right:0;top:auto;bottom:0;transform:none;width:100%;border-radius:32px 32px 0 0;box-shadow:none;max-height:88%;animation:up .22s ease-out}.device[data-device=mobile] .grab{display:block;width:44px;height:6px;border-radius:99px;background:var(--blossom);margin:10px auto 0}
+.device[data-device=mobile] .sheet footer .btn{flex:1}@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.sharemsg{background:var(--blossom);border-radius:22px;padding:12px 16px;font-size:16px}
+.morep{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.mo{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;font-weight:800;font-size:14px;text-align:center}.mo .ico{background:var(--blossom);color:var(--teal)}
+.drop{border:4px dashed var(--teal);border-radius:28px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:var(--teal)}.drop b{font-family:var(--fd);font-size:20px;color:var(--teal-dark)}.drop span{color:var(--teal-dark);font-weight:600;font-size:14px}
+.uplist{display:grid;gap:8px;width:100%}.uprow{display:flex;align-items:center;gap:10px;font-size:14px;background:var(--cream);border:3px solid var(--blossom);border-radius:20px;padding:6px 12px}.un{width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ubar{flex:1;height:10px;background:var(--blossom);border-radius:99px;overflow:hidden}.ubar i{display:block;height:100%;width:0;background:var(--teal)}.us{font-weight:800;white-space:nowrap;font-size:13px}
+.uprow.ok .ubar i{background:var(--teal)}.uprow.ok .us{color:var(--teal)}.uprow.fail{border-color:var(--rosy-dark)}.uprow.fail .ubar i{background:var(--rosy-dark)}.uprow.fail .us{color:var(--rosy-dark)}
+.device[data-device=mobile] .un{width:76px}
+
+/* doc page responsive */
+@media (max-width:980px){.hero-d .wrap,.jrow,.smgrid,.access,.tblrow,.dgrid2,.dsg.two,.dsg.g3x,.sgrid{grid-template-columns:1fr}.dsg.sw{grid-template-columns:1fr 1fr}.dnav nav{display:none}.dnav .wrap{justify-content:space-between}.jlist{grid-template-columns:1fr}.notes dl{grid-template-columns:1fr}.pg{padding:56px 0}}
+/* fixes */
+.main>*{flex-shrink:0}.main.chatmain>*{flex-shrink:1}
+.mlist li>span:not(.av){flex:1;min-width:0}.mlist li>.av{flex:none}
+.sn{padding:6px 14px}.gmini{padding:10px 14px}.snav{gap:2px}
+.sub.ctr{margin-inline:auto}
+.device[data-device=mobile] .sm3{display:grid;grid-template-columns:repeat(3,1fr);width:100%;flex-wrap:nowrap}.device[data-device=mobile] .sm3 button{padding:8px 4px;font-size:13px;text-align:center;justify-content:center}
+.device[data-device=mobile] .cdown div{min-width:0;padding:6px 12px}.device[data-device=mobile] .cdown b{font-size:28px}
+
+.tk-c{white-space:nowrap}.device[data-device=mobile] .tk-c{font-size:38px}.wrapseg{border-radius:26px}
+.codepill{white-space:nowrap}.device[data-device=tablet] .topbar .codepill{display:none}
+/* ===== full-window app (no device frames) ===== */
+html,body{height:100%;margin:0;overflow:hidden}
+.device[data-device]{position:fixed;inset:0;width:100%;height:100%;padding:0;border-radius:0;background:var(--cream)}
+.device[data-device] .viewport{height:100%;margin:0;border-radius:0}
+@media (min-width:1360px){.device[data-device=desktop] .pubs{--pad:calc((100vw - 1200px)/2)}}
+@media (min-width:1560px){.device[data-device=desktop] .mw{--pad:calc((100vw - 244px - 1120px)/2)}}
+#demo{position:fixed;left:14px;bottom:14px;z-index:90;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+#demo .btn{margin:0}#demoBtn{background:var(--teal-dark);color:var(--cream);box-shadow:0 4px 0 var(--teal)}
+#demoPanel{background:var(--cream);border:3px solid var(--teal-dark);border-radius:24px;padding:14px 16px;width:min(320px,calc(100vw - 28px));display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 var(--teal-dark)}#demoPanel[hidden]{display:none}
+.cg{display:flex;flex-direction:column;gap:6px}.cl{font-size:13px;font-weight:800}
+@media (max-width:639px){#demo{bottom:22px;left:10px}#demoBtn span{display:none}#demoBtn{padding:0;width:44px;height:44px;border-radius:50%}}
+.device[data-device=mobile] .toast{bottom:104px}
+#demo{left:auto;right:14px;align-items:flex-end}
+@media (max-width:639px){#demo{left:10px;right:auto;align-items:flex-start}}
+.device[data-device=desktop] .dhero{flex-wrap:nowrap}.device[data-device=desktop] .dhero>div:first-child{flex:1;min-width:0}.device[data-device=desktop] .dright{min-width:340px}
+</style>
+</head>
+<body>
+<div class="device" id="dev" data-device="desktop"><div class="viewport"><div id="app"></div></div></div>
+<div id="demo"><button class="btn sm" id="demoBtn" aria-expanded="false" aria-controls="demoPanel"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h10M18 8h2M4 16h2M10 16h10"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></svg><span>Demo</span></button><div id="demoPanel" hidden></div></div>
+<div id="ptoast" aria-live="polite"></div>
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const peso=n=>'₱'+Math.round(n).toLocaleString('en-US');
+
+/* ---------- icons: hand-drawn, 24px, 2px rounded stroke ---------- */
+const IC={
+sparkle:'<path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="currentColor" stroke="none"/>',
+pin:'<path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.4"/>',
+wallet:'<rect x="3" y="7" width="18" height="12" rx="4"/><path d="M3 10.5h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/>',
+notepad:'<rect x="5" y="3" width="14" height="18" rx="4"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+burst:'<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2 2M16.4 16.4l2 2M5.6 18.4l2-2M16.4 7.6l2-2"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>',
+home:'<path d="M4 11l8-7 8 7v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M10 21v-6h4v6"/>',
+users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14.5c2.5 0 4.5 1.7 4.5 4.5"/>',
+user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3-6 7-6s7 2.4 7 6"/>',
+calendar:'<rect x="4" y="5" width="16" height="15" rx="4"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+route:'<circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h6a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h6"/>',
+checklist:'<rect x="4" y="4" width="16" height="16" rx="5"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+chat:'<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>',
+map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+image:'<rect x="3" y="5" width="18" height="14" rx="4"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4 4 3 3-2 4 3"/>',
+heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+bell:'<path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',
+check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+x:'<path d="M6 6l12 12M18 6L6 18"/>',
+copy:'<rect x="8" y="8" width="12" height="12" rx="3"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+share:'<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>',
+lock:'<rect x="5" y="11" width="14" height="9" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+eye:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+eyeoff:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/>',
+chevr:'<path d="M9 6l6 6-6 6"/>',chevl:'<path d="M15 6l-6 6 6 6"/>',chevd:'<path d="M6 9l6 6 6-6"/>',chevu:'<path d="M6 15l6-6 6 6"/>',
+back:'<path d="M19 12H5M11 6l-6 6 6 6"/>',arrowr:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+send:'<path d="M4 12l16-8-6 16-3-7z"/>',
+nav:'<path d="M12 3l7 17-7-4-7 4z"/>',
+clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+sliders:'<path d="M4 8h10M18 8h2M4 16h2M10 16h10"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/>',
+trash:'<path d="M5 7h14M9 7V5h6v2M7 7l1 12h8l1-12"/>',
+edit:'<path d="M4 20l1-5L16 4l4 4L9 19z"/>',
+upload:'<path d="M12 16V5M8 9l4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',
+alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none"/>',
+wifioff:'<path d="M3 9a14 14 0 0 1 4-2.5M21 9a14 14 0 0 0-8.5-4M6 12.5a9 9 0 0 1 3-1.8M18 12.5a9 9 0 0 0-4-2.1M9.5 16a4 4 0 0 1 5 0"/><circle cx="12" cy="19" r=".8" fill="currentColor" stroke="none"/><path d="M4 4l16 16"/>',
+crown:'<path d="M4 18l-1-10 5 4 4-7 4 7 5-4-1 10z"/>',
+drag:'<circle cx="9" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.2" fill="currentColor" stroke="none"/>',
+search:'<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/>',
+more:'<circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+calc:'<rect x="5" y="3" width="14" height="18" rx="4"/><path d="M8 8h8M9 13h.01M12 13h.01M15 13h.01M9 17h.01M12 17h.01M15 17h.01"/>',
+flag:'<path d="M6 21V4M6 5h11l-2 4 2 4H6"/>',
+refresh:'<path d="M20 12a8 8 0 1 1-2.5-5.8M20 4v4h-4"/>',
+info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".8" fill="currentColor" stroke="none"/>',
+bus:'<rect x="4" y="4" width="16" height="13" rx="4"/><path d="M4 11h16M7 20v-3M17 20v-3"/>',
+food:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 0-3 2.5-3 5.5S15.5 12 17 12v9"/>',
+monitor:'<rect x="3" y="4" width="18" height="12" rx="3"/><path d="M9 20h6M12 16v4"/>',
+tablet:'<rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18.5h2"/>',
+phone:'<rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18.5h2"/>',
+home2:'<path d="M3 12l9-8 9 8"/>',
+camera:'<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>'
+};
+const ic=(n,s=24,c='')=>`<svg class="ic ${c}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
+
+/* ---------- sample gala ---------- */
+const G={title:'Baguio Before Graduation',code:'OTW-7K2P',pw:'baguio2026',dest:'Baguio City',date:'Sat, Nov 14',range:'Nov 14–15, 2026',time:'5:30 AM – 9:00 PM'};
+const NOW_TO_GALA={d:45,h:20,m:19}; /* fixed demo clock: Sep 29, 2026 · 9:41 AM */
+const MEM=[
+{n:'Merylle',c:'rosy',s:'g',on:1},{n:'CJ',c:'teal',s:'g',on:1},{n:'Josh',c:'zest',s:'g',on:0},{n:'Alex',c:'blossom',s:'g',on:1},
+{n:'Sam',c:'teal',s:'g',on:1},{n:'Jamie',c:'rosy',s:'g',on:0},{n:'Bea',c:'zest',s:'g',on:1},
+{n:'Migs',c:'blossom',s:'m',on:0},{n:'Tin',c:'teal',s:'m',on:0},{n:'Paolo',c:'rosy',s:'x',on:0}];
+const SHARERS=['Merylle','CJ','Josh','Alex','Sam','Jamie','Bea','Migs']; /* the 8 splitting costs */
+const byName=n=>MEM.find(m=>m.n===n)||{n:n||'?',c:'blossom'};
+const ST={g:{l:"I'm G",b:'Going',cls:'st-g',i:'check'},m:{l:'Maybe',b:'Maybe',cls:'st-m',i:'clock'},x:{l:"Can't make it",b:"Can't make it",cls:'st-x',i:'x'}};
+const LOC={home:{l:'Still at home',cls:'l-home'},otw:{l:'On the way',cls:'l-otw'},almost:{l:'Almost there',cls:'l-almost'},there:{l:'Already there',cls:'l-there'}};
+
+const STOPS0=[
+{p:'Cubao bus terminal',a:'Meet-up',t:'5:30 AM',n:'Be there 30 minutes early. Bring water.',w:'Merylle'},
+{p:'Strawberry Farm, La Trinidad',a:'Activity',t:'10:30 AM',n:'Pick-your-own. Bring cash.',w:'CJ'},
+{p:'Session Road lunch',a:'Food',t:'12:30 PM',n:'Vote on where to eat in the chat.',w:'Jamie'},
+{p:'Burnham Park boats',a:'Activity',t:'3:00 PM',n:'',w:'Sam'},
+{p:'Night market',a:'Food',t:'6:30 PM',n:'Street food + ukay.',w:'Bea'}];
+const ITEMS0=[
+{t:'Power bank',w:'Merylle',d:1},{t:'Snacks',w:'CJ',d:0},{t:'Extra shirt',w:'Josh',d:0},{t:'Jacket for Baguio',w:'Alex',d:1},
+{t:'Sunscreen',w:'Sam',d:0},{t:'Portable speaker',w:'Jamie',d:1},{t:'Cash for the market',w:'',d:0}];
+const EXP0=[
+{n:'Bus tickets (round trip)',c:'Transportation',a:4800,w:'CJ',d:'Sep 20',note:'Booked for all 8'},
+{n:'Airbnb deposit',c:'Stay',a:3200,w:'Merylle',d:'Sep 24',note:''},
+{n:'Strawberry Farm booking',c:'Activities',a:1120,w:'Josh',d:'Sep 27',note:''}];
+const MSG0=[
+{k:'sys',x:'Alex joined the gala.',tm:'Sep 27 · 8:12 PM'},
+{k:'m',w:'CJ',x:'G ako. Sino pa free ng Nov 14?',tm:'8:15 PM'},
+{k:'m',w:'Josh',x:'Me. Pero ang lamig daw sa Baguio, magdadala ako ng jacket.',tm:'8:16 PM',r:2},
+{k:'sys',x:"Sam changed their status to I'm G.",tm:'8:20 PM'},
+{k:'card',w:'Jamie',x:'added a new itinerary stop',card:'Session Road lunch · 12:30 PM',tm:'8:31 PM'},
+{k:'new'},
+{k:'m',w:'Bea',x:'Wait, magkano ba per person?',tm:'9:02 PM'},
+{k:'m',w:'Merylle',x:'Check the Gastos tab. Estimate is ₱2,450 each.',tm:'9:03 PM'}];
+const PH=[
+{h:210,c:'blossom',t:'Bus selfie',w:'CJ',d:'Nov 14 · 5:48 AM'},{h:270,c:'zest',t:'Strawberry haul',w:'Bea',d:'Nov 14 · 10:52 AM'},
+{h:180,c:'teal',t:'Blurry but iconic',w:'Josh',d:'Nov 14 · 11:03 AM'},{h:300,c:'rosy',t:'Session Road',w:'Sam',d:'Nov 14 · 12:41 PM'},
+{h:220,c:'zest',t:'Lunch, finally',w:'Jamie',d:'Nov 14 · 1:05 PM'},{h:250,c:'blossom',t:'Send mo nga',w:'Alex',d:'Nov 14 · 2:17 PM'},
+{h:190,c:'rosy',t:'Boat crew',w:'Merylle',d:'Nov 14 · 3:22 PM'},{h:280,c:'teal',t:'Burnham golden hour',w:'CJ',d:'Nov 14 · 4:48 PM'},
+{h:210,c:'blossom',t:'Random candid',w:'Bea',d:'Nov 14 · 5:30 PM'},{h:260,c:'zest',t:'Night market',w:'Sam',d:'Nov 14 · 7:02 PM'},
+{h:180,c:'rosy',t:'Group shot #14',w:'Merylle',d:'Nov 14 · 8:14 PM'},{h:230,c:'teal',t:'Uwian na',w:'Jamie',d:'Nov 14 · 9:20 PM'}];
+const GALAS=[
+{n:'Manila Food Crawl',d:'2026-09-29',e:'2026-09-29',dest:'Maginhawa, QC',st:'ongoing',role:'Member',m:6},
+{n:'Tagaytay Kape Run',d:'2026-10-10',e:'2026-10-10',dest:'Tagaytay',st:'upcoming',role:'Member',m:5},
+{n:G.title,d:'2026-11-14',e:'2026-11-15',dest:'Baguio City',st:'upcoming',role:'Leader',m:10,cur:1},
+{n:'Pagsanjan Rapids',d:'2026-08-02',e:'2026-08-02',dest:'Pagsanjan, Laguna',st:'done',role:'Leader',m:8},
+{n:'Siargao Someday',d:'',e:'',dest:'Siargao',st:'draw',role:'Leader',m:4},
+{n:'Sagada Sana',d:'',e:'',dest:'Sagada',st:'draw',role:'Member',m:7}];
+const NT=[
+{k:'soon',l:'Gala coming up',t:'Gala coming up',b:'Your Baguio trip is 3 days away.',i:'calendar'},
+{k:'join',l:'Someone joined',t:'Someone joined',b:'Your gala just got one person bigger.',i:'users'},
+{k:'att',l:'Someone changed attendance',t:'Attendance update',b:"Sam changed their status to I'm G.",i:'check'},
+{k:'chk',l:'Checklist reminder',t:'Quick check',b:'May nakalimutan ka ba?',i:'checklist'},
+{k:'bud',l:'Budget update',t:'Budget update',b:'Your estimated gala budget has changed.',i:'calc'},
+{k:'eve',l:'The day before',t:"Tomorrow's the day.",b:"Charge your phone. Pack your things. Don't be that friend.",i:'clock'},
+{k:'day',l:'Gala day',t:"Today's the day.",b:'Time to go.',i:'burst'}];
+
+/* ---------- screens + journeys ---------- */
+const SCREEN_ORDER=['landing','plan','created','join','enter','auth','dashboard','attendance','itinerary','checklist','budget','expenses','chat','location','dump','couple','settings','completed','mygalas','history','notifs','profile'];
+const blankPlan=()=>({title:'',date:'',start:'',end:'',dest:'',pw:'',pw2:''});
+const fullPlan=()=>({title:G.title,date:'2026-11-14',start:'05:30',end:'21:00',dest:'Baguio City',pw:G.pw,pw2:G.pw});
+const JR=[
+{t:'New user plans a gala',d:'Landing → Plan a Gala → Create → Get the code → Dashboard',pre:()=>({acct:false,role:'leader',phase:'planning',plan:fullPlan(),pstep:0}),steps:[
+ {s:'landing',l:'Landing'},{s:'plan',l:'Gala title',set:{pstep:0}},{s:'plan',l:'Date',set:{pstep:1}},{s:'plan',l:'Saan Tayo?',set:{pstep:2}},{s:'plan',l:'Password',set:{pstep:3}},{s:'created',l:'Get the code'},{s:'dashboard',l:'Dashboard'}]},
+{t:'Friend joins with a code',d:'Landing → Join a Gala → Enter code → Join → Dashboard',pre:()=>({acct:false,role:'member',phase:'planning',joinStep:0,joinCode:'',joinName:'',joinErr:''}),steps:[
+ {s:'landing',l:'Landing'},{s:'join',l:'Enter code',set:{joinStep:0}},{s:'join',l:'Gala preview',set:{joinStep:1,joinCode:'OTW-7K2P',joinName:'Bea'}},{s:'join',l:"You're in",set:{joinStep:2}},{s:'dashboard',l:'Dashboard'}]},
+{t:'Accountless user comes back',d:'Landing → Enter a Gala → Code + password → Dashboard',pre:()=>({acct:false,role:'leader',phase:'planning',enterStep:0,enterCode:'',enterPw:'',enterErr:''}),steps:[
+ {s:'landing',l:'Landing'},{s:'enter',l:'Code + password',set:{enterStep:0,enterCode:'OTW-7K2P',enterPw:'baguio2026'}},{s:'enter',l:'Which one are you?',set:{enterStep:1}},{s:'dashboard',l:'Dashboard'}]},
+{t:'Account user opens a saved gala',d:'Login → My Galas → Select gala → Dashboard',pre:()=>({acct:false,role:'leader',phase:'planning',authTab:'login',authCtx:false}),steps:[
+ {s:'auth',l:'Log in',set:{authTab:'login'}},{s:'mygalas',l:'My Galas',set:{acct:true,calView:'upcoming'}},{s:'dashboard',l:'Dashboard'}]},
+{t:'Member plans together',d:'Dashboard → Attendance → Itinerary → Budget → Checklist → Chat',pre:()=>({acct:false,role:'member',phase:'planning'}),steps:[
+ {s:'dashboard',l:'Dashboard'},{s:'attendance',l:"Who's G?"},{s:'itinerary',l:'The plan'},{s:'budget',l:'Gastos'},{s:'checklist',l:'Checklist'},{s:'chat',l:'Chismis'}]},
+{t:'Gala day: who\'s OTW?',d:'Dashboard → Live location → Map → See friends arriving',pre:()=>({acct:false,role:'member',phase:'day',locSharing:false,selPin:null}),steps:[
+ {s:'dashboard',l:'Today\'s the day'},{s:'location',l:'Before sharing',set:{locSharing:false}},{s:'location',l:'Sharing on',set:{locSharing:true,selPin:'CJ'}},{s:'location',l:'Almost there',set:{selPin:'Sam'}},{s:'location',l:'Already there',set:{locStatus:'there',selPin:'Bea'}}]},
+{t:'Gala day: upload and browse photos',d:'Dashboard → Gala Dump → Upload → Browse memories',pre:()=>({acct:false,role:'member',phase:'day',upl:[]}),steps:[
+ {s:'dashboard',l:'Dashboard'},{s:'dump',l:'The Gala Dump'},{s:'dump',l:'Add photos',set:{sheet:'upload'}},{s:'dump',l:'Browse',set:{lb:1}}]},
+{t:'Save a gala to an account',d:'Prompt → Create account → Gala saved to My Galas',pre:()=>({acct:false,role:'leader',phase:'planning',authTab:'create',authCtx:false,savedNew:false}),steps:[
+ {s:'created',l:'Gala created'},{s:'dashboard',l:'Save prompt',set:{sheet:'account'}},{s:'auth',l:'Create account',set:{authTab:'create',authCtx:true}},{s:'mygalas',l:'Saved',set:{acct:true,savedNew:true}}]},
+{t:'Couple Mode',d:'Dashboard → Couple Mode → Create → Manage',pre:()=>({acct:false,role:'leader',phase:'planning',couple:false,coupleTab:'ideas'}),steps:[
+ {s:'dashboard',l:'Dashboard'},{s:'couple',l:'Just the two of you?',set:{couple:false}},{s:'couple',l:'Date ideas',set:{couple:true,coupleTab:'ideas'}},{s:'couple',l:'Budget for two',set:{coupleTab:'budget'}}]},
+{t:'Completed gala to next gala',d:'Recap → Memories → Expenses → History → Plan another',pre:()=>({acct:true,role:'leader',phase:'done'}),steps:[
+ {s:'completed',l:'You made it happen'},{s:'dump',l:'Memories'},{s:'expenses',l:'Expenses'},{s:'history',l:'Gala History'},{s:'plan',l:'Plan another',set:()=>({pstep:0,plan:blankPlan(),phase:'planning'})}]}];
+
+/* ---------- per-screen specs (12 fields each) ---------- */
+const SPEC_FIELDS=[['p','Purpose'],['c','Main components'],['a','Primary CTA'],['b','Secondary CTA'],['n','Navigation'],['e','Empty state'],['l','Loading state'],['r','Error state'],['s','Success state'],['m','Mobile behavior'],['d','Desktop behavior'],['i','Important interactions']];
+const SPECS=[
+{id:'landing',n:'Landing',g:'Public',
+p:`Explain OTW in one scroll and get someone into a gala with zero sign-up.`,
+c:`Nav, hero (eyebrow, headline, CTAs, mascot), how-it-works route, feature cards, no-account explainer, closing CTA, footer.`,
+a:`Plan a Gala`,b:`Join a Gala. Enter a Gala sits as a quiet text link under the hero.`,
+n:`Logo, How it works, Features, Enter a Gala, Log in, and one pill CTA (Plan a Gala).`,
+e:`Static page, no empty state.`,l:`Hero paints first. Cards fade in. No spinners.`,r:`Never blocks on data. A failed CTA shows an inline toast with a retry.`,s:`Hands off into the Plan and Join flows.`,
+m:`Links collapse, hero stacks, sections go single column, CTAs go full width.`,d:`Two-column hero, 3-up feature grid, one full-bleed color per section.`,
+i:`Squish-press buttons, card lift on hover, smooth anchor scroll.`},
+{id:'plan',n:'Plan a Gala (4 steps)',g:'Public',
+p:`Turn "G tayo?" into a gala with a name, date, place and password. The creator becomes Gala Leader.`,
+c:`Progress pills, one question per step, helper text, place suggestions, password + confirm + show/hide, code vs password explainer.`,
+a:`Next (Tara G! on the last step)`,b:`Back`,
+n:`Close (X) returns to Landing. Back moves one step. No global nav during the flow.`,
+e:`Every field starts blank with an example as placeholder and a Use example chip.`,l:`Tara G! button shows a spinner while the gala is created.`,r:`Inline, in-voice, one message per field ("Hindi pa magkapareho. Check the password again.").`,s:`Sparkle burst, then the Gala created screen.`,
+m:`Full-bleed color per step, sticky Back / Next bar, native date and time pickers.`,d:`Centered column on a full-bleed color, side-by-side date and time.`,
+i:`Step color changes, live password strength, Enter advances, validation on Next only.`},
+{id:'created',n:'Gala created',g:'Public',
+p:`Celebrate, hand over the Gala Code, and keep the Gala Password safe.`,
+c:`Headline, code ticket, Copy / Share, masked password with reveal + copy, explainer, account prompt, Enter the Gala.`,
+a:`Enter the Gala`,b:`Copy Gala Code · Share Gala · Maybe Later`,
+n:`Leads only to the Dashboard (or Create an Account).`,
+e:`n/a`,l:`Code appears with a short reveal, never a blank ticket.`,r:`If copy is blocked, show the code selected and say "Press and hold to copy."`,s:`Toast: "Gala code copied." Sparkle burst on arrival.`,
+m:`Stacked; Enter the Gala is a sticky bottom CTA; Share opens the OS share sheet.`,d:`Two columns: code left, password + account prompt right.`,
+i:`Password stays masked until tapped; account prompt is dismissible and says the gala continues either way.`},
+{id:'join',n:'Join a Gala',g:'Public',
+p:`Get a friend in with only a code and a name.`,
+c:`Code input, gala preview (title, date, destination, people, members), nickname field, success screen.`,
+a:`Join the Gala → Join Gala`,b:`Enter a Gala (already joined before)`,
+n:`Close returns to Landing. Success goes to the Dashboard.`,
+e:`Blank code field with a "Try OTW-7K2P" chip in the prototype.`,l:`Preview card skeleton while the code is checked.`,r:`"Hmm, hindi namin makita 'yan. Check the code and try again."`,s:`"You're in. See you at the gala." + sparkle burst.`,
+m:`Single column, large code input, sticky Join button.`,d:`Centered card on a colored field.`,
+i:`Auto-uppercase code, paste-friendly, preview confirms it's the right gala before committing.`},
+{id:'enter',n:'Enter a Gala',g:'Public',
+p:`Let accountless people return with Code + Gala Password, then say who they are.`,
+c:`Code, password with show/hide, error line, Which one are you? member picker, login link.`,
+a:`Enter Gala`,b:`Log in to see saved galas`,
+n:`Close returns to Landing.`,
+e:`Blank fields.`,l:`Button spinner while credentials are checked.`,r:`Wrong code: the invalid-code line. Wrong password: "Hindi tugma ang password. Try again, or ask your Gala Leader."`,s:`Sparkle burst, then the Dashboard.`,
+m:`Stacked fields, member picker as a 2-column grid.`,d:`Centered card.`,
+i:`Same screen serves leaders and members. The picker prevents two people acting as one.`},
+{id:'auth',n:'Log in / Create account',g:'Public',
+p:`Optional account for persistence. Never a gate.`,
+c:`Login / Create tabs, fields, context banner when saving a gala, benefits list, Continue without an account.`,
+a:`Log in · Create an Account`,b:`Continue without an account`,
+n:`Close returns to where the person came from.`,
+e:`n/a`,l:`Button spinner.`,r:`Inline: "That email and password don't match."`,s:`"Saved. Baguio Before Graduation is now in My Galas." + sparkle burst.`,
+m:`Benefits collapse under the form.`,d:`Form left, benefits right.`,
+i:`Saving from a gala attaches that gala automatically. Wording is always "keep your galas", never "required".`},
+{id:'dashboard',n:'Gala Dashboard',g:'Gala',
+p:`The shared workspace. One glance answers: when, who, what's left, what's next.`,
+c:`Header band, countdown, my status, journey route, feature cards, members rail, account prompt banner.`,
+a:`Open the feature that's next on the route`,b:`Copy Gala Code · Share`,
+n:`Desktop sidebar, tablet icon rail, mobile bottom nav (Home / Chat / Map) + More sheet.`,
+e:`"Just you so far. Share the code and get people in."`,l:`Header + card skeletons.`,r:`"The dashboard didn't load. Your gala is safe. Try again."`,s:`Toasts on status change and copy.`,
+m:`Header condenses, cards become a 2-column grid, route scrolls sideways, members sit below.`,d:`Header + route + 3×3 cards with a members rail.`,
+i:`Change status from the header, card lift on hover, countdown ticks by minute, phase changes the hero (planning / gala day / done).`},
+{id:'attendance',n:'Attendance',g:'Gala',
+p:`Know who's actually coming.`,
+c:`Big status choice, summary tiles (going / maybe / can't make it), grouped member list with status badges.`,
+a:`I'm G`,b:`Maybe · Can't make it`,
+n:`Plan tabs on mobile and tablet, sidebar on desktop.`,
+e:`"No responses yet. Ask the GC."`,l:`Tile + row skeletons.`,r:`"Couldn't save your status. Tap again."`,s:`Sparkle burst on I'm G, chat gets a system message.`,
+m:`Choice becomes three stacked pills; list is single column.`,d:`Choice + tiles on top, three-column grouped list.`,
+i:`Status changes update summary instantly. Leaders can nudge Maybes.`},
+{id:'itinerary',n:'Itinerary (The Gala Route)',g:'Gala',
+p:`Turn "saan tayo?" into an ordered route with times.`,
+c:`Route timeline, stop cards (place, time, type, note, who added), route map preview, Add a Stop sheet.`,
+a:`Add a Stop`,b:`Edit · Remove`,
+n:`Plan tabs; Add a Stop is a floating action on mobile.`,
+e:`"No stops yet. Saan tayo?" + Add a Stop.`,l:`Timeline skeleton with dashed line already drawn.`,r:`"The route didn't load. Your stops are safe."`,s:`Toast: "Stop added. Everyone can see it." Chat gets a system message.`,
+m:`Up / down arrows reorder; add opens a bottom sheet; map preview collapses.`,d:`Drag handle reorders; map preview on the right; add opens a centered modal.`,
+i:`Drag-and-drop with a drop indicator; numbers re-sequence instantly.`},
+{id:'checklist',n:'Checklist',g:'Gala',
+p:`Make sure someone brings the charger.`,
+c:`Progress bar, filters (All / Mine / Done), item rows with checkbox, assignee, delete; Add sheet.`,
+a:`Add to Checklist`,b:`Assign · Edit · Delete`,
+n:`Plan tabs; FAB on mobile.`,
+e:`"Nothing here yet. Pack smart."`,l:`Row skeletons.`,r:`"Couldn't update that item. Try again."`,s:`Progress bar fills; full list shows "All packed."`,
+m:`Rows are 64px tall for thumbs; swipe left to delete.`,d:`Two-column when wide: to pack / packed.`,
+i:`Tap to check with a small pop; unassigned items show a Claim button.`},
+{id:'budget',n:'Budget estimator',g:'Gala',
+p:`Answer "magkano ba kailangan?" before the gala.`,
+c:`Five category inputs, participant stepper, estimated total, per-person, category split bar.`,
+a:`Edit amounts`,b:`Go to Ambagan`,
+n:`Plan tabs.`,
+e:`"No estimates yet. Start with transport."`,l:`Result cards skeleton.`,r:`"Couldn't save your estimate. Numbers are kept on this screen."`,s:`Toast: "Budget updated." Members with alerts on get "Budget update".`,
+m:`Results pin to the top; inputs scroll below.`,d:`Inputs left, big results right.`,
+i:`Totals update on every keystroke; split bar animates width only.`},
+{id:'expenses',n:'Expense tracker (Ambagan)',g:'Gala',
+p:`Track what was actually spent and who owes whom.`,
+c:`Four summary tiles, expense list, Who owes whom panel, Add expense sheet, settled state.`,
+a:`Add an expense`,b:`Mark paid`,
+n:`Plan tabs; FAB on mobile.`,
+e:`"No expenses yet. Walang nag-abono. Pa."`,l:`Tile + row skeletons.`,r:`"Couldn't save that expense. Nothing was changed."`,s:`"All settled. Walang may habol."`,
+m:`Tiles scroll horizontally; owes panel goes above the list.`,d:`Tiles on top; list left, owes panel right.`,
+i:`Equal split by default; debts are re-computed on every add; each debt clears independently.`},
+{id:'chat',n:'Chat (Chismis)',g:'Gala',
+p:`Keep the group chat inside the plan.`,
+c:`Pinned plan card, messages, system messages, share cards, reactions, unread divider, online list, quick replies, composer.`,
+a:`Send`,b:`Quick reply chips (G!, OTW na, Saan na?)`,
+n:`Chat is one of the three mobile tabs.`,
+e:`"Quiet in here. Say something."`,l:`Message skeletons.`,r:`"Message didn't send. Tap to retry."`,s:`Message appears instantly; delivered tick.`,
+m:`Full height, composer above the bottom nav, pinned card collapses.`,d:`Chat + right panel (pinned plan, who's online).`,
+i:`Enter to send, tap to react, planner changes appear inline as cards.`},
+{id:'location',n:'Live location (Who\'s OTW?)',g:'Gala',
+p:`See who's actually on the way, with consent and control.`,
+c:`Sharing banner, map, member list with statuses, status picker, privacy panel, permission sheet.`,
+a:`Share my location`,b:`Stop sharing · set a status manually`,
+n:`Map is one of the three mobile tabs.`,
+e:`"Nobody's sharing yet."`,l:`Map skeleton.`,r:`Permission denied: how to turn it on, or use manual status updates instead.`,s:`"You're sharing with 7 people." + persistent banner.`,
+m:`Full-screen map, bottom sheet lists members, banner pinned to the top.`,d:`Map + member panel; privacy always visible.`,
+i:`Permission sheet before the browser prompt, always-visible Stop, pulse only on moving pins.`},
+{id:'dump',n:'The Gala Dump',g:'Gala',
+p:`One shared place for every photo from the gala.`,
+c:`Filters, masonry gallery, upload sheet with progress, lightbox, delete-own, empty / loading / failed states.`,
+a:`Add Photos`,b:`View Photos`,
+n:`Add Photos is the floating action on mobile.`,
+e:`"No memories yet. Go make some."`,l:`Masonry skeleton.`,r:`Failed tile with Retry and a banner: "2 photos didn't upload."`,s:`Photos appear at the top; toast "3 photos added."`,
+m:`2 columns, swipe in lightbox, upload from camera roll.`,d:`4 columns, arrow keys in lightbox, drag-and-drop upload.`,
+i:`Per-file progress, retry a single file, lightbox swipe and keys, no mention of where files live.`},
+{id:'couple',n:'Couple Mode',g:'Gala',
+p:`A smaller gala for two, in the same product.`,
+c:`Intro, Start Couple Mode, tabs: Date Ideas, Places to Go, Budget for Two, Our Photos.`,
+a:`Start Couple Mode`,b:`Invite your person`,
+n:`Reached from the Dashboard card and More sheet.`,
+e:`"No ideas saved yet. Pick a few."`,l:`Card skeletons.`,r:`"Couldn't load your ideas."`,s:`"Saved to your plan." Heart pop.`,
+m:`Tabs scroll horizontally, cards stack.`,d:`Two-column idea grid.`,
+i:`Heart to save ideas, mini budget for two, counts as a gala in My Galas.`},
+{id:'settings',n:'Gala settings',g:'Gala',
+p:`Leaders manage the gala; members manage themselves.`,
+c:`Details, access (code + password), members, permissions, photo settings, danger zone (leader). Name, leave gala (member).`,
+a:`Save changes`,b:`Copy code · Change password`,
+n:`Sidebar footer / More sheet.`,
+e:`n/a`,l:`Section skeletons.`,r:`"Couldn't save. Nothing changed."`,s:`Toast: "Saved."`,
+m:`Accordion sections.`,d:`Two-column settings.`,
+i:`Destructive actions need a confirm dialog; members never see admin controls.`},
+{id:'completed',n:'Gala completed',g:'Gala',
+p:`Close the loop: "You made it happen."`,
+c:`Hero, recap tiles (people, stops, spent, photos), actions, closing line.`,
+a:`View Gala Dump`,b:`View Expenses · View Itinerary · Plan Another Gala`,
+n:`Dashboard flips to this after the gala date.`,
+e:`If nothing was logged: recap tiles show 0 with an invitation to add photos.`,l:`Tile skeletons.`,r:`"Recap didn't load. Everything is still saved."`,s:`Sparkle burst on arrival.`,
+m:`Tiles 2×2, actions stack.`,d:`Tiles in one row.`,
+i:`Every action lands on a read-friendly archive view.`},
+{id:'mygalas',n:'My Galas + Calendar',g:'Account',
+p:`One personal place for every gala tied to the account.`,
+c:`Upcoming / Month / Week views, gala cards with status + role, saved indicator.`,
+a:`Open a gala`,b:`Plan a Gala`,
+n:`Account sidebar; mobile Home / Notifications / Profile.`,
+e:`"Nothing on the calendar yet. Sounds like a good time to plan something."`,l:`Card skeletons.`,r:`"Couldn't load your galas."`,s:`Freshly saved gala shows a Just saved tag.`,
+m:`Cards stack; month view swipes between months.`,d:`Cards + calendar side by side.`,
+i:`Accountless users see the "Save this gala for later?" prompt here instead of an empty page.`},
+{id:'history',n:'Gala History',g:'Account',
+p:`Look back at finished galas and revive shelved plans.`,
+c:`Stats, completed gala cards, Mga Drawing (shelved plans).`,
+a:`View recap`,b:`Revive it`,
+n:`Account nav.`,
+e:`"No past galas yet. Let's fix that."`,l:`Card skeletons.`,r:`"History didn't load."`,s:`Revived plan moves back to Upcoming.`,
+m:`Single column.`,d:`Two columns.`,
+i:`Mga Drawing keeps cancelled ideas without judging them.`},
+{id:'notifs',n:'Notifications',g:'Account',
+p:`Let account users choose which reminders they get.`,
+c:`Browser permission banner, seven toggles, live preview.`,
+a:`Turn on notifications`,b:`Preview each type`,
+n:`Account nav / bottom-nav bell.`,
+e:`"All caught up."`,l:`Toggle skeletons.`,r:`Blocked by browser: how to unblock it.`,s:`Toast: "Reminders on."`,
+m:`Preview opens as a sheet.`,d:`List left, preview right.`,
+i:`Preview mimics the real notification, copy included.`},
+{id:'profile',n:'Profile & settings',g:'Account',
+p:`Basic profile and account controls.`,
+c:`Avatar, display name, email, devices note, sign out.`,
+a:`Save profile`,b:`Sign out`,
+n:`Account nav.`,
+e:`n/a`,l:`Field skeletons.`,r:`"Couldn't save your profile."`,s:`Toast: "Profile saved."`,
+m:`Single column.`,d:`Two-column.`,
+i:`Signing out never deletes a gala. It stays reachable with Code + Password.`}];
+/* ================= PROTOTYPE STATE ================= */
+const app=$('#app');
+const S={device:'desktop',screen:'landing',state:'default',phase:'planning',role:'leader',acct:false,
+pstep:0,plan:blankPlan(),perr:'',busy:false,
+joinStep:0,joinCode:'',joinName:'',joinErr:'',
+enterStep:0,enterCode:'',enterPw:'',enterErr:'',
+authTab:'login',authCtx:false,savedNew:false,
+att:'g',stops:STOPS0.map(x=>({...x})),items:ITEMS0.map(x=>({...x})),chkF:'all',
+bud:{tr:5600,st:6400,fo:4800,ac:2000,ot:800,n:8},
+exp:EXP0.map(x=>({...x})),paid:{},msgs:MSG0.map(x=>({...x})),
+locSharing:false,locStatus:'otw',selPin:null,
+upl:[],phF:'all',lb:null,
+couple:false,coupleTab:'ideas',ideas:{0:1},cb:{fo:1800,tr:900,ac:700},
+calView:'upcoming',calY:2026,calM:10,
+notif:{soon:1,join:1,att:0,chk:1,bud:0,eve:1,day:1},notifSel:'soon',notifPerm:false,
+sheet:null,sd:{},banner:true,jid:null,jstep:0};
+
+/* ================= HELPERS ================= */
+const LOGO=(c='')=>`<span class="logo ${c}">${ic('pin',26)}<b>OTW</b></span>`;
+const BLOBS=['46% 54% 38% 62% / 50% 42% 58% 50%','58% 42% 55% 45% / 44% 56% 44% 56%','40% 60% 48% 52% / 56% 40% 60% 44%','52% 48% 62% 38% / 46% 58% 42% 54%','44% 56% 40% 60% / 54% 46% 54% 46%','60% 40% 46% 54% / 42% 54% 46% 58%'];
+const blob=i=>`border-radius:${BLOBS[i%BLOBS.length]}`;
+const av=(n,s=36,on=false)=>{const m=byName(n);return `<span class="av c-${m.c}${on?' on':''}" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.44)}px" title="${esc(n)}">${esc(n[0])}</span>`};
+const stack=(names,s=32,max=5)=>`<span class="stack">${names.slice(0,max).map(n=>av(n,s)).join('')}${names.length>max?`<span class="av c-cream" style="width:${s}px;height:${s}px;font-size:${Math.round(s*.4)}px">+${names.length-max}</span>`:''}</span>`;
+const tag=(t,c='',i='',s=14)=>`<span class="tag ${c}">${i?ic(i,s):''}${t}</span>`;
+const stBadge=k=>`<span class="tag ${ST[k].cls}">${ic(ST[k].i,14)}${ST[k].b}</span>`;
+const counts=()=>{const c={g:0,m:0,x:0};MEM.forEach(m=>{c[m.n==='Merylle'?S.att:m.s]++});return c};
+const budTotal=()=>S.bud.tr+S.bud.st+S.bud.fo+S.bud.ac+S.bud.ot;
+const spent=()=>S.exp.reduce((a,e)=>a+e.a,0);
+const photoCount=()=>(S.phase==='planning'?0:S.phase==='day'?6:12)+S.upl.filter(u=>u.done).length;
+const jsonOr=(s,d)=>{try{return JSON.parse(s)}catch(e){return d}};
+
+function toast(msg,kind=''){
+  const host=$('#toast');if(!host)return;
+  const t=document.createElement('div');t.className='toast '+kind;t.innerHTML=(kind==='err'?ic('alert',18):ic('check',18))+`<span>${msg}</span>`;
+  host.innerHTML='';host.appendChild(t);clearTimeout(toast._t);toast._t=setTimeout(()=>{host.innerHTML=''},2600);
+}
+function burst(x,y){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const cols=['var(--zest)','var(--rosy)','var(--cream)','var(--teal)','var(--zest)','var(--rosy)','var(--cream)'];
+  for(let i=0;i<7;i++){const s=document.createElement('span');s.className='spark';const a=Math.random()*Math.PI*2,d=44+Math.random()*52;
+    s.style.cssText=`left:${x}px;top:${y}px;--tx:${(Math.cos(a)*d).toFixed(0)}px;--ty:${(Math.sin(a)*d).toFixed(0)}px;color:${cols[i]}`;
+    s.innerHTML=ic('sparkle',16);document.body.appendChild(s);setTimeout(()=>s.remove(),760);}
+}
+function burstMid(){const v=$('.viewport');if(!v)return;const r=v.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height*.4)}
+
+/* screen registry */
+const SC={
+landing:{g:'Public',t:'Landing',k:'pub',u:''},
+plan:{g:'Public',t:'Plan a Gala',k:'focus',u:'plan',th:()=>['rosy','zest','teal','blossom'][S.pstep]},
+created:{g:'Public',t:'Gala created',k:'focus',u:'plan/done',th:()=>'rosy'},
+join:{g:'Public',t:'Join a Gala',k:'focus',u:'join',th:()=>['zest','blossom','rosy'][S.joinStep]},
+enter:{g:'Public',t:'Enter a Gala',k:'focus',u:'enter',th:()=>S.enterStep?'blossom':'teal'},
+auth:{g:'Public',t:'Log in / Create account',k:'focus',u:'login',th:()=>'blossom'},
+dashboard:{g:'Gala',t:'Gala Dashboard',k:'gala',nav:'home',u:'gala/'+G.code},
+attendance:{g:'Gala',t:'Attendance',k:'gala',nav:'att',tab:1,u:'gala/'+G.code+'/attendance'},
+itinerary:{g:'Gala',t:'Itinerary',k:'gala',nav:'plan',tab:1,u:'gala/'+G.code+'/route',fab:'addStop'},
+checklist:{g:'Gala',t:'Checklist',k:'gala',nav:'chk',tab:1,u:'gala/'+G.code+'/checklist',fab:'addItem'},
+budget:{g:'Gala',t:'Budget estimator',k:'gala',nav:'bud',tab:1,u:'gala/'+G.code+'/budget'},
+expenses:{g:'Gala',t:'Expense tracker',k:'gala',nav:'exp',tab:1,u:'gala/'+G.code+'/ambagan',fab:'addExp'},
+chat:{g:'Gala',t:'Chat',k:'gala',nav:'chat',u:'gala/'+G.code+'/chat'},
+location:{g:'Gala',t:'Live location',k:'gala',nav:'loc',u:'gala/'+G.code+'/map'},
+dump:{g:'Gala',t:'The Gala Dump',k:'gala',nav:'dump',u:'gala/'+G.code+'/dump',fab:'upload'},
+couple:{g:'Gala',t:'Couple Mode',k:'gala',nav:'couple',u:'gala/'+G.code+'/couple'},
+settings:{g:'Gala',t:'Gala settings',k:'gala',nav:'set',u:'gala/'+G.code+'/settings'},
+completed:{g:'Gala',t:'Gala completed',k:'gala',nav:'home',u:'gala/'+G.code+'/recap'},
+system:{g:'Public',t:'Design system',k:'pub',u:'system'},
+mygalas:{g:'Account',t:'My Galas + Calendar',k:'acct',nav:'my',u:'me/galas'},
+history:{g:'Account',t:'Gala History',k:'acct',nav:'hist',u:'me/history'},
+notifs:{g:'Account',t:'Notifications',k:'acct',nav:'not',u:'me/notifications'},
+profile:{g:'Account',t:'Profile & settings',k:'acct',nav:'pro',u:'me/profile'}};
+const views={};
+const GNAV=[['home','Home','home','dashboard'],['att',"Who's G?",'users','attendance'],['plan','The plan','route','itinerary'],['bud','Gastos','calc','budget'],['exp','Ambagan','wallet','expenses'],['chk','Checklist','checklist','checklist'],['chat','Chismis','chat','chat'],['loc',"Who's OTW?",'nav','location'],['dump','Gala Dump','image','dump'],['couple','Couple Mode','heart','couple']];
+const GBOT=[['home','Home','home','dashboard'],['chat','Chat','chat','chat'],['loc','Map','map','location']];
+const ANAV=[['my','My Galas','calendar','mygalas'],['hist','Gala History','notepad','history'],['not','Notifications','bell','notifs'],['pro','Profile','user','profile']];
+const ABOT=[['my','Home','home','mygalas'],['not','Notifications','bell','notifs'],['pro','Profile','user','profile']];
+const PTABS=[['attendance',"Who's G?"],['itinerary','The plan'],['budget','Gastos'],['expenses','Ambagan'],['checklist','Checklist']];
+
+/* ---- generic state blocks ---- */
+const EMPTY={
+dashboard:{i:'users',t:'Just you so far.',b:'Share the gala code and get your friends in.',c:'Share Gala',sheet:'share'},
+attendance:{i:'users',t:'No responses yet.',b:'Ask the GC. Tap Share Gala to send the code again.',c:'Share Gala',sheet:'share'},
+itinerary:{i:'pin',t:'No stops yet. Saan tayo?',b:'Add the places, activities, food stops, and everything in between.',c:'Add a Stop',sheet:'addStop'},
+checklist:{i:'checklist',t:'Nothing here yet. Pack smart.',b:'Add the things someone always forgets, like the charger.',c:'Add to Checklist',sheet:'addItem'},
+budget:{i:'calc',t:'No estimates yet.',b:'Start with transportation. Everything else follows.',c:'Add an estimate',sheet:'addStop',noop:1},
+expenses:{i:'wallet',t:'No expenses yet. Walang nag-abono. Pa.',b:'When someone pays for something, log it here so nobody has to remember.',c:'Add an expense',sheet:'addExp'},
+chat:{i:'chat',t:'Quiet in here. Say something.',b:'Start with a “G!” or ask who is bringing the speaker.',c:'Say hi',noop:1},
+location:{i:'nav',t:"Nobody's sharing yet.",b:'When people start heading out, they can share live location here. Sharing is always opt-in.',c:'Share my location',sheet:'locPerm'},
+dump:{i:'image',t:'No memories yet. Go make some.',b:'Photos from the gala land here for everyone.',c:'Add Photos',sheet:'upload'},
+couple:{i:'heart',t:'No ideas saved yet.',b:'Pick a few date ideas to start your plan for two.',c:'Browse ideas',noop:1},
+mygalas:{i:'calendar',t:'Nothing on the calendar yet.',b:'Sounds like a good time to plan something.',c:'Plan a Gala',go:'plan'},
+history:{i:'notepad',t:"No past galas yet. Let's fix that.",b:'Finished galas show up here with their photos and expenses.',c:'Plan a Gala',go:'plan'},
+notifs:{i:'bell',t:'All caught up.',b:'When there is something to know, it shows up here first.',c:'Back to My Galas',go:'mygalas'}};
+const ERR={
+dashboard:{t:"The dashboard didn't load.",b:'Your gala is safe. Give it another try.'},
+attendance:{t:"Couldn't save your status.",b:'Nothing changed. Tap your choice again.'},
+itinerary:{t:"The route didn't load.",b:'Your stops are safe. Try again.'},
+checklist:{t:"Couldn't update the checklist.",b:'Nothing was lost. Try again in a moment.'},
+budget:{t:"Couldn't save your estimate.",b:'Your numbers are still on this screen. Try saving again.'},
+expenses:{t:"Couldn't load the expenses.",b:'Nothing was changed. Try again.'},
+chat:{t:"Messages didn't load.",b:'Your chat is still there. Try again.'},
+couple:{t:"Couldn't load your ideas.",b:'Try again in a moment.'},
+settings:{t:"Couldn't save your changes.",b:'Nothing changed. Try again.'},
+completed:{t:"The recap didn't load.",b:'Everything is still saved. Try again.'},
+mygalas:{t:"Couldn't load your galas.",b:'They are still saved to your account. Try again.'},
+history:{t:"History didn't load.",b:'Try again in a moment.'},
+notifs:{t:'Notifications are blocked in your browser.',b:'Allow notifications for this site in your browser settings, then come back and try again.'},
+profile:{t:"Couldn't save your profile.",b:'Nothing changed. Try again.'}};
+const OKMSG={dashboard:'Status updated.',attendance:"You're marked as G. The chat knows.",itinerary:'Stop added. Everyone can see it.',checklist:'Item added to the checklist.',budget:'Budget updated.',expenses:'Expense added and split.',chat:'Message sent.',location:"You're sharing with 7 people.",dump:'3 photos added.',couple:'Saved to your plan.',settings:'Saved.',mygalas:'Saved to My Galas.',history:'Plan revived.',notifs:'Reminders on.',profile:'Profile saved.'};
+
+const empty=(e)=>`<div class="empty"><div class="ico xl" style="${blob(2)}">${ic(e.i,44)}</div><h3>${e.t}</h3><p>${e.b}</p>${e.go?`<button class="btn rosy" data-go="${e.go}">${e.c}</button>`:e.noop?`<button class="btn rosy" data-act="noop" data-t="This opens the form.">${e.c}</button>`:`<button class="btn rosy" data-act="sheet" data-v="${e.sheet}">${e.c}</button>`}</div>`;
+const errBlock=(e)=>`<div class="empty err"><div class="ico xl" style="${blob(3)};color:var(--rosy-dark)">${ic('alert',44)}</div><h3>${e.t}</h3><p>${e.b}</p><button class="btn rosy" data-act="retry">${ic('refresh',20)} Try again</button></div>`;
+const offline=()=>`<div class="offl" role="status">${ic('wifioff',22)}<div><b>Connection's a bit shaky.</b> You're seeing the last saved version. Anything you change will sync when you're back online.</div></div>`;
+const skeleton=(k)=>k==='dump'?`<div class="skl"><div class="sk" style="height:56px;width:60%"></div><div class="masonry">${[190,250,170,280,210,240,180,260].map(h=>`<div class="sk" style="height:${h}px"></div>`).join('')}</div></div>`
+ :k==='chat'?`<div class="skl">${[70,90,60,80,64].map((h,i)=>`<div class="row" style="justify-content:${i%2?'flex-end':'flex-start'}"><div class="sk" style="height:${h}px;width:56%"></div></div>`).join('')}</div>`
+ :`<div class="skl"><div class="sk" style="height:132px"></div><div class="g g3">${[1,2,3,4,5,6].map(()=>`<div class="sk" style="height:110px"></div>`).join('')}</div></div>`;
+function gate(k,fn){
+  const st=S.state;
+  if(st==='loading')return skeleton(k);
+  if(st==='empty'&&EMPTY[k])return empty(EMPTY[k]);
+  if(st==='error'&&ERR[k])return errBlock(ERR[k]);
+  return (st==='offline'?offline():'')+fn();
+}
+const head=(title,sub,tagHtml='')=>`<div class="phead">${tagHtml}<h2 class="h2">${title}</h2>${sub?`<p class="sub">${sub}</p>`:''}</div>`;
+
+/* ================= SHELLS ================= */
+function focusShell(sc){
+  const th=sc.th();
+  return `<div class="scroller focus bg-${th}" id="scr"><div class="ftop">${LOGO()}<button class="btn sm ghost iconbtn" data-go="landing" aria-label="Close">${ic('x',20)}</button></div><div class="fbody">${views[S.screen]()}</div></div>`;
+}
+function galaMini(){
+  return `<div class="gmini"><b>${G.title}</b><span>${G.range}</span><button class="codepill" data-act="copy" data-v="code" aria-label="Copy gala code">${ic('copy',14)} ${G.code}</button></div>`;
+}
+function appShell(sc){
+  const acct=sc.k==='acct',items=acct?ANAV:GNAV,bot=acct?ABOT:GBOT;
+  const nav=items.map(([k,l,i,scr])=>`<button class="sn ${sc.nav===k?'on':''}" data-go="${scr}" title="${l}">${ic(i,22)}<span class="lbl">${l}</span>${k==='chat'&&S.screen!=='chat'?'<em class="badge">2</em>':''}</button>`).join('');
+  const foot=acct?`<button class="btn sm zest fw" data-go="plan">${ic('plus',18)}<span class="lbl">Plan a Gala</span></button>`
+    :`<button class="sn ${sc.nav==='set'?'on':''}" data-go="settings" title="Settings">${ic('sliders',22)}<span class="lbl">Settings</span></button>`+(S.acct?`<button class="sn" data-go="mygalas" title="My Galas">${ic('calendar',22)}<span class="lbl">My Galas</span></button>`:`<button class="savecard" data-act="sheet" data-v="account">${ic('sparkle',16)}<span class="lbl">Save this gala</span></button>`);
+  const side=`<aside class="side">${LOGO('cr')}${acct?`<div class="gmini"><b>Hi, Merylle</b><span>${S.acct?'Signed in':'Not signed in'}</span></div>`:galaMini()}<nav class="snav">${nav}</nav><div class="sfoot">${foot}</div></aside>`;
+  const tabs=sc.tab?`<div class="ptabs" role="tablist">${PTABS.map(([k,l])=>`<button role="tab" aria-selected="${S.screen===k}" class="${S.screen===k?'on':''}" data-go="${k}">${l}</button>`).join('')}</div>`:'';
+  const role=S.role==='leader'?tag('Gala Leader','zest','crown',14):tag('Member','blossom','user',14);
+  const top=acct?`<div class="topbar"><b class="tb-t">${sc.t}</b><div class="tb-r"><button class="ibtn" data-go="notifs" aria-label="Notifications">${ic('bell',22)}</button>${av('Merylle',36)}</div></div>`
+    :`<div class="topbar"><div class="tb-l"><button class="ibtn only-m" data-act="sheet" data-v="more" aria-label="More">${ic('more',24)}</button><b class="tb-t">${G.title}</b><button class="codepill hide-m" data-act="copy" data-v="code">${ic('copy',14)} ${G.code}</button></div><div class="tb-r">${role}${stack(MEM.filter(m=>m.s==='g').map(m=>m.n),30,4)}</div></div>`;
+  const bn=bot.map(([k,l,i,scr])=>`<button class="bn ${sc.nav===k||(k==='home'&&acct&&sc.nav==='hist')?'on':''}" data-go="${scr}" aria-label="${l}">${ic(i,26)}${k==='chat'&&S.screen!=='chat'?'<em class="badge">2</em>':''}</button>`).join('');
+  const fab=sc.fab&&!(S.state==='empty')?`<button class="fab" data-act="sheet" data-v="${sc.fab}" aria-label="${sc.fab==='upload'?'Add Photos':sc.fab==='addStop'?'Add a Stop':'Add'}">${ic(sc.fab==='upload'?'camera':'plus',28)}</button>`:'';
+  return `<div class="shell ${S.screen==='chat'?'is-chat':''}">${side}<div class="mw">${top}${tabs}<main class="main ${S.screen==='chat'?'chatmain':''}" id="scr">${views[S.screen]()}</main></div><nav class="bnav" aria-label="Main">${bn}</nav>${fab}</div>`;
+}
+
+/* ================= PUBLIC / FOCUS SCREENS ================= */
+const mascot=(s=260)=>`<svg class="mascot" width="${s}" height="${Math.round(s*1.09)}" viewBox="0 0 220 240" role="img" aria-label="OTW mascot: a smiling location pin"><path d="M18 218q23-17 46 0t46 0 46 0 46 0" style="fill:none;stroke:var(--teal-dark);stroke-width:6;stroke-linecap:round"/><path d="M110 22C68 22 42 56 42 96c0 50 68 112 68 112s68-62 68-112c0-40-26-74-68-74z" style="fill:var(--blossom);stroke:var(--teal-dark);stroke-width:5;stroke-linejoin:round"/><circle cx="90" cy="92" r="12" style="fill:var(--cream)"/><circle cx="130" cy="92" r="12" style="fill:var(--cream)"/><circle cx="92" cy="94" r="5.5" style="fill:var(--teal-dark)"/><circle cx="132" cy="94" r="5.5" style="fill:var(--teal-dark)"/><path d="M92 122q18 18 36 0" style="fill:none;stroke:var(--teal-dark);stroke-width:6;stroke-linecap:round"/><circle cx="72" cy="114" r="8" style="fill:var(--rosy)"/><circle cx="148" cy="114" r="8" style="fill:var(--rosy)"/><g transform="translate(166 20) scale(1.1)" style="fill:var(--zest)"><path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10Z"/></g><g transform="translate(8 60) scale(.8)" style="fill:var(--zest)"><path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10Z"/></g><g transform="translate(184 150) scale(.7)" style="fill:var(--teal-dark)"><path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10Z"/></g></svg>`;
+const ROUTE=['G tayo?','When are we going?',"Who's G?","What's the plan?",'How much?','What do we need?','Where is everyone?','OTW na.'];
+const routeChips=(cls='')=>`<div class="rchips ${cls}">${ROUTE.map((r,i)=>`<span class="rc ${i===ROUTE.length-1?'last':''}">${r}</span>${i<ROUTE.length-1?ic('arrowr',16,'rc-a'):''}`).join('')}</div>`;
+
+views.landing=()=>{
+  const HW=[['calendar','Pick the date',"Let's turn “someday” into an actual date."],['users',"See who's G","I'm G, Maybe, or Can't make it. No more “seen.”"],['route','Build the plan','Places, food stops and timing, in order.'],['calc','Talk gastos','Estimate the budget before “magkano ba?” starts.'],['checklist','Pack smart','Because someone always forgets the charger.'],['nav','Watch everyone go OTW','Live location on gala day.']];
+  const LF=[['route','Saan Tayo?','Build the gala route: every stop, time and food break in order.','Itinerary','zest'],['wallet','Ambagan','Track who paid what and who owes who. Walang may habol.','Expenses','rosy'],['nav',"Who's actually OTW?","Share live location and see who's 2 minutes away.",'Live location','zest'],['chat',"What's the chismis?",'A group chat that lives inside the plan.','Chat','rosy'],['image','The Gala Dump','Good shots, bad shots, random candids. One shared gallery.','Photos','zest'],['heart','Just the two of you?','Same OTW energy, smaller passenger count.','Couple Mode','rosy']];
+  return `<section class="sec bg-rosy hero-sec"><header class="pnav">${LOGO()}<nav class="plinks"><button class="lnk" data-scroll="p-how">How it works</button><button class="lnk" data-scroll="p-feat">Features</button><button class="lnk" data-go="enter">Enter a Gala</button><button class="lnk" data-go="auth" data-set='{"authTab":"login","authCtx":false}'>Log in</button></nav><button class="btn sm zest" data-go="plan">Plan a Gala</button></header>
+  <div class="hero"><div class="hero-l">${tag('For plans that actually happen','zest','sparkle',14)}<h1 class="h1">From “G tayo?” to “OTW na.”</h1><p class="lead">Finally, a place for all those gala plans na ilang buwan nang nasa group chat.</p><div class="ctas"><button class="btn zest" data-go="plan">Plan a Gala</button><button class="btn ghost" data-go="join">Join a Gala</button></div><p class="micro">And yes, we can tell if you're actually OTW.</p><p class="micro">Been here before? <button class="lnk" data-go="enter">Enter a Gala</button></p></div>
+  <div class="heroviz">${mascot(230)}<span class="bub b1">G tayo?</span><span class="bub b2">G!</span><span class="bub b3">Sino may car?</span><span class="bub b4">2 mins away</span></div></div></section>
+  <section class="sec bg-zest" id="p-how"><h2 class="h2 ctr">From group chat to gala day.</h2><p class="sub ctr">Six steps. No account needed for any of them.</p><div class="g g3 steps">${HW.map((s,i)=>`<div class="card blobcard" style="${blob(i)}"><span class="stepn">${i+1}</span><div class="ico" style="${blob(i+2)}">${ic(s[0],26)}</div><h3>${s[1]}</h3><p>${s[2]}</p></div>`).join('')}</div>${routeChips()}</section>
+  <section class="sec bg-teal" id="p-feat"><h2 class="h2 ctr">Everything the GC never got to.</h2><p class="sub ctr">Plan it. Share it. Make it happen.</p><div class="g g3">${LF.map((f,i)=>`<div class="card c-blossom lift"><div class="ico" style="${blob(i)}">${ic(f[0],26)}</div><h3>${f[1]}</h3><p>${f[2]}</p>${tag(f[3],f[4])}</div>`).join('')}</div></section>
+  <section class="sec bg-rosy"><h2 class="h2 ctr">Jump in. No sign-up.</h2><p class="sub ctr">Make an account later, only if you want to keep your galas with you.</p><div class="g g2 two"><div class="card"><h3>Right away, no account</h3><ul class="ticks">${['Plan a Gala or join with a code','Attendance, itinerary, checklist','Budget, expenses, chat','Live location on gala day','The Gala Dump for photos'].map(x=>`<li>${ic('check',18)}${x}</li>`).join('')}</ul></div><div class="card c-zest"><h3>Want to keep your galas with you?</h3><ul class="ticks">${['Saved galas, one tap away','A personal gala calendar','Gala history, plus Mga Drawing','Reminders, even when you\'re not in the gala','Your galas on any device'].map(x=>`<li>${ic('sparkle',14)}${x}</li>`).join('')}</ul><p class="fine">Totally optional.</p></div></div></section>
+  <section class="sec bg-blossom cta-sec"><h2 class="h2 ctr">Okay, G na ba?</h2><p class="sub ctr">From “G tayo?” to “OTW na.”</p><div class="ctas ctr-row"><button class="btn rosy" data-go="plan">Plan a Gala</button><button class="btn ghost" data-go="join">Join a Gala</button></div></section>
+  <footer class="sec bg-tdark foot">${LOGO()}<p>OTW: On The Water. And yes, On The Way too.</p><div class="flinks"><button class="lnk" data-go="plan">Plan a Gala</button><button class="lnk" data-go="join">Join a Gala</button><button class="lnk" data-go="enter">Enter a Gala</button><button class="lnk" data-go="auth" data-set='{"authTab":"login","authCtx":false}'>Log in</button><button class="lnk" data-go="system">Design system</button></div></footer>`;
+};
+
+const pwMeter=v=>{const n=(v.length>=6)+(v.length>=10)+(/[0-9]/.test(v)&&/[a-z]/i.test(v));return `<div class="meter" aria-label="Password strength"><i class="${n>0?'on':''}"></i><i class="${n>1?'on':''}"></i><i class="${n>2?'on':''}"></i><span>${['Add a few characters','Okay','Good','Solid'][n]}</span></div>`};
+views.plan=()=>{
+  const i=S.pstep,p=S.plan,th=['rosy','zest','teal','blossom'][i],pb=(th==='rosy'||th==='teal')?'zest':'rosy';
+  const Q=[
+  {q:'First things first. What are we calling this gala?',h:'Give your gala a name your GC will remember.',f:`<input class="in big" data-model="plan.title" value="${esc(p.title)}" placeholder="Baguio Before Graduation" aria-label="Gala title" autocomplete="off"><button class="chip" data-act="plan-example">${ic('sparkle',12)} Use example</button>`},
+  {q:'When are we going?',h:'Let\'s turn “someday” into an actual date.',f:`<label class="fl">Date<input type="date" class="in" data-model="plan.date" value="${p.date}"></label><div class="two-in"><label class="fl">Start time (optional)<input type="time" class="in" data-model="plan.start" value="${p.start}"></label><label class="fl">End time (optional)<input type="time" class="in" data-model="plan.end" value="${p.end}"></label></div>`},
+  {q:'Where are we headed?',tg:'Saan Tayo?',h:'Type a place or pick one. You can add exact stops later.',f:`<div class="inwrap">${ic('search',20)}<input class="in big ic-in" data-model="plan.dest" value="${esc(p.dest)}" placeholder="Search a city or place" aria-label="Destination" autocomplete="off"></div><div class="chips">${['Baguio City','Tagaytay','La Union','Batangas'].map(d=>`<button class="chip" data-act="plan-dest" data-v="${d}">${ic('pin',14)} ${d}</button>`).join('')}</div>${p.dest?`<div class="minimap">${mapSvg({flag:true,pins:[],small:1})}<span>${ic('pin',16)} ${esc(p.dest)}</span></div>`:''}`},
+  {q:'Create a gala password',h:"You'll need this if you come back later.",f:`<label class="fl">Password<div class="inwrap"><input class="in big" type="password" id="pw1" data-model="plan.pw" value="${esc(p.pw)}" autocomplete="new-password"><button class="ibtn eye" data-act="pw-toggle" aria-label="Show or hide password">${ic('eye',22)}</button></div></label><div id="pwmeter">${pwMeter(p.pw)}</div><label class="fl">Confirm password<input class="in big" type="password" id="pw2" data-model="plan.pw2" value="${esc(p.pw2)}" autocomplete="new-password"></label><div class="explain"><div><span class="ico sm">${ic('sparkle',18)}</span><p><b>Gala Code</b> identifies your gala. Friends use it to join.</p></div><div><span class="ico sm">${ic('lock',18)}</span><p><b>Gala Password</b> is private. Use it with the code to come back later.</p></div></div>`}][i];
+  return `<div class="wiz"><div class="wprog" role="progressbar" aria-valuenow="${i+1}" aria-valuemin="1" aria-valuemax="4">${[0,1,2,3].map(n=>`<i class="${n<=i?'on':''}"></i>`).join('')}<span>Step ${i+1} of 4</span></div>${Q.tg?tag(Q.tg,'cream','pin'):''}<h1 class="h1 wq">${Q.q}</h1><p class="sub">${Q.h}</p><div class="wform">${Q.f}${S.perr?`<p class="ferr">${ic('alert',18)}${S.perr}</p>`:''}</div></div><div class="fbar"><button class="btn ghost" data-act="plan-back">Back</button><button class="btn ${pb}" data-act="plan-next" ${S.busy?'disabled':''}>${S.busy?'Creating…':i===3?'Tara G!':'Next'}</button></div>`;
+};
+
+views.created=()=>{
+  const shown=S.sd.pwShow?(S.plan.pw||G.pw):'••••••••••';
+  return `<div class="cwrap"><div class="c-left"><span class="ico xl cel" style="${blob(0)}">${ic('burst',44)}</span><h1 class="h1">Okay, this is happening.</h1><p class="lead">Your gala is ready. Share the code with your friends so they can jump in.</p>
+  <div class="ticket"><span class="tk-l">Gala Code</span><b class="tk-c">${G.code}</b><div class="tk-a"><button class="btn sm zest" data-act="copy" data-v="code">${ic('copy',18)} Copy Gala Code</button><button class="btn sm cream" data-act="sheet" data-v="share">${ic('share',18)} Share Gala</button></div></div></div>
+  <div class="c-right"><div class="pwrow"><span class="ico sm">${ic('lock',20)}</span><div><b>Gala Password</b><code class="pwv">${shown}</code></div><button class="ibtn dark" data-act="pw-reveal" aria-label="${S.sd.pwShow?'Hide':'Show'} password">${ic(S.sd.pwShow?'eyeoff':'eye',20)}</button><button class="ibtn dark" data-act="copy" data-v="pw" aria-label="Copy password">${ic('copy',20)}</button></div>
+  <p class="fine cream-t">Share the Gala Code with your friends. Keep the Gala Password somewhere safe so you can come back later.</p>
+  <div class="card prompt"><h3>Want to keep your gala with you?</h3><p>Create an account to save your galas, keep a personal calendar, view your gala history, and get reminders.</p><div class="row wrapr"><button class="btn sm rosy" data-go="auth" data-set='{"authTab":"create","authCtx":true}'>Create an Account</button><button class="btn sm ghost" data-act="noop" data-t="No pressure. You can save it any time from the dashboard.">Maybe Later</button></div><p class="fine">Your current gala can still continue without an account.</p></div></div></div>
+  <div class="fbar solo"><button class="btn zest" data-go="dashboard">Enter the Gala</button></div>`;
+};
+
+views.join=()=>{
+  const st=S.joinStep,bad=S.joinErr||(st===0&&S.state==='error');
+  if(st===0)return `<div class="wiz narrow"><h1 class="h1 wq">Got a code? Let's go.</h1><p class="sub">Enter the gala code from your friend and you're in.</p><div class="wform"><label class="fl">Enter gala code<input class="in big code ${bad?'bad':''}" data-model="joinCode" value="${esc(S.joinCode)}" placeholder="OTW-XXXX" maxlength="8" autocomplete="off" aria-invalid="${!!bad}"></label>${bad?`<p class="ferr">${ic('alert',18)}Hmm, hindi namin makita 'yan. Check the code and try again.</p>`:''}<button class="chip" data-act="join-example">${ic('sparkle',12)} Try ${G.code}</button></div></div><div class="fbar"><button class="btn ghost" data-go="landing">Back</button><button class="btn rosy" data-act="join-submit">Join the Gala</button></div>`;
+  if(st===1){
+    if(S.state==='loading')return `<div class="wiz narrow"><div class="sk" style="height:300px;border-radius:28px"></div></div>`;
+    return `<div class="wiz narrow"><h1 class="h1 wq">Is this the one?</h1><div class="card previewc"><h2 class="h2s">${G.title}</h2><div class="pmeta">${tag(G.range,'blossom','calendar')}${tag(G.dest,'blossom','pin')}${tag('10 people','blossom','users')}</div><div class="pmem">${MEM.map(m=>`<span class="pm">${av(m.n,30)}${m.n}</span>`).join('')}</div></div><label class="fl">What should we call you?<input class="in big" data-model="joinName" value="${esc(S.joinName)}" placeholder="Your name or nickname" autocomplete="off"></label>${S.joinErr==='name'?`<p class="ferr">${ic('alert',18)}We need something to call you in the chat.</p>`:''}</div><div class="fbar"><button class="btn ghost" data-act="join-back">Back</button><button class="btn rosy" data-act="join-confirm">Join Gala</button></div>`;
+  }
+  return `<div class="wiz narrow ctr-t"><span class="ico xl cel" style="${blob(1)}">${ic('check',44)}</span><h1 class="h1 wq">You're in. See you at the gala.</h1><p class="lead">Welcome, ${esc(S.joinName||'friend')}. Set your status, check the plan, and say hi in the chat.</p><p class="fine cream-t">Coming back on another device? You'll need the gala code and the gala password. Ask your Gala Leader for it.</p></div><div class="fbar solo"><button class="btn zest" data-go="dashboard" data-set='{"role":"member"}'>Go to the dashboard</button></div>`;
+};
+
+views.enter=()=>{
+  if(S.enterStep===1)return `<div class="wiz"><h1 class="h1 wq">Welcome back. Which one are you?</h1><p class="sub">Pick your name so the gala knows it's you.</p><div class="who">${MEM.map(m=>`<button class="whob" data-act="enter-who" data-n="${m.n}">${av(m.n,44)}<span>${m.n}${m.n==='Merylle'?tag('Leader','zest'):''}</span></button>`).join('')}</div></div>`;
+  return `<div class="wiz narrow"><h1 class="h1 wq">Welcome back.</h1><p class="sub">Enter the gala code and password to jump back in. Works for leaders and members.</p><div class="wform"><label class="fl">Gala Code<input class="in big code ${S.enterErr==='code'||S.state==='error'?'bad':''}" data-model="enterCode" value="${esc(S.enterCode)}" placeholder="OTW-XXXX" maxlength="8" autocomplete="off"></label>${S.enterErr==='code'||S.state==='error'?`<p class="ferr">${ic('alert',18)}Hmm, hindi namin makita 'yan. Check the code and try again.</p>`:''}<label class="fl">Gala Password<div class="inwrap"><input class="in big ${S.enterErr==='pw'?'bad':''}" type="password" id="epw" data-model="enterPw" value="${esc(S.enterPw)}" autocomplete="current-password"><button class="ibtn eye" data-act="pw-toggle" data-t="epw" aria-label="Show or hide password">${ic('eye',22)}</button></div></label>${S.enterErr==='pw'?`<p class="ferr">${ic('alert',18)}Hindi tugma ang password. Try again, or ask your Gala Leader.</p>`:''}<button class="chip" data-act="enter-example">${ic('sparkle',12)} Demo: ${G.code} / ${G.pw}</button></div><p class="fine">Have an account? <button class="lnk" data-go="auth" data-set='{"authTab":"login","authCtx":false}'>Log in</button> and your saved galas will be waiting.</p></div><div class="fbar"><button class="btn ghost" data-go="landing">Back</button><button class="btn rosy" data-act="enter-submit">Enter Gala</button></div>`;
+};
+
+views.auth=()=>{
+  const c=S.authTab==='create',bad=S.state==='error';
+  return `<div class="authw"><div class="wiz narrow"><div class="seg" role="tablist"><button role="tab" aria-pressed="${!c}" data-act="auth-tab" data-v="login">Log in</button><button role="tab" aria-pressed="${c}" data-act="auth-tab" data-v="create">Create account</button></div>${S.authCtx&&c?`<div class="ctxbar">${ic('sparkle',18)}<span>Saving <b>${G.title}</b> to your account.</span></div>`:''}<h1 class="h1 wq">${c?'Want to keep your galas with you?':'Welcome back.'}</h1><p class="sub">${c?'An account is optional. It just keeps your galas with you.':'Log in to see your saved galas.'}</p><div class="wform">${c?`<label class="fl">Name<input class="in" placeholder="What should we call you?" value="Merylle"></label>`:''}<label class="fl">Email<input class="in" type="email" placeholder="you@email.com" value="merylle@email.com"></label><label class="fl">Password<input class="in" type="password" value="password123"></label>${bad&&!c?`<p class="ferr">${ic('alert',18)}That email and password don't match. Check them and try again.</p>`:''}</div><div class="row wrapr"><button class="btn rosy" data-act="auth-submit">${c?'Create an Account':'Log in'}</button><button class="lnk" data-go="${S.authCtx?'dashboard':'landing'}">Continue without an account</button></div></div><aside class="benefits card">${['Saved galas','Personal gala calendar','Gala history','Browser reminders','Access from any device'].map((b,i)=>`<div><span class="ico sm" style="${blob(i)}">${ic(['pin','calendar','notepad','bell','monitor'][i],20)}</span><b>${b}</b></div>`).join('')}<p class="fine">Everything you can do in a gala works without one.</p></aside></div>`;
+};
+/* ================= MAP ================= */
+const PINS=[{n:'Alex',x:82,y:86,st:'home',eta:'Still at home'},{n:'CJ',x:172,y:292,st:'otw',eta:'About 18 min away'},{n:'Jamie',x:262,y:334,st:'otw',eta:'About 26 min away'},{n:'Sam',x:392,y:176,st:'almost',eta:'2 minutes away'},{n:'Bea',x:448,y:150,st:'there',eta:'Already there'}];
+const MEPOS={home:[60,318],otw:[292,238],almost:[420,160],there:[492,122]};
+function myPin(){const [x,y]=MEPOS[S.locStatus];return {n:'Merylle',x,y,st:S.locStatus,eta:LOC[S.locStatus].l,me:1}}
+function mapSvg(o={}){
+  const pins=o.pins||[];
+  const pinG=p=>{const m=byName(p.n);return `<g class="pin ${LOC[p.st].cls} ${S.selPin===p.n?'sel':''}" data-act="pin" data-n="${p.n}" tabindex="0" role="button" aria-label="${p.n}: ${p.eta}" transform="translate(${p.x} ${p.y})">${p.st==='otw'||p.st==='almost'?'<circle class="pulse" r="18"/>':''}<circle class="ring" r="24"/><circle class="pf pf-${m.c}" r="18"/><text class="pt pt-${m.c}" y="6" text-anchor="middle">${p.n[0]}</text>${p.me?'<circle class="you" cx="16" cy="-16" r="8"/><text class="you-t" x="16" y="-13" text-anchor="middle">You</text>':''}</g>`};
+  return `<svg class="map" viewBox="0 0 600 380" preserveAspectRatio="${o.small?'xMidYMid slice':'xMidYMid meet'}" role="img" aria-label="Map of the gala route"><rect width="600" height="380" class="m-bg"/><path d="M330 312q40-64 112-42t92 74q-74 40-204-32z" class="m-water"/><g class="m-blocks"><rect x="40" y="150" width="70" height="60" rx="14"/><rect x="230" y="40" width="90" height="70" rx="14"/><rect x="330" y="200" width="70" height="60" rx="14"/><rect x="500" y="220" width="70" height="80" rx="14"/><rect x="120" y="230" width="60" height="50" rx="14"/><rect x="420" y="20" width="80" height="50" rx="14"/></g><g class="m-roads"><path d="M0 300Q150 250 260 200T600 96"/><path d="M118 0Q160 160 204 380"/><path d="M40 130L600 210"/><path d="M340 0Q360 160 330 380"/></g>${o.route?'<path class="m-route" d="M78 88Q200 130 260 204T468 116"/>':''}${o.flag?`<g transform="translate(474 112)"><circle r="20" class="m-flag"/><path d="M-5 9V-9M-5-8h11l-2.4 4.5L6 1H-5" class="m-flag-i"/></g>`:''}${pins.map(pinG).join('')}</svg>`;
+}
+const locAll=()=>[...PINS,...(S.locSharing?[myPin()]:[])];
+
+/* ================= DASHBOARD ================= */
+const cdown=()=>`<div class="cdown" aria-label="Countdown"><div><b>${NOW_TO_GALA.d}</b><span>days</span></div><div><b>${NOW_TO_GALA.h}</b><span>hours</span></div><div><b>${NOW_TO_GALA.m}</b><span>mins</span></div></div>`;
+const seg3=()=>`<div class="seg sm3" role="group" aria-label="Your status">${['g','m','x'].map(k=>`<button aria-pressed="${S.att===k}" data-act="att" data-v="${k}">${ST[k].l}</button>`).join('')}</div>`;
+function routeStrip(){
+  const done=S.phase==='planning'?5:S.phase==='day'?6:8;
+  const R=[['G tayo?','sparkle','dashboard'],['When','calendar','settings'],["Who's G?",'users','attendance'],['Plan','route','itinerary'],['How much','calc','budget'],['What we need','checklist','checklist'],['Where is everyone','pin','location'],['OTW na.','nav','location']];
+  return `<div class="routewrap"><ol class="route">${R.map((r,i)=>`<li class="rs ${i<done?'done':i===done?'cur':'lock'}"><button data-go="${r[2]}"><span class="dot">${ic(i<done?'check':r[1],18)}</span><span class="rl">${r[0]}</span></button></li>`).join('')}</ol></div>`;
+}
+views.dashboard=()=>gate('dashboard',()=>{
+  const c=counts(),tot=budTotal(),pp=tot/S.bud.n,pk=S.items.filter(i=>i.d).length;
+  const F=[['attendance',"Who's G?",`${c.g} going · ${c.m} maybe`,'users','blossom','Attendance'],['itinerary',"What's the plan?",`${S.stops.length} stops on the route`,'route','zest','Itinerary'],['budget','How much?',`${peso(pp)} per person`,'calc','cream','Budget'],['expenses','Who paid?',`${peso(spent())} spent so far`,'wallet','teal','Ambagan'],['checklist','What are we bringing?',`${pk} of ${S.items.length} packed`,'checklist','blossom','Checklist'],['location','Where is everyone?',S.phase==='planning'?'Opens on gala day':S.locSharing?'You are sharing':'Tap to see who\'s OTW','nav','rosy','Live location'],['chat',"What's the chismis?",'2 new messages','chat','zest','Chat'],['dump','What did we get?',photoCount()?`${photoCount()} photos so far`:'No memories yet','image','cream','Gala Dump'],['couple','Just the two of you?','Same OTW energy.','heart','blossom','Couple Mode']];
+  let hero;
+  if(S.phase==='done')hero=`<section class="dhero bg-rosy"><div><h1 class="h1s">You made it happen.</h1><p class="lead2">From “G tayo?” to an actual day on the calendar.</p><button class="btn zest" data-go="completed">See the recap</button></div></section>`;
+  else if(S.phase==='day')hero=`<section class="dhero bg-rosy"><div><h1 class="h1s">Today's the day.</h1><p class="lead2">${G.title} · ${G.dest}</p><div class="pmeta">${tag('1 already there','cream','check')}${tag('1 almost there','zest','nav')}${tag('2 on the way','cream','clock')}</div></div><div class="dright"><button class="btn zest" data-go="location">${ic('map',20)} Open the map</button>${seg3()}</div></section>`;
+  else hero=`<section class="dhero bg-rosy"><div><h1 class="h1s">Let's get this gala together.</h1><h2 class="gt">${G.title}</h2><div class="pmeta">${tag(G.range,'cream','calendar')}${tag(G.dest,'cream','pin')}${tag(`${MEM.length} people`,'cream','users')}</div></div><div class="dright">${cdown()}<div class="mystat"><span>Your status</span>${seg3()}</div></div></section>`;
+  const banner=!S.acct&&S.banner?`<div class="banner"><span class="ico sm">${ic('sparkle',18)}</span><div><b>Want to keep your gala with you?</b><span>Save your galas, calendar, history and reminders. This gala works fine without an account.</span></div><button class="btn sm rosy" data-act="sheet" data-v="account">Create an Account</button><button class="ibtn" data-act="dismiss-banner" aria-label="Dismiss">${ic('x',20)}</button></div>`:'';
+  const rail=`<aside class="rail"><div class="card"><div class="rh"><h3>Who's in</h3>${tag(`${c.g} going`,'st-g','check')}</div><ul class="mlist">${MEM.slice(0,6).map(m=>`<li>${av(m.n,34,m.on)}<span>${m.n}${m.n==='Merylle'?' (you)':''}</span>${stBadge(m.n==='Merylle'?S.att:m.s)}</li>`).join('')}</ul><button class="lnk" data-go="attendance">See everyone</button></div><div class="card c-zest"><h3>Gala Code</h3><button class="codebig" data-act="copy" data-v="code">${G.code}${ic('copy',20)}</button><p class="fine">Friends join with this code.</p></div>${S.role==='leader'?`<div class="card"><h3>Gala Leader</h3><p class="fine">Edit details, manage members and access.</p><button class="btn sm teal" data-go="settings">${ic('sliders',18)} Manage gala</button></div>`:''}</aside>`;
+  return `${hero}${banner}${S.phase==='done'?'':routeStrip()}<div class="dgrid"><div class="fgrid">${F.map((f,i)=>`<button class="fcard c-${f[4]} lift" data-go="${f[0]}"><span class="ico" style="${blob(i)}">${ic(f[3],26)}</span><h3>${f[1]}</h3><p>${f[2]}</p>${tag(f[5],f[4]==='zest'?'cream':'zest')}</button>`).join('')}</div>${rail}</div>`;
+});
+
+/* ================= ATTENDANCE ================= */
+views.attendance=()=>gate('attendance',()=>{
+  const c=counts();
+  const grp=k=>MEM.filter(m=>(m.n==='Merylle'?S.att:m.s)===k);
+  return `${head("So... who's G?",'Change your status any time. Everyone sees it right away.')}<div class="choice" role="group" aria-label="Your status">${['g','m','x'].map(k=>`<button class="ch c-${k==='g'?'teal':k==='m'?'zest':'blossom'}" aria-pressed="${S.att===k}" data-act="att" data-v="${k}">${ic(ST[k].i,26)}<b>${ST[k].l}</b></button>`).join('')}</div>
+  <div class="tiles">${[['g','going','teal'],['m','maybe','zest'],['x',"can't make it",'blossom']].map(([k,l,bg],i)=>`<div class="tile c-${bg}" style="${blob(i+1)}"><b>${c[k]}</b><span>${l}</span></div>`).join('')}</div>
+  <div class="g g3 grp">${['g','m','x'].map(k=>`<div class="card"><div class="rh"><h3>${ST[k].b}</h3>${stBadge(k)}</div><ul class="mlist">${grp(k).map(m=>`<li>${av(m.n,34,m.on)}<span>${m.n}${m.n==='Merylle'?' (you)':''}</span>${k==='m'&&S.role==='leader'?`<button class="btn sm ghost" data-act="nudge" data-n="${m.n}">Nudge</button>`:''}</li>`).join('')||'<li class="fine">Nobody here yet.</li>'}</ul></div>`).join('')}</div>`;
+});
+
+/* ================= ITINERARY ================= */
+const TT={'Meet-up':'teal','Activity':'zest','Food':'blossom'};
+views.itinerary=()=>gate('itinerary',()=>{
+  const list=S.stops.map((s,i)=>`<li class="stop" draggable="true" data-i="${i}"><span class="stn" style="${blob(i)}">${i+1}</span><div class="card stopc"><span class="grip" aria-hidden="true">${ic('drag',20)}</span><div class="sbody"><div class="srow1"><b>${esc(s.p)}</b>${tag(esc(s.a),TT[s.a]||'cream')}</div><span class="stime">${ic('clock',14)}${esc(s.t)}</span>${s.n?`<p>${esc(s.n)}</p>`:''}<span class="addby">Added by ${av(s.w,20)}${esc(s.w)}</span></div><div class="sact"><button class="ibtn" data-act="stop-move" data-i="${i}" data-d="-1" aria-label="Move up" ${i===0?'disabled':''}>${ic('chevu',20)}</button><button class="ibtn" data-act="stop-move" data-i="${i}" data-d="1" aria-label="Move down" ${i===S.stops.length-1?'disabled':''}>${ic('chevd',20)}</button><button class="ibtn" data-act="stop-del" data-i="${i}" aria-label="Remove stop">${ic('trash',20)}</button></div></div></li>`).join('');
+  return `<div class="phead row between"><div>${tag('The Gala Route','zest','route')}<h2 class="h2">Okay, what's the plan?</h2><p class="sub">Add the places, activities, food stops, and everything in between.</p></div><button class="btn rosy hide-m" data-act="sheet" data-v="addStop">${ic('plus',20)} Add a Stop</button></div><div class="two-col"><ol class="stops" id="stops">${list}</ol><aside class="mapcard card hide-m">${mapSvg({flag:true,route:true,pins:[]})}<div class="mapnote">${ic('pin',16)} ${S.stops.length} stops · Manila to Baguio</div></aside></div><p class="fine hint only-m-block">Use the arrows to reorder. Drag works on desktop.</p>`;
+});
+
+/* ================= CHECKLIST ================= */
+views.checklist=()=>gate('checklist',()=>{
+  const it=S.items.map((x,i)=>({...x,i})),f=S.chkF,shown=it.filter(x=>f==='all'||(f==='mine'&&x.w==='Merylle')||(f==='done'&&x.d));
+  const pk=it.filter(x=>x.d).length,pct=it.length?Math.round(pk/it.length*100):0;
+  return `${head("Don't forget the important stuff.",'Because someone always forgets the charger.')}<div class="card prog"><div class="rh"><b>${pk} of ${it.length} packed</b><span>${pct}%</span></div><div class="bar"><i style="width:${pct}%"></i></div>${pk===it.length&&it.length?`<p class="fine">All packed. Walang naiwan.</p>`:''}</div>
+  <div class="row between wrapr"><div class="seg" role="group">${[['all','All'],['mine','Mine'],['done','Done']].map(([k,l])=>`<button aria-pressed="${f===k}" data-act="chk-f" data-v="${k}">${l}</button>`).join('')}</div><button class="btn rosy hide-m" data-act="sheet" data-v="addItem">${ic('plus',20)} Add to Checklist</button></div>
+  <ul class="clist">${shown.map(x=>`<li class="crow ${x.d?'done':''}"><button class="cbox" role="checkbox" aria-checked="${!!x.d}" data-act="chk" data-i="${x.i}" aria-label="${esc(x.t)}">${x.d?ic('check',18):''}</button><span class="ct">${esc(x.t)}</span>${x.w?`<span class="asg">${av(x.w,24)}${esc(x.w)}</span>`:`<button class="btn sm zest" data-act="claim" data-i="${x.i}">Claim</button>`}<button class="ibtn" data-act="chk-del" data-i="${x.i}" aria-label="Delete ${esc(x.t)}">${ic('trash',18)}</button></li>`).join('')||`<li class="fine">Nothing in this view.</li>`}</ul>`;
+});
+
+/* ================= BUDGET ================= */
+const BC=[['tr','Transportation','bus'],['st','Stay','home'],['fo','Food','food'],['ac','Activities','flag'],['ot','Other','more']];
+const BCOL=['teal','rosy','zest','blossom','teal-dark'];
+views.budget=()=>gate('budget',()=>{
+  const tot=budTotal();
+  return `${head("Let's talk gastos.",'Estimate the budget before anyone starts saying, “Magkano ba kailangan?”',tag('Before the gala','zest','calc'))}<div class="two-col bud"><div class="card"><h3>Estimated costs</h3><div class="brows">${BC.map(([k,l,i])=>`<label class="brow"><span class="ico sm">${ic(i,20)}</span><span class="bl">${l}</span><span class="peso"><i>₱</i><input class="in num" type="number" min="0" step="100" inputmode="numeric" data-bud="${k}" value="${S.bud[k]}" aria-label="${l} estimate"></span></label>`).join('')}</div><div class="brow ppl"><span class="ico sm">${ic('users',20)}</span><span class="bl">How many people?</span><div class="stepper"><button class="ibtn" data-act="bud-n" data-d="-1" aria-label="Fewer people">${ic('chevl',18)}</button><b id="bn">${S.bud.n}</b><button class="ibtn" data-act="bud-n" data-d="1" aria-label="More people">${ic('chevr',18)}</button></div></div></div>
+  <div class="bres"><div class="card c-zest big"><span>Estimated total</span><b id="bt-total">${peso(tot)}</b></div><div class="card c-rosy big"><span>Estimated per person</span><b id="bt-pp">${peso(tot/S.bud.n)}</b></div><div class="card"><div class="splitbar" id="bsplit">${BC.map(([k],i)=>`<i class="sb-${BCOL[i]}" style="width:${tot?S.bud[k]/tot*100:0}%"></i>`).join('')}</div><ul class="legend">${BC.map(([k,l],i)=>`<li><i class="sb-${BCOL[i]}"></i>${l}<b id="bl-${k}">${peso(S.bud[k])}</b></li>`).join('')}</ul></div><button class="lnk" data-go="expenses">Ready to track real spending? Go to Ambagan</button></div></div>`;
+});
+function updBud(){
+  const tot=budTotal();
+  const a=$('#bt-total');if(a)a.textContent=peso(tot);
+  const b=$('#bt-pp');if(b)b.textContent=peso(tot/S.bud.n);
+  const n=$('#bn');if(n)n.textContent=S.bud.n;
+  BC.forEach(([k],i)=>{const l=$('#bl-'+k);if(l)l.textContent=peso(S.bud[k]);const seg=$$('#bsplit i')[i];if(seg)seg.style.width=(tot?S.bud[k]/tot*100:0)+'%'});
+}
+
+/* ================= EXPENSES ================= */
+function calcDebts(){
+  const total=spent(),share=total/SHARERS.length,net={};
+  SHARERS.forEach(n=>net[n]=-share);S.exp.forEach(e=>{net[e.w]=(net[e.w]||0)+e.a});
+  const cr=Object.entries(net).filter(([,v])=>v>.5).map(([n,v])=>({n,v})).sort((a,b)=>b.v-a.v);
+  const db=Object.entries(net).filter(([,v])=>v<-.5).map(([n,v])=>({n,v:-v})).sort((a,b)=>b.v-a.v);
+  const out=[];let ci=0;
+  db.forEach(d=>{let rem=d.v;while(rem>.5&&ci<cr.length){const c=cr[ci],x=Math.min(rem,c.v);out.push({f:d.n,t:c.n,a:Math.round(x)});rem-=x;c.v-=x;if(c.v<.5)ci++}});
+  return {out,share};
+}
+const debtKey=d=>d.f+'>'+d.t;
+views.expenses=()=>gate('expenses',()=>{
+  const {out,share}=calcDebts(),unpaid=out.filter(d=>!S.paid[debtKey(d)]);
+  const paidBy=S.exp.filter(e=>e.w==='Merylle').reduce((a,e)=>a+e.a,0);
+  const owed=unpaid.filter(d=>d.t==='Merylle').reduce((a,d)=>a+d.a,0)-unpaid.filter(d=>d.f==='Merylle').reduce((a,d)=>a+d.a,0);
+  const rem=owed>0?peso(owed):owed<0?peso(-owed):peso(0);
+  const row=d=>{const done=S.paid[debtKey(d)];return `<li class="drow ${done?'paid':''}">${av(d.f,30)}<span class="dt">${d.f==='Merylle'?'You owe':`${d.f} owes`} <b>${d.t==='Merylle'?'you':d.t}</b></span><b class="da">${peso(d.a)}</b>${done?tag('Paid','st-g','check'):`<button class="btn sm teal" data-act="paid" data-k="${debtKey(d)}">Mark paid</button>`}</li>`};
+  const mine=out.filter(d=>d.t==='Merylle'||d.f==='Merylle'),others=out.filter(d=>!(d.t==='Merylle'||d.f==='Merylle'));
+  const settled=out.length&&!unpaid.length;
+  return `${head('Okay, sino nag-abono?','Track what was actually spent and who still owes whom.',tag('Ambagan','zest','wallet'))}<div class="tiles t4"><div class="tile c-cream"><b>${peso(spent())}</b><span>Total spent</span></div><div class="tile c-blossom"><b>${peso(share)}</b><span>Your share</span></div><div class="tile c-zest"><b>${peso(paidBy)}</b><span>You've paid</span></div><div class="tile c-teal"><b>${rem}</b><span>Remaining · ${owed>0?"you're owed":owed<0?'you owe':'all clear'}</span></div></div>
+  <div class="two-col exp"><div class="card"><div class="rh"><h3>Expenses</h3><button class="btn sm rosy hide-m" data-act="sheet" data-v="addExp">${ic('plus',18)} Add expense</button></div><ul class="elist">${S.exp.map(e=>`<li class="erow">${av(e.w,34)}<div class="eb"><b>${esc(e.n)}</b><span>${tag(esc(e.c),'blossom')} Paid by ${esc(e.w)} · ${esc(e.d)} · split ${SHARERS.length} ways</span></div><b class="ea">${peso(e.a)}</b></li>`).join('')}</ul></div>
+  <div class="card owes"><div class="rh"><h3>Who owes whom</h3></div>${settled?`<div class="settled"><span class="ico xl cel" style="${blob(4)}">${ic('burst',40)}</span><h3>All settled. Walang may habol.</h3></div>`:''}<h4 class="sh">With you</h4><ul class="dl">${mine.map(row).join('')||'<li class="fine">Nothing between you and anyone.</li>'}</ul>${others.length?`<h4 class="sh">Everyone else</h4><ul class="dl">${others.map(row).join('')}</ul>`:''}</div></div>`;
+});
+
+/* ================= CHAT ================= */
+views.chat=()=>gate('chat',()=>{
+  const msgs=S.msgs.map((m,i)=>{
+    if(m.k==='sys')return `<div class="msys">${ic('sparkle',12)}<span>${esc(m.x)}</span><i>${m.tm}</i></div>`;
+    if(m.k==='new')return `<div class="mnew"><span>2 new</span></div>`;
+    if(m.k==='card')return `<div class="mcard"><span class="ico sm">${ic('route',20)}</span><div><b>${esc(m.w)} ${esc(m.x)}</b><span>${esc(m.card)}</span></div><button class="lnk" data-go="itinerary">View</button></div>`;
+    const me=m.w==='Merylle',mm=byName(m.w);
+    return `<div class="msg ${me?'me':''}">${me?'':av(m.w,32,mm.on)}<div class="mb"><span class="mn">${me?'You':esc(m.w)}<i>${m.tm}</i></span><p>${esc(m.x)}</p><button class="react ${m.rm?'on':''}" data-act="react" data-i="${i}" aria-label="React with a heart">${ic('heart',14)}${m.r||''}</button></div></div>`;
+  }).join('');
+  return `<div class="chatwrap"><div class="chatcol"><div class="pinned"><span class="ico sm">${ic('flag',18)}</span><div><b>Locked in: ${G.range}</b><span>${G.dest} · ${S.stops.length} stops · ${peso(budTotal()/S.bud.n)} each</span></div><button class="lnk" data-go="itinerary">View plan</button></div><div class="chatlog" id="chatlog">${msgs}</div><div class="quick">${['G!','OTW na','Saan na?','Sino may car?'].map(q=>`<button class="chip" data-act="quick" data-v="${q}">${q}</button>`).join('')}</div><div class="composer"><input class="in" id="draft" placeholder="Say something to the gala…" aria-label="Message" autocomplete="off"><button class="btn sm rosy" data-act="send">${ic('send',18)}<span class="hide-m">Send</span></button></div></div>
+  <aside class="chatside"><div class="card"><h3>Locked in</h3><p class="fine">${G.title}</p><ul class="mini"><li>${ic('calendar',16)}${G.range}</li><li>${ic('pin',16)}${G.dest}</li><li>${ic('route',16)}${S.stops.length} stops</li></ul></div><div class="card"><h3>Online now</h3><ul class="mlist">${MEM.filter(m=>m.on).map(m=>`<li>${av(m.n,30,1)}<span>${m.n}${m.n==='Merylle'?' (you)':''}</span></li>`).join('')}</ul></div></aside></div>`;
+});
+
+/* ================= LOCATION ================= */
+views.location=()=>gate('location',()=>{
+  const denied=S.state==='error',pins=locAll(),sel=pins.find(p=>p.n===S.selPin);
+  const arrived=pins.filter(p=>p.st==='there').length,almost=pins.filter(p=>p.st==='almost').length,otw=pins.filter(p=>p.st==='otw').length;
+  const banner=denied?`<div class="lbar deny">${ic('alert',24)}<div><b>Location is blocked for OTW.</b><span>Turn it on in your browser's site settings: open the lock icon by the address bar, set Location to Allow, then try again. You can still set your status by hand below.</span></div><button class="btn sm rosy" data-act="retry">${ic('refresh',18)} Try again</button></div>`
+   :S.locSharing?`<div class="lbar on"><i class="live"></i><div><b>You're sharing your location.</b><span>Visible to the 7 people in this gala, only while sharing is on.</span></div><button class="btn sm cream" data-act="loc-stop">Stop sharing</button></div>`
+   :`<div class="lbar"><span class="ico sm">${ic('lock',20)}</span><div><b>Your location is private.</b><span>Nobody sees where you are until you choose to share.</span></div><button class="btn sm rosy" data-act="sheet" data-v="locPerm">Share my location</button></div>`;
+  const list=[...PINS,myPin()].sort((a,b)=>['there','almost','otw','home'].indexOf(a.st)-['there','almost','otw','home'].indexOf(b.st));
+  return `${head("Who's actually OTW?",'Less “Nasaan ka na?” More “2 minutes away.”',tag('OTW na ba talaga? Now you can actually see.','zest','nav'))}${banner}
+  <div class="locgrid"><div class="mapcard card">${mapSvg({flag:true,pins:S.state==='empty'?[]:pins,route:!!sel})}<div class="mapstat">${tag(`${arrived} arrived`,'l-there','check')}${tag(`${almost} almost there`,'l-almost','nav')}${tag(`${otw} on the way`,'l-otw','clock')}</div>${sel?`<div class="callout">${av(sel.n,36)}<div><b>${sel.n}${sel.me?' (you)':''}</b><span>${sel.eta}</span></div><button class="ibtn" data-act="pin-x" aria-label="Close">${ic('x',18)}</button></div>`:''}</div>
+  <div class="locside"><div class="card"><h3>Your status</h3><p class="fine">Works with or without GPS. Friends see it either way.</p><div class="seg wrapseg" role="group">${Object.entries(LOC).map(([k,v])=>`<button aria-pressed="${S.locStatus===k}" data-act="loc-status" data-v="${k}">${v.l}</button>`).join('')}</div></div>
+  <div class="card"><h3>Everyone</h3><ul class="mlist">${list.map(p=>`<li data-act="pin" data-n="${p.n}" class="clickrow">${av(p.n,32)}<span>${p.n}${p.me?' (you)':''}<i class="eta">${p.eta}</i></span>${tag(LOC[p.st].l,LOC[p.st].cls)}</li>`).join('')}<li>${av('Josh',32)}<span>Josh<i class="eta">Not sharing</i></span></li></ul></div>
+  <div class="card priv"><h3>Privacy</h3><ul class="mini"><li>${ic('users',16)}<span><b>Who can see:</b> only people who joined this gala.</span></li><li>${ic('clock',16)}<span><b>When:</b> only while sharing is on. It stops 3 hours after the gala ends.</span></li><li>${ic('x',16)}<span><b>Stop:</b> one tap, any time, from this screen.</span></li></ul></div></div></div>`;
+});
+
+/* ================= DUMP ================= */
+const getPhotos=()=>[...S.upl.filter(u=>u.done).map(u=>u.p),...PH.slice(0,S.phase==='planning'?0:S.phase==='day'?6:12).filter(p=>!S.delPh.includes(p.t))];
+views.dump=()=>gate('dump',()=>{
+  let ph=getPhotos().map((p,i)=>({...p,i}));if(S.phF==='mine')ph=ph.filter(p=>p.w==='Merylle');
+  const fail=S.state==='error';
+  if(!ph.length&&!fail)return empty(EMPTY.dump);
+  const tile=p=>`<div class="phw" style="height:${p.h}px"><button class="ph c-${p.c}" data-act="photo" data-i="${p.i}" aria-label="Open photo: ${esc(p.t)}">${ic('image',32,'ph-i')}<span class="ph-cap"><b>${esc(p.t)}</b><i>${p.w} · ${p.d}</i></span></button>${p.w==='Merylle'?`<button class="ibtn ph-del" data-act="sheet" data-v="delPhoto" data-i="${p.i}" aria-label="Delete photo">${ic('trash',18)}</button>`:''}</div>`;
+  const failed=fail?[0,1].map(n=>`<div class="phw" style="height:170px"><div class="ph failed">${ic('alert',28)}<b>Didn't upload</b><button class="btn sm rosy" data-act="retry">${ic('refresh',16)} Retry</button></div></div>`).join(''):'';
+  return `<div class="phead row between"><div><h2 class="h2">The Gala Dump</h2><p class="sub">All the good shots, bad shots, random candids, and “send mo nga” moments in one place.</p></div><div class="row wrapr hide-m"><button class="btn rosy" data-act="sheet" data-v="upload">${ic('upload',20)} Add Photos</button><button class="btn ghost" data-act="photo" data-i="0">View Photos</button></div></div>${fail?`<div class="lbar deny">${ic('alert',24)}<div><b>2 photos didn't upload.</b><span>Check your connection and try again. Nothing else was lost.</span></div><button class="btn sm rosy" data-act="retry">Retry all</button></div>`:''}<div class="row between wrapr"><div class="seg" role="group">${[['all','Everyone'],['mine','Mine']].map(([k,l])=>`<button aria-pressed="${S.phF===k}" data-act="ph-f" data-v="${k}">${l}</button>`).join('')}</div><span class="fine">${ph.length} photos</span></div><div class="masonry">${failed}${ph.map(tile).join('')}</div>`;
+});
+function lbHtml(){
+  if(S.lb===null)return '';
+  const ph=getPhotos(),n=ph.length;if(!n)return '';
+  const i=((S.lb%n)+n)%n,p=ph[i];
+  return `<div class="lb" role="dialog" aria-modal="true" aria-label="Photo viewer"><button class="ibtn lb-x" data-act="lb-close" aria-label="Close">${ic('x',26)}</button><div class="lb-stage"><button class="ibtn lb-n" data-act="lb-prev" aria-label="Previous photo">${ic('chevl',30)}</button><div class="lb-img c-${p.c}">${ic('image',72)}</div><button class="ibtn lb-n" data-act="lb-next" aria-label="Next photo">${ic('chevr',30)}</button></div><div class="lb-cap"><b>${esc(p.t)}</b><span>${p.w} · ${p.d}</span><span class="lb-c">${i+1} / ${n}</span><span class="fine only-m-block">Swipe to browse</span></div></div>`;
+}
+
+/* ================= COUPLE ================= */
+const IDEAS=[['Sunset at the park','Free · 2 hrs'],['Coffee crawl','₱600 · 3 hrs'],['Picnic with a playlist','₱400 · 2 hrs'],['Night market food trip','₱800 · 3 hrs'],['Museum, then merienda','₱700 · 4 hrs'],['Movie night at home','₱250 · 3 hrs']];
+views.couple=()=>gate('couple',()=>{
+  if(!S.couple)return `<div class="cintro"><span class="ico xl cel" style="${blob(1)}">${ic('heart',44)}</span><h2 class="h2">Just the two of you?</h2><p class="sub">Same OTW energy. Smaller passenger count.</p><div class="g g4 cprev">${[['sparkle','Date Ideas'],['pin','Places to Go'],['calc','Budget for Two'],['image','Our Photos']].map((c,i)=>`<div class="card c-blossom"><div class="ico sm" style="${blob(i)}">${ic(c[0],20)}</div><b>${c[1]}</b></div>`).join('')}</div><button class="btn rosy" data-act="couple-start">Start Couple Mode</button><p class="fine">It's still OTW: your own code, your own plan, and it shows up in My Galas.</p></div>`;
+  const tabs=[['ideas','Date Ideas'],['places','Places to Go'],['budget','Budget for Two'],['photos','Our Photos']];
+  const tot=S.cb.fo+S.cb.tr+S.cb.ac;
+  let body='';
+  if(S.coupleTab==='ideas')body=`<div class="g g2 ideas">${IDEAS.map((d,i)=>`<div class="card idea"><div><b>${d[0]}</b><span>${d[1]}</span></div><button class="ibtn heart ${S.ideas[i]?'on':''}" data-act="idea" data-i="${i}" aria-pressed="${!!S.ideas[i]}" aria-label="Save idea">${ic('heart',24)}</button></div>`).join('')}</div><p class="fine">${Object.values(S.ideas).filter(Boolean).length} saved to your plan.</p>`;
+  else if(S.coupleTab==='places')body=`<ul class="mlist plc">${[['Burnham Park','Sunset walk'],['Session Road','Coffee stop'],['Night market','Dinner']].map((p,i)=>`<li><span class="stn" style="${blob(i)}">${i+1}</span><span><b>${p[0]}</b><i class="eta">${p[1]}</i></span></li>`).join('')}</ul><button class="btn sm rosy" data-act="noop" data-t="This opens the Add a Place sheet.">${ic('plus',18)} Add a place</button>`;
+  else if(S.coupleTab==='budget')body=`<div class="two-col bud"><div class="card"><div class="brows">${[['fo','Food','food'],['tr','Transportation','bus'],['ac','Activities','flag']].map(([k,l,i])=>`<label class="brow"><span class="ico sm">${ic(i,20)}</span><span class="bl">${l}</span><span class="peso"><i>₱</i><input class="in num" type="number" min="0" step="100" data-cbud="${k}" value="${S.cb[k]}" aria-label="${l}"></span></label>`).join('')}</div></div><div class="bres"><div class="card c-zest big"><span>Total for two</span><b id="cb-tot">${peso(tot)}</b></div><div class="card c-rosy big"><span>Each</span><b id="cb-pp">${peso(tot/2)}</b></div></div></div>`;
+  else body=`<div class="masonry m2">${PH.slice(0,4).map((p,i)=>`<div class="phw" style="height:${p.h-30}px"><div class="ph c-${p.c}">${ic('image',30,'ph-i')}<span class="ph-cap"><b>${['Us at the park','Coffee stop','Dinner date','Random candid'][i]}</b><i>You · Nov 14</i></span></div></div>`).join('')}</div>`;
+  return `<div class="chero bg-blossom"><div class="cpair">${av('Merylle',52)}<span class="heartb">${ic('heart',22)}</span>${av('Tin',52)}</div><div><h2 class="h2">Us, Baguio</h2><span class="fine">Couple gala · code OTW-2R9X · ${tag('2 people','cream','users')}</span></div></div><div class="ctabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${S.coupleTab===k}" class="${S.coupleTab===k?'on':''}" data-act="couple-tab" data-v="${k}">${l}</button>`).join('')}</div>${body}`;
+});
+
+/* ================= SETTINGS ================= */
+S.perm={edit:1,photos:1,own:1,loc:1};
+const sw=(k)=>`<button class="sw ${S.perm[k]?'on':''}" role="switch" aria-checked="${!!S.perm[k]}" data-act="tog" data-k="${k}"><i></i></button>`;
+views.settings=()=>gate('settings',()=>{
+  if(S.role!=='leader')return `${head('Your settings',`You're a member of ${G.title}.`,tag('Member','blossom','user'))}<div class="two-col set"><div class="card"><h3>You in this gala</h3><label class="fl">Your name<input class="in" value="Merylle"></label><div class="srow2"><div><b>Share location on gala day</b><span class="fine">Only people in this gala can see it.</span></div>${sw('loc')}</div></div><div class="card"><h3>Coming back later</h3><p class="fine">You'll need the gala code and the gala password. Ask your Gala Leader if you don't have it.</p><button class="btn sm ghost" data-act="sheet" data-v="leave">Leave gala</button></div></div>`;
+  return `${head('Gala settings','You lead this gala, so these controls are yours.',tag('Gala Leader','zest','crown'))}<div class="two-col set"><div class="col"><div class="card"><h3>Gala details</h3><label class="fl">Title<input class="in" value="${G.title}"></label><label class="fl">Date<input class="in" value="${G.range}"></label><label class="fl">Destination<input class="in" value="${G.dest}"></label><button class="btn sm rosy" data-act="noop" data-t="Saved.">Save changes</button></div><div class="card"><h3>Access</h3><div class="srow2"><div><b>Gala Code</b><span class="fine">${G.code}</span></div><button class="btn sm teal" data-act="copy" data-v="code">${ic('copy',16)} Copy</button></div><div class="srow2"><div><b>Gala Password</b><span class="fine">••••••••••</span></div><button class="btn sm ghost" data-act="noop" data-t="Password change opens here.">Change</button></div><button class="lnk" data-act="sheet" data-v="reset">Make a new gala code</button></div></div>
+  <div class="col"><div class="card"><h3>Members</h3><ul class="mlist">${MEM.slice(0,5).map(m=>`<li>${av(m.n,30)}<span>${m.n}${m.n==='Merylle'?' (you)':''}</span>${m.n==='Merylle'?tag('Leader','zest','crown'):`<button class="ibtn" data-act="sheet" data-v="remove" data-n="${m.n}" aria-label="Remove ${m.n}">${ic('x',18)}</button>`}</li>`).join('')}</ul></div><div class="card"><h3>What members can do</h3><div class="srow2"><b>Edit the plan</b>${sw('edit')}</div><div class="srow2"><b>Add photos</b>${sw('photos')}</div><div class="srow2"><b>Delete only their own photos</b>${sw('own')}</div><div class="srow2"><b>Share live location</b>${sw('loc')}</div></div><div class="card danger"><h3>Danger zone</h3><div class="row wrapr"><button class="btn sm ghost" data-act="sheet" data-v="archive">Archive gala</button><button class="btn sm rosy" data-act="sheet" data-v="delete">Delete gala</button></div></div></div></div>`;
+});
+
+/* ================= COMPLETED ================= */
+views.completed=()=>gate('completed',()=>`<section class="dhero bg-rosy done"><div><span class="ico xl cel" style="${blob(0)}">${ic('burst',44)}</span><h1 class="h1s">You made it happen.</h1><p class="lead2">From “G tayo?” to an actual day on the calendar.</p></div></section><div class="tiles t4"><div class="tile c-teal"><b>7</b><span>people went</span></div><div class="tile c-zest"><b>${S.stops.length}</b><span>stops on the route</span></div><div class="tile c-blossom"><b>${peso(spent())}</b><span>spent · all settled</span></div><div class="tile c-cream"><b>48</b><span>photos in the Dump</span></div></div><div class="g g4 acts"><button class="btn teal" data-go="dump">View Gala Dump</button><button class="btn zest" data-go="expenses">View Expenses</button><button class="btn cream" data-go="itinerary">View Itinerary</button><button class="btn rosy" data-go="plan" data-set='{"pstep":0,"plan":null}'>Plan Another Gala</button></div>${routeChips('all')}<p class="closing">Until the next “G tayo?”</p>`);
+
+/* ================= ACCOUNT ================= */
+const fd=s=>new Date(s+'T00:00:00');
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const STAT={ongoing:['Ongoing','l-there','burst'],upcoming:['Upcoming','st-m','calendar'],done:['Completed','st-g','check'],draw:['Mga Drawing','cream','notepad']};
+const gcard=g=>{const d=g.d?fd(g.d):null,[sl,sc,si]=STAT[g.st];return `<article class="gcard card ${g.cur&&S.savedNew?'fresh':''}"><span class="gdate">${d?`${d.getDate()}<i>${MON[d.getMonth()]}</i>`:`<i>TBD</i>`}</span><div class="gcb"><h3>${g.n}</h3><p>${ic('pin',14)}${g.dest} ${ic('users',14)}${g.m} people</p><div class="row wrapr">${tag(sl,sc,si)}${tag(g.role,g.role==='Leader'?'zest':'blossom',g.role==='Leader'?'crown':'user')}${g.cur&&S.savedNew?tag('Just saved','rosy','sparkle'):''}</div></div>${g.st==='draw'?`<button class="btn sm teal" data-act="revive" data-n="${g.n}">Revive it</button>`:g.st==='done'?`<button class="btn sm cream" data-go="completed" data-set='{"phase":"done"}'>Recap</button>`:`<button class="btn sm teal" data-go="dashboard" data-set='{"role":"${g.role.toLowerCase()}"}'>Open</button>`}</article>`};
+function monthGrid(y,m){
+  const first=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate(),cells=[];
+  for(let i=0;i<first;i++)cells.push('<div class="dc empty"></div>');
+  for(let d=1;d<=dim;d++){const ev=GALAS.filter(g=>g.d&&fd(g.d)<=new Date(y,m,d)&&fd(g.e)>=new Date(y,m,d));const today=y===2026&&m===8&&d===29;cells.push(`<div class="dc ${today?'today':''} ${ev.length?'has':''}"><b>${d}</b>${ev.slice(0,2).map(e=>`<span class="ev e-${e.st}">${esc(e.n)}</span>`).join('')}</div>`)}
+  return `<div class="cal"><div class="cal-h"><button class="ibtn" data-act="cal-nav" data-d="-1" aria-label="Previous month">${ic('chevl',22)}</button><h3>${new Date(y,m,1).toLocaleString('en-US',{month:'long',year:'numeric'})}</h3><button class="ibtn" data-act="cal-nav" data-d="1" aria-label="Next month">${ic('chevr',22)}</button></div><div class="cal-w">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<span>${d}</span>`).join('')}</div><div class="cal-g">${cells.join('')}</div></div>`;
+}
+function weekGrid(){
+  const st=new Date(S.calWk),days=[...Array(7)].map((_,i)=>new Date(st.getFullYear(),st.getMonth(),st.getDate()+i));
+  return `<div class="cal"><div class="cal-h"><button class="ibtn" data-act="cal-nav" data-d="-1" aria-label="Previous week">${ic('chevl',22)}</button><h3>${MON[days[0].getMonth()]} ${days[0].getDate()}–${MON[days[6].getMonth()]} ${days[6].getDate()}</h3><button class="ibtn" data-act="cal-nav" data-d="1" aria-label="Next week">${ic('chevr',22)}</button></div><div class="week">${days.map(d=>{const ev=GALAS.filter(g=>g.d&&fd(g.d)<=d&&fd(g.e)>=d);return `<div class="wd ${ev.length?'has':''}"><span>${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</span><b>${d.getDate()}</b>${ev.map(e=>`<span class="ev e-${e.st}">${esc(e.n)}</span>`).join('')||'<i class="fine">Free</i>'}</div>`}).join('')}</div></div>`;
+}
+S.calWk=+new Date(2026,10,8);
+views.mygalas=()=>{
+  if(!S.acct)return `<div class="gate"><span class="ico xl cel" style="${blob(2)}">${ic('calendar',44)}</span><h2 class="h2">Save this gala for later?</h2><p class="sub">Create an account to keep your galas, calendar and history in one place. You can keep using OTW without one.</p><div class="row wrapr ctr-row"><button class="btn rosy" data-go="auth" data-set='{"authTab":"create","authCtx":true}'>Create an Account</button><button class="btn ghost" data-go="auth" data-set='{"authTab":"login","authCtx":false}'>Log in</button></div></div>`;
+  return gate('mygalas',()=>{
+    const v=S.calView,grp=(k,t)=>{const l=GALAS.filter(g=>g.st===k);return l.length?`<h3 class="gh">${t}</h3><div class="gl">${l.map(gcard).join('')}</div>`:''};
+    return `${head('Your Gala Calendar',"Keep track of what's coming up, what's being planned, and what's already happened.")}<div class="row between wrapr"><div class="seg" role="group">${[['upcoming','Upcoming'],['month','Month'],['week','Week']].map(([k,l])=>`<button aria-pressed="${v===k}" data-act="cal-view" data-v="${k}">${l}</button>`).join('')}</div><button class="btn sm rosy" data-go="plan">${ic('plus',18)} Plan a Gala</button></div>${v==='month'?monthGrid(S.calY,S.calM):v==='week'?weekGrid():grp('ongoing','Ongoing now')+grp('upcoming','Coming up')+grp('done','Completed')}`;
+  });
+};
+views.history=()=>gate('history',()=>`${head('Gala History','Everything you made happen, plus the plans still in the drawer.')}<div class="tiles t3"><div class="tile c-zest"><b>1</b><span>made it happen</span></div><div class="tile c-blossom"><b>8</b><span>people</span></div><div class="tile c-teal"><b>2</b><span>in Mga Drawing</span></div></div><h3 class="gh">Completed</h3><div class="gl">${GALAS.filter(g=>g.st==='done').map(gcard).join('')}</div><h3 class="gh">Mga Drawing</h3><p class="fine">Plans that got shelved. No judgment, and you can revive any of them.</p><div class="gl">${GALAS.filter(g=>g.st==='draw').map(gcard).join('')}</div>`);
+views.notifs=()=>gate('notifs',()=>{
+  const sel=NT.find(n=>n.k===S.notifSel)||NT[0];
+  return `${head('Notifications','Choose which reminders you get, even when you are not inside a gala.')}<div class="card permb ${S.notifPerm?'on':''}"><span class="ico sm">${ic('bell',20)}</span><div><b>${S.notifPerm?'Browser notifications are on.':'Turn on browser notifications'}</b><span class="fine">${S.notifPerm?'You can change this in your browser settings.':'Your browser will ask you to allow them.'}</span></div>${S.notifPerm?'':`<button class="btn sm rosy" data-act="notif-perm">Turn on notifications</button>`}</div><div class="two-col set"><div class="card"><ul class="nlist">${NT.map(n=>`<li class="${n.k===sel.k?'sel':''}"><button class="nsel" data-act="notif-sel" data-k="${n.k}"><span class="ico sm">${ic(n.i,18)}</span><span>${n.l}</span></button><button class="sw ${S.notif[n.k]?'on':''}" role="switch" aria-checked="${!!S.notif[n.k]}" data-act="notif-tog" data-k="${n.k}" aria-label="${n.l}"><i></i></button></li>`).join('')}</ul></div><div class="col"><h4 class="sh">Preview</h4><div class="push"><span class="ico sm">${ic(sel.i,20)}</span><div><b>${sel.t}</b><p>${sel.b}</p><i>OTW · now</i></div></div></div></div>`;
+});
+views.profile=()=>gate('profile',()=>`${head('Profile & settings','Basic details. That is all we keep.')}<div class="two-col set"><div class="card"><div class="row" style="gap:14px">${av('Merylle',64)}<div><h3>Merylle</h3><span class="fine">merylle@email.com</span></div></div><label class="fl">Display name<input class="in" value="Merylle"></label><label class="fl">Email<input class="in" value="merylle@email.com"></label><button class="btn sm rosy" data-act="noop" data-t="Profile saved.">Save profile</button></div><div class="card"><h3>On other devices</h3><p class="fine">Log in anywhere and your saved galas are there. Signing out never deletes a gala.</p><button class="btn sm ghost" data-act="signout">Sign out</button></div></div>`);
+/* ================= RENDER + NAVIGATION ================= */
+function render(nav){
+  const sc=SC[S.screen],old=$('#scr'),top=(!nav&&old)?old.scrollTop:0;
+  const body=sc.k==='pub'?`<div class="scroller pubs" id="scr">${views[S.screen]()}</div>`:sc.k==='focus'?focusShell(sc):appShell(sc);
+  app.innerHTML=body+sheetHtml()+lbHtml()+'<div id="toast" aria-live="polite"></div>';
+  const n=$('#scr');if(n&&top)n.scrollTop=top;
+  if(S.screen==='chat'){const l=$('#chatlog');if(l)l.scrollTop=l.scrollHeight}
+  syncChrome();
+}
+function applySet(set){const o=typeof set==='function'?set():set;Object.entries(o||{}).forEach(([k,v])=>{S[k]=(k==='plan'&&v===null)?blankPlan():v})}
+function go(key,set){
+  S.sheet=null;S.lb=null;S.state='default';S.perr='';S.sd={};applySet(set);S.screen=key;
+  if(S.jid!==null){const st=JR[S.jid].steps;let j=st.findIndex((s,i)=>i>=S.jstep&&s.s===key);if(j<0)j=st.findIndex(s=>s.s===key);if(j>=0)S.jstep=j}
+  render(true);
+}
+function startJourney(i){S.jid=i;applySet(JR[i].pre);S.jstep=0;gotoStep(0)}
+function gotoStep(i){const st=JR[S.jid].steps[i];S.jstep=i;go(st.s,st.set)}
+function scrollToId(id){const sc=$('#scr'),el=document.getElementById(id);if(sc&&el)sc.scrollTo({top:el.offsetTop-4,behavior:'smooth'})}
+function setState(st){
+  S.state=st;render();
+  if(st==='success'){toast(OKMSG[S.screen]||'Done. Nice.');burstMid()}
+}
+
+/* ================= SHEETS ================= */
+const CF={
+delPhoto:['Delete this photo?','It will be removed from the Gala Dump for everyone.','Delete photo'],
+leave:['Leave this gala?','You can come back any time with the gala code and password.','Leave gala'],
+reset:['Make a new gala code?','The old code stops working. People already in the gala stay in.','Make new code'],
+remove:['Remove this member?','They lose access to the gala until you let them back in.','Remove'],
+archive:['Archive this gala?','It moves to Gala History. Photos and expenses stay readable.','Archive gala'],
+delete:['Delete this gala?',"Everyone loses the plan, expenses and photos. This can't be undone.",'Delete gala']};
+function sheetHtml(){
+  const k=S.sheet;if(!k)return '';
+  const mem=SHARERS.map(n=>`<option>${n}</option>`).join('');
+  const W=(t,b,f)=>`<div class="ovl" data-act="sheet-close"></div><section class="sheet" role="dialog" aria-modal="true" aria-label="${t}"><div class="grab"></div><header><h3>${t}</h3><button class="ibtn" data-act="sheet-close" aria-label="Close">${ic('x',22)}</button></header><div class="shb">${b}</div>${f?`<footer>${f}</footer>`:''}</section>`;
+  const cancel=`<button class="btn ghost" data-act="sheet-close">Cancel</button>`;
+  if(CF[k]){const c=CF[k];return W(c[0],`<p>${c[1]}</p>`,`${cancel}<button class="btn rosy" data-act="confirm-do" data-v="${k}">${c[2]}</button>`)}
+  if(k==='share')return W('Share Gala',`<p class="fine">Send this to your GC. We never include the password.</p><div class="sharemsg">G tayo? Join our gala “${G.title}”.<br>Gala code: <b>${G.code}</b></div>`,`<button class="btn teal" data-act="copy" data-v="code">${ic('copy',18)} Copy code</button><button class="btn zest" data-act="noop" data-t="Your device's share sheet opens here.">${ic('share',18)} Share…</button>`);
+  if(k==='account')return W('Want to keep your gala with you?',`<p>Create an account to save your galas, keep a personal calendar, view your gala history, and get reminders.</p><ul class="ticks">${['Saved galas, one tap away','Your galas on any device','Reminders when the day gets close'].map(x=>`<li>${ic('check',18)}${x}</li>`).join('')}</ul><p class="fine">Your current gala can still continue without an account.</p>`,`<button class="btn ghost" data-act="sheet-close">Maybe Later</button><button class="btn rosy" data-go="auth" data-set='{"authTab":"create","authCtx":true}'>Create an Account</button>`);
+  if(k==='addStop')return W('Add a Stop',`<label class="fl">Place<input class="in" id="f-place" placeholder="Where are we going?"></label><div class="two-in"><label class="fl">Time<input class="in" id="f-time" type="time" value="16:00"></label><label class="fl">Type<select class="in" id="f-type"><option>Activity</option><option>Food</option><option>Meet-up</option></select></label></div><label class="fl">Notes (optional)<input class="in" id="f-note" placeholder="Anything people should know"></label>`,`${cancel}<button class="btn rosy" data-act="save-stop">Add a Stop</button>`);
+  if(k==='addItem')return W('Add to Checklist',`<label class="fl">What are we bringing?<input class="in" id="f-item" placeholder="Power bank, umbrella, extra shirt…"></label><label class="fl">Assign to<select class="in" id="f-who"><option value="">Nobody yet</option>${mem}</select></label>`,`${cancel}<button class="btn rosy" data-act="save-item">Add to Checklist</button>`);
+  if(k==='addExp')return W('Add an expense',`<label class="fl">What was it?<input class="in" id="f-en" placeholder="Jeepney, dinner, entrance fee…"></label><div class="two-in"><label class="fl">Amount<input class="in" id="f-ea" type="number" min="0" placeholder="₱0"></label><label class="fl">Paid by<select class="in" id="f-ew">${mem}</select></label></div><label class="fl">Category<select class="in" id="f-ec"><option>Food</option><option>Transportation</option><option>Stay</option><option>Activities</option><option>Other</option></select></label><p class="fine">Split equally between ${SHARERS.length} people.</p>`,`${cancel}<button class="btn rosy" data-act="save-exp">Add expense</button>`);
+  if(k==='locPerm')return W('Share your location with the gala?',`<ul class="mini big"><li>${ic('users',20)}<span><b>Who can see it:</b> only people who joined this gala.</span></li><li>${ic('clock',20)}<span><b>How long:</b> only while sharing is on. It stops 3 hours after the gala ends.</span></li><li>${ic('x',20)}<span><b>Stopping:</b> one tap on this screen, any time.</span></li></ul><p class="fine">Your browser will ask for permission next.</p>`,`<button class="btn ghost" data-act="sheet-close">Not now</button><button class="btn rosy" data-act="loc-allow">Share my location</button>`);
+  if(k==='upload')return W('Add Photos',`<div class="drop">${ic('upload',36)}<b>Drop photos here</b><span>or pick them from your ${S.device==='mobile'?'camera roll':'computer'}</span><button class="btn sm teal" data-act="up-run">Choose photos</button></div><ul class="uplist" id="uplist"></ul>`,`${cancel}<button class="btn rosy" id="updone" data-act="up-done" disabled>Done</button>`);
+  if(k==='more'){const l=[['attendance',"Who's G?",'users'],['itinerary','The plan','route'],['budget','Gastos','calc'],['expenses','Ambagan','wallet'],['checklist','Checklist','checklist'],['dump','Gala Dump','image'],['couple','Couple Mode','heart'],['settings','Settings','sliders'],[S.acct?'mygalas':'notifs',S.acct?'My Galas':'Save gala','calendar']];
+    return W('More',`<div class="morep">${l.map((x,i)=>`<button class="mo" data-go="${x[0]==='notifs'&&!S.acct?'auth':x[0]}" ${x[0]==='notifs'&&!S.acct?`data-set='{"authTab":"create","authCtx":true}'`:''}><span class="ico" style="${blob(i)}">${ic(x[2],24)}</span>${x[1]}</button>`).join('')}</div>`)}
+  return '';
+}
+function runUpload(){
+  const ul=$('#uplist');if(!ul)return;
+  ul.innerHTML=['IMG_2041.jpg','IMG_2042.jpg','IMG_2043.jpg'].map((n,i)=>`<li class="uprow" data-i="${i}">${ic('image',20)}<span class="un">${n}</span><div class="ubar"><i></i></div><span class="us">Uploading…</span></li>`).join('');
+  const check=()=>{const d=$('#updone');if(d&&$$('.uprow').every(r=>r.classList.contains('ok')))d.disabled=false};
+  $$('.uprow',ul).forEach((r,i)=>{const bar=$('i',r),ms=i===1?1100:1500+i*300;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition=`width ${ms}ms linear`;bar.style.width=i===1?'62%':'100%'}));
+    setTimeout(()=>{if(!r.isConnected)return;if(i===1){r.classList.add('fail');$('.us',r).innerHTML=`Failed at 62% <button class="lnk" data-act="up-retry">Retry</button>`}else{r.classList.add('ok');$('.us',r).textContent='Done'}check()},ms+60)});
+}
+
+/* ================= ACTIONS ================= */
+const A={
+'plan-example':()=>{S.plan.title='Baguio Before Graduation';S.perr='';render()},
+'plan-dest':t=>{S.plan.dest=t.dataset.v;S.perr='';render()},
+'plan-back':()=>{S.perr='';if(S.pstep>0){S.pstep--;render(true)}else go('landing')},
+'plan-next':t=>{
+  const p=S.plan,i=S.pstep;let e='';
+  if(i===0&&!p.title.trim())e='Give it a name first. Your GC needs something to search for.';
+  if(i===1&&!p.date)e='Pick a date, even a tentative one. “Someday” isn\'t a date.';
+  if(i===2&&!p.dest.trim())e='Saan tayo? Tell us where you\'re headed.';
+  if(i===3&&p.pw.length<6)e='Make it at least 6 characters.';
+  else if(i===3&&p.pw!==p.pw2)e='Hindi pa magkapareho. Check the password again.';
+  if(e){S.perr=e;render();return}
+  S.perr='';
+  if(i<3){S.pstep++;render(true);return}
+  S.busy=true;render();setTimeout(()=>{S.busy=false;go('created');burstMid()},700);
+},
+'pw-toggle':t=>{const inp=$('#'+(t.dataset.t||'pw1'));if(!inp)return;const show=inp.type==='password';inp.type=show?'text':'password';t.innerHTML=ic(show?'eyeoff':'eye',22)},
+'pw-reveal':()=>{S.sd.pwShow=!S.sd.pwShow;render()},
+'copy':(t)=>{try{navigator.clipboard&&navigator.clipboard.writeText(t.dataset.v==='pw'?(S.plan.pw||G.pw):G.code).catch(()=>{})}catch(e){}toast(t.dataset.v==='pw'?'Gala password copied.':'Gala code copied.');burstEl(t)},
+'join-example':()=>{S.joinCode=G.code;S.joinErr='';render()},
+'join-submit':()=>{if(S.joinCode.replace('-','')==='OTW7K2P'){S.joinErr='';S.joinStep=1;render(true)}else{S.joinErr='code';render()}},
+'join-back':()=>{S.joinStep=0;render(true)},
+'join-confirm':t=>{if(!S.joinName.trim()){S.joinErr='name';render();return}S.joinErr='';S.joinStep=2;S.role='member';render(true);burstMid()},
+'enter-example':()=>{S.enterCode=G.code;S.enterPw=G.pw;S.enterErr='';render()},
+'enter-submit':()=>{
+  if(S.enterCode.replace('-','')!=='OTW7K2P'){S.enterErr='code';render();return}
+  if(!S.enterPw||(S.enterPw!==G.pw&&S.enterPw!==S.plan.pw)){S.enterErr='pw';render();return}
+  S.enterErr='';S.enterStep=1;render(true);
+},
+'enter-who':t=>{const n=t.dataset.n;S.role=n==='Merylle'?'leader':'member';go('dashboard');toast(`Welcome back, ${n}.`);burstMid()},
+'auth-tab':t=>{S.authTab=t.dataset.v;render()},
+'auth-submit':()=>{const c=S.authTab==='create',ctx=S.authCtx;S.acct=true;if(c&&ctx)S.savedNew=true;go('mygalas');toast(c?(ctx?`Saved. ${G.title} is now in My Galas.`:'Account created. Welcome.'):'Welcome back.');burstMid()},
+'att':t=>{const k=t.dataset.v;S.att=k;const i=S.msgs.findIndex(m=>m.k==='new');S.msgs.push({k:'sys',x:`Merylle changed their status to ${ST[k].l}.`,tm:'Just now'});render();toast(k==='g'?"You're marked as G. The chat knows.":`Status updated: ${ST[k].l}.`);if(k==='g')burstMid()},
+'nudge':t=>toast(`Nudged ${t.dataset.n}.`),
+'stop-move':t=>{const i=+t.dataset.i,d=+t.dataset.d,j=i+d;if(j<0||j>=S.stops.length)return;[S.stops[i],S.stops[j]]=[S.stops[j],S.stops[i]];render();toast('Route updated.')},
+'stop-del':t=>{S.stops.splice(+t.dataset.i,1);render();toast('Stop removed.')},
+'save-stop':()=>{const p=$('#f-place').value.trim()||'New stop',tm=$('#f-time').value||'16:00',[h,m]=tm.split(':').map(Number);
+  S.stops.push({p,a:$('#f-type').value,t:`${((h+11)%12)+1}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`,n:$('#f-note').value.trim(),w:'Merylle'});
+  S.msgs.push({k:'card',w:'Merylle',x:'added a new itinerary stop',card:p,tm:'Just now'});S.sheet=null;render();toast('Stop added. Everyone can see it.');burstMid()},
+'save-item':()=>{const t=$('#f-item').value.trim()||'New item';S.items.push({t,w:$('#f-who').value,d:0});S.sheet=null;render();toast('Item added to the checklist.')},
+'save-exp':()=>{const a=Math.max(0,+$('#f-ea').value||0);if(!a){toast('Add an amount first.','err');return}
+  S.exp.push({n:$('#f-en').value.trim()||'Expense',c:$('#f-ec').value,a,w:$('#f-ew').value,d:'Today',note:''});S.paid={};S.sheet=null;render();toast('Expense added and split.');burstMid()},
+'chk':t=>{const it=S.items[+t.dataset.i];it.d=it.d?0:1;render();if(S.items.every(x=>x.d))burstMid()},
+'chk-f':t=>{S.chkF=t.dataset.v;render()},
+'chk-del':t=>{S.items.splice(+t.dataset.i,1);render();toast('Item removed.')},
+'claim':t=>{S.items[+t.dataset.i].w='Merylle';render();toast("It's yours now.")},
+'bud-n':t=>{S.bud.n=Math.max(1,Math.min(30,S.bud.n+ +t.dataset.d));updBud()},
+'paid':t=>{S.paid[t.dataset.k]=1;render();toast('Marked as paid.');const {out}=calcDebts();if(out.every(d=>S.paid[debtKey(d)]))burstMid()},
+'send':()=>{const i=$('#draft'),v=i&&i.value.trim();if(!v)return;S.msgs.push({k:'m',w:'Merylle',x:v,tm:'Just now'});render();const n=$('#draft');if(n)n.focus()},
+'quick':t=>{S.msgs.push({k:'m',w:'Merylle',x:t.dataset.v,tm:'Just now'});render()},
+'react':t=>{const m=S.msgs[+t.dataset.i];if(m.rm){m.r=(m.r||1)-1;m.rm=0}else{m.r=(m.r||0)+1;m.rm=1}render()},
+'loc-status':t=>{S.locStatus=t.dataset.v;render();toast(`Status: ${LOC[S.locStatus].l}.`);if(S.locStatus==='there')burstMid()},
+'loc-allow':()=>{S.sheet=null;S.locSharing=true;render();toast("You're sharing with 7 people.");burstMid()},
+'loc-stop':()=>{S.locSharing=false;S.selPin=null;render();toast('Location sharing stopped.')},
+'pin':t=>{S.selPin=t.dataset.n;render()},'pin-x':()=>{S.selPin=null;render()},
+'photo':t=>{S.lb=+t.dataset.i;render()},'lb-close':()=>{S.lb=null;render()},'lb-prev':()=>{S.lb--;render()},'lb-next':()=>{S.lb++;render()},
+'ph-f':t=>{S.phF=t.dataset.v;render()},
+'up-run':()=>runUpload(),
+'up-retry':t=>{const r=t.closest('.uprow'),bar=$('i',r);r.classList.remove('fail');$('.us',r).textContent='Uploading…';bar.style.transition='width 900ms linear';bar.style.width='100%';setTimeout(()=>{if(!r.isConnected)return;r.classList.add('ok');$('.us',r).textContent='Done';const d=$('#updone');if(d&&$$('.uprow').every(x=>x.classList.contains('ok')))d.disabled=false},960)},
+'up-done':()=>{const cs=['zest','rosy','teal'],hs=[240,200,260];[0,1,2].forEach(i=>S.upl.unshift({done:1,p:{h:hs[i],c:cs[i],t:`IMG_204${i+1}`,w:'Merylle',d:'Just now'}}));S.sheet=null;render();toast('3 photos added.');burstMid()},
+'retry':()=>{
+  if(S.screen==='location'){S.state='default';S.sheet='locPerm';render();return}
+  S.state='default';render();toast(S.screen==='dump'?'Photos uploaded.':'Back in business.');if(S.screen==='dump')burstMid();
+},
+'revive':t=>{const g=GALAS.find(x=>x.n===t.dataset.n);if(g)g.st='upcoming';render();toast('Plan revived. Pick a date when you\'re ready.')},
+'couple-start':()=>{S.couple=true;render();toast('Couple Mode is on.');burstMid()},
+'couple-tab':t=>{S.coupleTab=t.dataset.v;render()},
+'idea':t=>{const i=t.dataset.i;S.ideas[i]=S.ideas[i]?0:1;render();if(S.ideas[i])toast('Saved to your plan.')},
+'cal-view':t=>{S.calView=t.dataset.v;render()},
+'cal-nav':t=>{const d=+t.dataset.d;if(S.calView==='week'){S.calWk+=d*7*864e5}else{S.calM+=d;if(S.calM<0){S.calM=11;S.calY--}if(S.calM>11){S.calM=0;S.calY++}}render()},
+'notif-perm':()=>{S.notifPerm=true;render();toast('Reminders on.')},
+'notif-sel':t=>{S.notifSel=t.dataset.k;render()},
+'notif-tog':t=>{S.notif[t.dataset.k]=S.notif[t.dataset.k]?0:1;render()},
+'tog':t=>{S.perm[t.dataset.k]=S.perm[t.dataset.k]?0:1;render()},
+'signout':()=>{S.acct=false;go('landing');toast('Signed out. Your galas are still saved.')},
+'dismiss-banner':()=>{S.banner=false;render()},
+'sheet':t=>{S.sheet=t.dataset.v;S.sd={...t.dataset};render()},
+'sheet-close':()=>{S.sheet=null;render()},
+'noop':t=>toast(t.dataset.t||'Done.'),
+'confirm-do':t=>{
+  const k=t.dataset.v;S.sheet=null;
+  if(k==='delPhoto'){const ph=getPhotos(),p=ph[+S.sd.i];const u=S.upl.findIndex(x=>x.p===p);if(u>=0)S.upl.splice(u,1);else S.delPh.push(p.t);render();toast('Photo deleted.');return}
+  if(k==='leave'||k==='delete'){go('landing');toast(k==='leave'?'You left the gala.':'Gala deleted.');return}
+  if(k==='archive'){render();toast('Gala archived. Find it in Gala History.');return}
+  if(k==='reset'){render();toast('New gala code made: OTW-4M9Q.');return}
+  if(k==='remove'){render();toast(`${S.sd.n||'Member'} removed.`)}
+}};
+S.delPh=[];
+
+/* ---- delegated events ---- */
+app.addEventListener('click',e=>{
+  const t=e.target.closest('[data-go],[data-act],[data-scroll]');if(!t||!app.contains(t))return;
+  if(t.dataset.scroll){scrollToId(t.dataset.scroll);return}
+  if(t.dataset.go){go(t.dataset.go,t.dataset.set?jsonOr(t.dataset.set,{}):{});return}
+  const f=A[t.dataset.act];if(f)f(t,e);
+});
+app.addEventListener('input',e=>{
+  const el=e.target,m=el.dataset.model;
+  if(m){
+    if(m==='joinCode'||m==='enterCode'){let v=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7);if(v.length>3)v=v.slice(0,3)+'-'+v.slice(3);el.value=v;S[m]=v}
+    else if(m.startsWith('plan.')){S.plan[m.slice(5)]=el.value;if(m==='plan.pw'){const mt=$('#pwmeter');if(mt)mt.innerHTML=pwMeter(el.value)}}
+    else S[m]=el.value;
+    if(S.perr||S.joinErr||S.enterErr){S.perr=S.joinErr=S.enterErr='';el.classList.remove('bad');const fe=el.closest('.wform');const x=fe&&$('.ferr',fe);if(x)x.remove()}
+  }
+  if(el.dataset.bud){S.bud[el.dataset.bud]=Math.max(0,+el.value||0);updBud()}
+  if(el.dataset.cbud){S.cb[el.dataset.cbud]=Math.max(0,+el.value||0);const t=S.cb.fo+S.cb.tr+S.cb.ac,a=$('#cb-tot'),b=$('#cb-pp');if(a)a.textContent=peso(t);if(b)b.textContent=peso(t/2)}
+});
+app.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.id==='draft'){e.preventDefault();A.send()}
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-act="pin"][role="button"]')){e.preventDefault();A.pin(e.target)}
+});
+document.addEventListener('keydown',e=>{
+  if(!app.isConnected)return;
+  if(S.lb!==null){if(e.key==='Escape')A['lb-close']();if(e.key==='ArrowLeft')A['lb-prev']();if(e.key==='ArrowRight')A['lb-next']();return}
+  if(e.key==='Escape'&&S.sheet){S.sheet=null;render()}
+});
+let dragI=null;
+app.addEventListener('dragstart',e=>{const s=e.target.closest&&e.target.closest('.stop');if(!s)return;dragI=+s.dataset.i;s.classList.add('drag');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(dragI))});
+app.addEventListener('dragover',e=>{const s=e.target.closest&&e.target.closest('.stop');if(!s||dragI===null)return;e.preventDefault();$$('.stop.over').forEach(x=>x.classList.remove('over'));s.classList.add('over')});
+app.addEventListener('drop',e=>{const s=e.target.closest&&e.target.closest('.stop');if(!s||dragI===null)return;e.preventDefault();const to=+s.dataset.i,from=dragI;dragI=null;if(to===from)return;const [m]=S.stops.splice(from,1);S.stops.splice(to,0,m);render();toast('Route updated.')});
+app.addEventListener('dragend',()=>{dragI=null;$$('.stop.drag,.stop.over').forEach(x=>x.classList.remove('drag','over'))});
+let tx=null;
+app.addEventListener('touchstart',e=>{if(e.target.closest('.lb'))tx=e.touches[0].clientX},{passive:true});
+app.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>40){S.lb+=dx<0?1:-1;render()}},{passive:true});
+function dsHtml(){
+  const sw=[['Rosy','--rosy','#e0417c','Primary actions, hero, key highlights'],['Rosy dark','--rosy-dark','#c22e64','Rosy button shadow, pressed states'],['Zest','--zest','#f8e140','Secondary fills, badges, sparkle'],['Zest dark','--zest-dark','#c9b418','Zest button shadow'],['Blossom','--blossom','#eac7df','Soft backgrounds, cards, borders'],['Teal','--teal','#2f8aa3','Active nav, teal buttons, cool sections'],['Teal dark','--teal-dark','#1f6376','Body text, footer, teal shadow'],['Cream','--cream','#fff8f2','Neutral base. Replaces white everywhere']];
+  const light=['--zest','--blossom','--cream'];
+  const S1=`<div class="dsg sw">${sw.map(s=>`<div class="swc"><i style="background:var(${s[1]});color:var(${light.includes(s[1])?'--teal-dark':'--cream'})">${s[1]}</i><b>${s[0]}</b><span>${s[2]}</span><span class="fine">${s[3]}</span></div>`).join('')}</div>`;
+  const P=(t,b)=>`<div class="dsb"><h4>${t}</h4>${b}</div>`;
+  const ico=Object.keys(IC).filter(k=>!['sparkle','home2','sun'].includes(k));
+  const parts=[
+  ['Colors',S1],
+  ['Typography',`<div class="dsg two"><div class="card"><span class="fine">Fredoka 600 · display, buttons</span><p class="tdisp">From “G tayo?” to “OTW na.”</p><p class="tdisp s2">Okay, what's the plan?</p><p class="tdisp s3">Let's talk gastos.</p></div><div class="card"><span class="fine">Nunito 600–800 · body</span><p class="tb1">Finally, a place for all those gala plans na ilang buwan nang nasa group chat.</p><p class="tb2">Secondary text, helper copy, and metadata sit at this size and weight.</p><p class="fine">Sentence case throughout. No all-caps labels, no light weights, no serifs.</p></div></div>`],
+  ['Buttons',`<div class="dsrow bgz"><button class="btn rosy">Plan a Gala</button><button class="btn zest">Join a Gala</button><button class="btn teal">Add Photos</button><button class="btn cream">View Expenses</button><button class="btn ghost">Maybe Later</button><button class="btn rosy sm">Small</button><button class="btn rosy" disabled>Disabled</button><button class="btn rosy icon" aria-label="Add">${ic('plus',24)}</button></div><p class="fine">Pill shape, solid offset shadow in the button's own darker tone. Press one: it drops 5px and the shadow collapses to 2px.</p>`],
+  ['Inputs & controls',`<div class="dsg g3x"><label class="fl">Text<input class="in" placeholder="Baguio Before Graduation"></label><label class="fl">Gala code<input class="in code" value="OTW-7K2P"></label><label class="fl">Error<input class="in bad" value="OTW-9999"><span class="ferr sm">${ic('alert',16)}Hmm, hindi namin makita 'yan. Check the code and try again.</span></label><label class="fl">Select<select class="in"><option>Food</option><option>Transportation</option></select></label><div class="fl">Password<div class="inwrap"><input class="in" type="password" value="baguio2026" id="dspw"><button class="ibtn eye" onclick="const i=$('#dspw');i.type=i.type==='password'?'text':'password'" aria-label="Show or hide password">${ic('eye',22)}</button></div></div><div class="fl">Switch and checkbox<div class="row"><button class="sw on" role="switch" aria-checked="true" onclick="this.classList.toggle('on')"><i></i></button><button class="cbox" role="checkbox" aria-checked="true" onclick="this.classList.toggle('on')">${ic('check',18)}</button></div></div><div class="fl">Segmented tabs<div class="seg"><button aria-pressed="true">Upcoming</button><button aria-pressed="false">Month</button><button aria-pressed="false">Week</button></div></div><div class="fl">Chips<div class="chips"><button class="chip">${ic('sparkle',12)} Use example</button><button class="chip">${ic('pin',14)} Baguio City</button></div></div></div>`],
+  ['Cards',`<div class="dsg g3x"><div class="card"><h3>Base card</h3><p class="fine">Cream, 26px radius, 3px cream border.</p></div><div class="card blobcard" style="${blob(0)}"><h3>Blob card</h3><p class="fine">Asymmetric radius for a hand-cut feel.</p></div><button class="fcard c-zest lift"><span class="ico" style="${blob(2)}">${ic('route',26)}</span><h3>Feature card</h3><p>Lifts and tilts on hover (desktop only)</p></button><div class="card c-teal"><h3>Teal card</h3><p class="fine">Cream text on teal.</p></div><div class="card c-rosy"><h3>Rosy card</h3><p class="fine">Reserved for headline numbers.</p></div><article class="gcard card"><span class="gdate">14<i>Nov</i></span><div class="gcb"><h3>Baguio Before Graduation</h3><p>${ic('pin',14)}Baguio City ${ic('users',14)}10 people</p></div></article></div>`],
+  ['Navigation',`<div class="dsg two"><div class="dsb dk-b"><h4 class="cr">Sidebar item (desktop)</h4><div class="dsside"><button class="sn on">${ic('home',22)}<span class="lbl">Home</span></button><button class="sn">${ic('users',22)}<span class="lbl">Who's G?</span></button><button class="sn">${ic('chat',22)}<span class="lbl">Chismis</span><em class="badge">2</em></button></div></div><div class="dsb"><h4>Mobile bottom nav: exactly three, no labels</h4><div class="dsbn"><button class="bn on" aria-label="Home">${ic('home',26)}</button><button class="bn" aria-label="Chat">${ic('chat',26)}<em class="badge">2</em></button><button class="bn" aria-label="Map">${ic('map',26)}</button></div><p class="fine">Active = solid teal with a teal-dark shadow. Inside a gala the three are Home, Chat, Map. In the account area they are Home, Notifications, Profile.</p></div><div class="dsb"><h4>Plan tabs (mobile and tablet)</h4><div class="ptabs static">${["Who's G?",'The plan','Gastos','Ambagan','Checklist'].map((l,i)=>`<button class="${i===1?'on':''}">${l}</button>`).join('')}</div></div><div class="dsb"><h4>Floating action</h4><button class="fab s" aria-label="Add">${ic('plus',28)}</button></div></div>`],
+  ['Badges & statuses',`<div class="dsrow">${['g','m','x'].map(stBadge).join('')}${Object.values(LOC).map(l=>tag(l.l,l.cls)).join('')}${tag('Gala Leader','zest','crown')}${tag('Member','blossom','user')}${tag('Sharing on','l-there','nav')}<em class="badge s">2</em></div><p class="fine">Every status pairs an icon with text. Color never carries meaning alone.</p>`],
+  ['Avatars & map markers',`<div class="dsrow">${av('Merylle',48,true)}${av('CJ',48)}${av('Josh',48)}${av('Alex',48)}${stack(['Merylle','CJ','Josh','Alex','Sam','Bea','Jamie'],40,4)}</div><div class="dsrow mk">${[['home','Alex'],['otw','CJ'],['almost','Sam'],['there','Bea']].map(([s,n])=>`<svg class="map mk1" viewBox="-34 -34 68 68" role="img" aria-label="${LOC[s].l} marker"><g class="pin ${LOC[s].cls}">${s==='otw'||s==='almost'?'<circle class="pulse" r="18"/>':''}<circle class="ring" r="24"/><circle class="pf pf-${byName(n).c}" r="18"/><text class="pt pt-${byName(n).c}" y="6" text-anchor="middle">${n[0]}</text></g></svg>`).join('')}<svg class="map mk1" viewBox="-34 -34 68 68" role="img" aria-label="Destination marker"><circle r="20" class="m-flag"/><path d="M-5 9V-9M-5-8h11l-2.4 4.5L6 1H-5" class="m-flag-i"/></svg></div><p class="fine">Ring style encodes status: dashed = still at home, teal = on the way, zest = almost there, rosy = already there. Pulse only on moving pins.</p>`],
+  ['Overlays & feedback',`<div class="dsg g3x"><div class="dsb"><h4>Modal (desktop) / bottom sheet (mobile)</h4><div class="mini-sheet"><div class="grab"></div><b>Add a Stop</b><span class="fine">Same content, two containers.</span><div class="row"><button class="btn sm ghost">Cancel</button><button class="btn sm rosy">Add a Stop</button></div></div></div><div class="dsb"><h4>Confirm dialog</h4><div class="mini-sheet"><b>Delete this photo?</b><span class="fine">Removed for everyone.</span><div class="row"><button class="btn sm ghost">Cancel</button><button class="btn sm rosy">Delete photo</button></div></div></div><div class="dsb"><h4>Dropdown and tooltip</h4><div class="ddw"><button class="btn sm teal" data-dd aria-expanded="false">Assign to ${ic('chevd',16)}</button><ul class="ddm" hidden><li>Nobody yet</li><li>Merylle</li><li>CJ</li></ul></div><button class="ibtn tipb" aria-label="Copy" data-tip="Copy gala code">${ic('copy',22)}</button></div><div class="dsb"><h4>Toasts</h4><div class="row wrapr"><button class="btn sm teal" data-dtoast="Gala code copied.">Success</button><button class="btn sm rosy" data-dtoast="Couldn't save. Nothing changed." data-kind="err">Error</button></div></div><div class="dsb"><h4>Sparkle burst</h4><button class="btn sm zest" onclick="burstEl(this)">Confirm something</button><p class="fine">5 to 7 sparkles, about 700ms, only on confirming actions.</p></div></div>`],
+  ['Progress & countdown',`<div class="dsg g3x"><div class="dsb"><h4>Bar</h4><div class="bar"><i style="width:43%"></i></div></div><div class="dsb"><h4>Ring</h4><svg width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="70 percent"><circle cx="36" cy="36" r="28" class="rg-b"/><circle cx="36" cy="36" r="28" class="rg-f" stroke-dasharray="123 176" transform="rotate(-90 36 36)"/><text x="36" y="42" text-anchor="middle" class="rg-t">70%</text></svg></div><div class="dsb"><h4>Upload row</h4><ul class="uplist"><li class="uprow ok">${ic('image',20)}<span class="un">IMG_2041.jpg</span><div class="ubar"><i style="width:100%"></i></div><span class="us">Done</span></li><li class="uprow fail">${ic('image',20)}<span class="un">IMG_2042.jpg</span><div class="ubar"><i style="width:62%"></i></div><span class="us">Failed <button class="lnk">Retry</button></span></li></ul></div><div class="dsb bgr"><h4 class="cr">Countdown</h4>${cdown()}</div><div class="dsb" style="grid-column:span 2"><h4>Journey route</h4><div>${routeStrip()}</div></div></div>`],
+  ['Chat & photos',`<div class="dsg two"><div class="dsb chatdemo"><div class="msys">${ic('sparkle',12)}<span>Alex joined the gala.</span></div><div class="msg">${av('CJ',32,true)}<div class="mb"><span class="mn">CJ<i>8:15 PM</i></span><p>G ako. Sino pa free ng Nov 14?</p><button class="react on">${ic('heart',14)}2</button></div></div><div class="mnew"><span>2 new</span></div><div class="msg me"><div class="mb"><span class="mn">You<i>9:03 PM</i></span><p>Check the Gastos tab.</p></div></div><div class="mcard"><span class="ico sm">${ic('route',20)}</span><div><b>Jamie added a new itinerary stop</b><span>Session Road lunch</span></div></div></div><div class="dsb"><div class="masonry m2">${PH.slice(0,4).map(p=>`<div class="phw" style="height:${p.h-60}px"><div class="ph c-${p.c}">${ic('image',28,'ph-i')}<span class="ph-cap"><b>${p.t}</b><i>${p.w}</i></span></div></div>`).join('')}</div></div></div>`],
+  ['Calendar cells',`<div class="cal"><div class="cal-g dsc"><div class="dc"><b>3</b></div><div class="dc today"><b>29</b></div><div class="dc has"><b>14</b><span class="ev e-upcoming">Baguio</span></div><div class="dc has"><b>29</b><span class="ev e-ongoing">Food Crawl</span></div><div class="dc has"><b>2</b><span class="ev e-done">Pagsanjan</span></div></div></div><p class="fine">Default, today, upcoming, ongoing, completed.</p>`],
+  ['State templates',`<div class="dsg g3x">${empty({i:'pin',t:'No stops yet. Saan tayo?',b:'Add the places, activities, food stops, and everything in between.',c:'Add a Stop',noop:1})}${errBlock({t:"The route didn't load.",b:'Your stops are safe. Try again.'})}<div class="dsb"><h4>Loading</h4>${skeleton('x').replace('g3','g2')}</div><div class="dsb">${offline()}</div><div class="dsb"><div class="lbar deny">${ic('alert',24)}<div><b>Location is blocked for OTW.</b><span>Turn it on in site settings, or set your status by hand.</span></div></div></div><div class="dsb"><div class="lbar deny">${ic('alert',24)}<div><b>2 photos didn't upload.</b><span>Check your connection and try again.</span></div></div></div></div>`],
+  ['Icon set',`<div class="icons">${ico.map(k=>`<span title="${k}">${ic(k,26)}</span>`).join('')}</div><p class="fine">Inline SVG, 24px viewBox, 2px rounded stroke, currentColor. No emoji anywhere.</p>`]];
+  return parts.map(([t,b])=>`<section class="dspart"><h3 class="dsh">${t}</h3>${b}</section>`).join('');
+}
+/* ================= APP BOOT ================= */
+views.system=()=>`<section class="sec bg-rosy"><button class="btn sm cream" data-go="landing">${ic('back',18)} Back to OTW</button><h1 class="h1" style="margin-top:22px">Design system</h1><p class="lead">One kit, eight brand colors, two typefaces. Same components on every screen size.</p></section><section class="sec bg-blossom">${dsHtml()}</section>`;
+const devOf=()=>innerWidth<640?'mobile':innerWidth<1024?'tablet':'desktop';
+let firstSync=true;
+function syncChrome(){
+  const dev=$('#dev');if(!dev)return;
+  dev.dataset.device=S.device;document.title=SC[S.screen].t+' · OTW';
+  const h='#/'+S.screen;
+  if(location.hash!==h){history[firstSync?'replaceState':'pushState'](null,'',h)}
+  firstSync=false;
+  $$('[data-ctl]').forEach(b=>b.setAttribute('aria-pressed',String(S[b.dataset.ctl])===b.dataset.v));
+}
+const SEGS={state:[['default','Default'],['loading','Loading'],['empty','Empty'],['error','Error'],['offline','Offline'],['success','Success']],phase:[['planning','Planning'],['day','Gala day'],['done','Done']],role:[['leader','Leader'],['member','Member']],acct:[['false','No account'],['true','Account']]};
+const CL={state:'Screen state',phase:'Gala phase',role:'Viewing as',acct:'Account'};
+$('#demoPanel').innerHTML='<p class="fine">Preview tools. Not part of the product.</p>'+Object.keys(SEGS).map(k=>`<div class="cg"><span class="cl">${CL[k]}</span><div class="seg" role="group" aria-label="${CL[k]}">${SEGS[k].map(o=>`<button data-ctl="${k}" data-v="${o[0]}" aria-pressed="false">${o[1]}</button>`).join('')}</div></div>`).join('');
+function pageToast(msg,kind){const h=$('#ptoast');h.innerHTML=`<div class="toast ${kind||''}">${ic(kind==='err'?'alert':'check',18)}<span>${msg}</span></div>`;clearTimeout(pageToast._t);pageToast._t=setTimeout(()=>h.innerHTML='',2400)}
+document.addEventListener('click',e=>{
+  const db=e.target.closest('#demoBtn');if(db){const p=$('#demoPanel');p.hidden=!p.hidden;db.setAttribute('aria-expanded',!p.hidden);return}
+  const c=e.target.closest('[data-ctl]');
+  if(c){const k=c.dataset.ctl,v=c.dataset.v;if(k==='state'){setState(v);return}S[k]=k==='acct'?v==='true':v;render();return}
+  const dt=e.target.closest('[data-dtoast]');if(dt){pageToast(dt.dataset.dtoast,dt.dataset.kind);return}
+  const dd=e.target.closest('[data-dd]');if(dd){const m=dd.nextElementSibling;const o=m.hidden;m.hidden=!o;dd.setAttribute('aria-expanded',o)}
+});
+addEventListener('resize',()=>{const d=devOf();if(d!==S.device){S.device=d;render()}});
+addEventListener('hashchange',()=>{const k=location.hash.replace('#/','');if(SC[k]&&k!==S.screen)go(k)});
+(function boot(){
+  S.device=devOf();$('#dev').dataset.device=S.device;
+  const k=location.hash.replace('#/','');
+  if(SC[k]){S.screen=k;if(SC[k].g==='Account')S.acct=true;if(k==='plan')S.plan=blankPlan()}
+  render(true);
+})();
+</script></body></html>

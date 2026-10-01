@@ -4,16 +4,7 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { Avatar, Button, Icon, StatusBadge, Tag, blob } from '@/components/otw';
 import type { IconName } from '@/lib/otw/icons';
-import {
-  NOW_TO_GALA,
-  ST,
-  budTotal,
-  counts,
-  peso,
-  photoCountFor,
-  spent,
-  type AttendanceKey,
-} from '@/lib/otw/data';
+import { ST, counts, peso, type AttendanceKey } from '@/lib/otw/data';
 import { countdownTo, galaStart } from '@/lib/otw/gala-registry';
 import { useGala } from '@/lib/otw/gala-store';
 import { burstEl, toast } from '@/lib/otw/feedback';
@@ -34,7 +25,7 @@ function Countdown() {
     return () => clearInterval(t);
   }, []);
 
-  const left = gala.dateISO ? countdownTo(galaStart(gala.dateISO, gala.startTime), new Date(now)) : NOW_TO_GALA;
+  const left = gala.dateISO ? countdownTo(galaStart(gala.dateISO, gala.startTime), new Date(now)) : { d: 0, h: 0, m: 0 };
   return (
     <div className="cdown" aria-label="Countdown">
       <div>
@@ -57,6 +48,8 @@ function Countdown() {
 function StatusSeg() {
   const { myStatus, setMyStatus } = useGala();
   const pick = (k: AttendanceKey, e: MouseEvent<HTMLButtonElement>) => {
+    // TODO(backend): the reference also posts a chat system line, "<me> changed their status to <label>."
+    // TODO(backend): push the RSVP change to other members over realtime instead of waiting for the 15 s poll.
     setMyStatus(k);
     if (k === 'g') {
       toast("You're marked as G. The chat knows.");
@@ -77,8 +70,10 @@ function StatusSeg() {
 }
 
 function Hero() {
-  const { phase, gala, members } = useGala();
+  const { phase, gala, members, summary } = useGala();
   const href = (s: string) => galaHref(gala.code, s);
+  // Live travel counts from GET /summary; a tag with nobody in it is hidden.
+  const travel = summary?.travel;
 
   if (phase === 'done') {
     return (
@@ -101,15 +96,21 @@ function Hero() {
           <h1 className="h1s">Today&apos;s the day.</h1>
           <p className="lead2">{[gala.title, gala.dest].filter(Boolean).join(' · ')}</p>
           <div className="pmeta">
-            <Tag variant="cream" icon="check">
-              1 already there
-            </Tag>
-            <Tag variant="zest" icon="nav">
-              1 almost there
-            </Tag>
-            <Tag variant="cream" icon="clock">
-              2 on the way
-            </Tag>
+            {!!travel?.arrived && (
+              <Tag variant="cream" icon="check">
+                {travel.arrived} already there
+              </Tag>
+            )}
+            {!!travel?.almostThere && (
+              <Tag variant="zest" icon="nav">
+                {travel.almostThere} almost there
+              </Tag>
+            )}
+            {!!travel?.onTheWay && (
+              <Tag variant="cream" icon="clock">
+                {travel.onTheWay} on the way
+              </Tag>
+            )}
           </div>
         </div>
         <div className="dright">
@@ -213,21 +214,21 @@ function RouteStrip() {
 /* ---------------- feature grid + rail ---------------- */
 
 function FeatureGrid() {
-  const { gala, members, stops, items, budget, expenses, phase, unread, summary } = useGala();
+  const { gala, members, phase, unread, summary } = useGala();
   const c = counts(members);
-  // Real counts from GET /summary; the local lists are only a fallback until it loads.
-  const stopCount = summary?.itineraryStops ?? stops.length;
-  const packed = summary?.checklistDone ?? items.filter((i) => i.d).length;
-  const itemCount = summary?.checklistTotal ?? items.length;
-  const perPerson = summary ? summary.budgetPerPerson : budTotal(budget) / budget.n;
-  const spentSoFar = summary ? summary.totalSpent : spent(expenses);
-  const photos = summary ? summary.photoCount : photoCountFor(phase);
+  // Everything below comes from GET /summary; "—" shows until it loads.
+  const stopCount = summary ? summary.itineraryStops : '—';
+  const packed = summary ? summary.checklistDone : '—';
+  const itemCount = summary ? summary.checklistTotal : '—';
+  const perPerson = summary ? peso(summary.budgetPerPerson) : '—';
+  const spentSoFar = summary ? peso(summary.totalSpent) : '—';
+  const photos = summary?.photoCount ?? 0;
 
   const F: [seg: string, title: string, sub: string, icon: IconName, tone: Tone, tag: string][] = [
     ['attendance', "Who's G?", `${c.g} going · ${c.m} maybe`, 'users', 'blossom', 'Attendance'],
     ['route', "What's the plan?", `${stopCount} stops on the route`, 'route', 'zest', 'Itinerary'],
-    ['budget', 'How much?', `${peso(perPerson)} per person`, 'calc', 'cream', 'Budget'],
-    ['ambagan', 'Who paid?', `${peso(spentSoFar)} spent so far`, 'wallet', 'teal', 'Ambagan'],
+    ['budget', 'How much?', `${perPerson} per person`, 'calc', 'cream', 'Budget'],
+    ['ambagan', 'Who paid?', `${spentSoFar} spent so far`, 'wallet', 'teal', 'Ambagan'],
     ['checklist', 'What are we bringing?', `${packed} of ${itemCount} packed`, 'checklist', 'blossom', 'Checklist'],
     ['map', 'Where is everyone?', phase === 'planning' ? 'Opens on gala day' : "Tap to see who's OTW", 'nav', 'rosy', 'Live location'],
     ['chat', "What's the chismis?", `${unread} new messages`, 'chat', 'zest', 'Chat'],
