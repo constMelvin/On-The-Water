@@ -6,11 +6,13 @@ import { useGala } from '@/lib/otw/gala-store';
 import { toast } from '@/lib/otw/feedback';
 import { MORE, galaHref } from './nav';
 import { useCopyCode } from './useCopyCode';
+import { useLogOut } from './useLogOut';
 
 /** Renders whichever shell sheet is open (More, Share). Copy from reference sheetHtml(). */
 export function GalaSheets() {
   const { sheet, closeSheet, gala } = useGala();
   const copyCode = useCopyCode();
+  const logOut = useLogOut();
 
   if (sheet === 'more') {
     return (
@@ -30,6 +32,19 @@ export function GalaSheets() {
             </span>
             My Galas
           </Link>
+          <button
+            type="button"
+            className="mo"
+            onClick={() => {
+              closeSheet();
+              logOut();
+            }}
+          >
+            <span className="ico" style={blob(MORE.length + 1)}>
+              <Icon name="back" size={24} />
+            </span>
+            Log out
+          </button>
         </div>
       </Sheet>
     );

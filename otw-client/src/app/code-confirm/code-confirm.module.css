@@ -258,10 +258,6 @@
   animation: popIn 0.5s var(--bounce) 0.25s both;
 }
 
-.popInAccount {
-  animation: popIn 0.5s var(--bounce) 0.35s both;
-}
-
 @keyframes popIn {
   0% {
     opacity: 0;
@@ -568,114 +564,6 @@
   margin-bottom: 24px;
 }
 
-/* Account promo card */
-.accountCard {
-  background-color: var(--cream);
-  border-radius: 26px;
-  padding: 24px 26px;
-  box-shadow: 0 7px 0 var(--rosy-dark);
-  width: 100%;
-}
-
-.accountTitle {
-  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--teal-dark);
-  margin: 0 0 10px 0;
-}
-
-.accountCopy {
-  font-family: var(--font-nunito), 'Nunito', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.45;
-  color: var(--teal-dark);
-  margin: 0 0 20px 0;
-}
-
-.accountButtonsRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
-.createAccountBtn {
-  padding: 12px 24px;
-  border-radius: 9999px;
-  background-color: var(--rosy);
-  color: var(--cream);
-  font-family: var(--font-nunito), 'Nunito', sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 6px 0 var(--rosy-dark);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.12s var(--bounce), box-shadow 0.12s var(--bounce);
-  outline-offset: 3px;
-}
-
-@media (hover: hover) {
-  .createAccountBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 0 var(--rosy-dark);
-  }
-}
-
-.createAccountBtn:active {
-  transform: translateY(5px);
-  box-shadow: 0 2px 0 var(--rosy-dark);
-}
-
-.createAccountBtn:focus-visible {
-  outline: 3px solid var(--teal-dark);
-}
-
-.maybeLaterBtn {
-  padding: 10px 20px;
-  border-radius: 9999px;
-  background: transparent;
-  border: 3px solid var(--blossom);
-  color: var(--teal-dark);
-  font-family: var(--font-nunito), 'Nunito', sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-  outline-offset: 3px;
-}
-
-@media (hover: hover) {
-  .maybeLaterBtn:hover {
-    transform: translateY(-2px);
-    background-color: rgba(234, 199, 223, 0.2);
-  }
-}
-
-.maybeLaterBtn:active {
-  transform: translateY(3px);
-}
-
-.maybeLaterBtn:focus-visible {
-  outline: 3px solid var(--teal-dark);
-}
-
-.accountSmallNote {
-  font-family: var(--font-nunito), 'Nunito', sans-serif;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--teal-dark);
-  opacity: 0.8;
-  margin-top: 14px;
-  margin-bottom: 0;
-  line-height: 1.35;
-}
-
 /* Bottom Center "Enter the Gala" */
 .bottomCenterRow {
   display: flex;
@@ -751,8 +639,7 @@
   .shapeBlob,
   .popInBlob,
   .popInTicket,
-  .popInPassword,
-  .popInAccount {
+  .popInPassword {
     animation: none;
   }
 
@@ -761,15 +648,12 @@
   .copyBtn,
   .shareBtn,
   .iconActionBtn,
-  .createAccountBtn,
-  .maybeLaterBtn,
   .enterGalaBtn {
     transition: none;
   }
 
   .copyBtn:active,
   .shareBtn:active,
-  .createAccountBtn:active,
   .enterGalaBtn:active {
     transform: none;
   }

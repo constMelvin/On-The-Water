@@ -1,5 +1,6 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Attendance } from '@/components/gala/attendance/Attendance';
 
+/** Who's G? (attendance) tab. */
 export default function AttendancePage() {
-  return <ComingSoon title="So... who's G?" />;
+  return <Attendance />;
 }

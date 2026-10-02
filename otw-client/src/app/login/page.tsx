@@ -15,7 +15,8 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { tab, gala, ctx, next } = await searchParams;
   const known = ctx === 'plan' || ctx === 'join' || ctx === 'enter' ? ctx : '';
-  const fallback = gala ? `/gala/${encodeURIComponent(gala)}` : '/';
+  // No ?next=: a gala to go back to, else My Galas.
+  const fallback = gala ? `/gala/${encodeURIComponent(gala)}` : '/me/galas';
 
   return (
     <LoginScreen

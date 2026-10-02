@@ -1,13 +1,15 @@
 'use client';
 
 /**
- * TEMPORARY dev-only review switcher (phase, role, account, screen state).
+ * TEMPORARY dev-only review switcher (phase, role, screen state).
  * To remove: delete this file + DevSwitcher.module.css and the <DevSwitcher /> line in GalaShell.tsx.
  */
 import { useState, type ReactNode } from 'react';
 import { Button, Icon, SegmentedControl } from '@/components/otw';
 import { useGala, type Phase, type Role, type ViewState } from '@/lib/otw/gala-store';
 import s from './DevSwitcher.module.css';
+// Registers every mock slice so window.otwMock (dev only) can reach them from the console.
+import '@/lib/otw/mock';
 
 function Group({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -47,17 +49,6 @@ export function DevSwitcher() {
               options={[
                 { value: 'leader', label: 'Leader' },
                 { value: 'member', label: 'Member' },
-              ]}
-            />
-          </Group>
-          <Group label="Account">
-            <SegmentedControl<'off' | 'on'>
-              label="Account"
-              value={g.hasAccount ? 'on' : 'off'}
-              onChange={(v) => g.setHasAccount(v === 'on')}
-              options={[
-                { value: 'off', label: 'No account' },
-                { value: 'on', label: 'Signed in' },
               ]}
             />
           </Group>

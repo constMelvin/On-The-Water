@@ -8,8 +8,10 @@ import { ST, counts, peso, type AttendanceKey } from '@/lib/otw/data';
 import { countdownTo, galaStart } from '@/lib/otw/gala-registry';
 import { useGala } from '@/lib/otw/gala-store';
 import { burstEl, toast } from '@/lib/otw/feedback';
+import { postSystemLine } from '@/lib/otw/mock/chat';
 import { galaHref } from './nav';
 import { useCopyCode } from './useCopyCode';
+import { Empty, ErrorState, Offline, Skeleton } from './States';
 
 type Tone = 'blossom' | 'zest' | 'cream' | 'teal' | 'rosy';
 
@@ -50,9 +52,9 @@ function Countdown() {
 
 /** "Your status" 3-way control (reference seg3). */
 function StatusSeg() {
-  const { myStatus, setMyStatus } = useGala();
+  const { gala, me, myStatus, setMyStatus } = useGala();
   const pick = (k: AttendanceKey, e: MouseEvent<HTMLButtonElement>) => {
-    // TODO(backend): the reference also posts a chat system line, "<me> changed their status to <label>."
+    postSystemLine(gala.code, `${me} changed their status to ${ST[k].l}.`);
     // TODO(backend): push the RSVP change to other members over realtime instead of waiting for the 15 s poll.
     setMyStatus(k);
     if (k === 'g') {
@@ -203,9 +205,13 @@ function FeatureGrid() {
   const c = counts(members);
   // Everything below comes from GET /summary; "—" shows until it loads.
   const stopCount = summary ? summary.itineraryStops : '—';
+  // TODO(backend): "What are we bringing?" reads checklist counts from /summary; will reconcile when the checklist CRUD is wired.
   const packed = summary ? summary.checklistDone : '—';
   const itemCount = summary ? summary.checklistTotal : '—';
+  // TODO(backend): dashboard reads budget from /summary; will reconcile when the budget PUT is wired.
+  // Until then the Gastos tab's mock slice edits don't move this card.
   const perPerson = summary ? peso(summary.budgetPerPerson) : '—';
+  // TODO(backend): "Who paid?" reads totalSpent from /summary; will reconcile when the expenses endpoints are wired.
   const spentSoFar = summary ? peso(summary.totalSpent) : '—';
   const photos = summary?.photoCount ?? 0;
 
@@ -319,86 +325,27 @@ function Rail() {
   );
 }
 
-/* ---------------- states ---------------- */
-
-function Skeleton() {
-  return (
-    <div className="skl" role="status" aria-busy="true" aria-label="Loading the dashboard">
-      <div className="sk" style={{ height: 132 }} aria-hidden="true" />
-      <div className="g g3" aria-hidden="true">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="sk" style={{ height: 110 }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function EmptyState() {
-  const { openSheet } = useGala();
-  return (
-    <div className="empty">
-      <div className="ico xl" style={blob(2)}>
-        <Icon name="users" size={44} />
-      </div>
-      <h3>Just you so far.</h3>
-      <p>Share the gala code and get your friends in.</p>
-      <Button onClick={() => openSheet('share')}>Share Gala</Button>
-    </div>
-  );
-}
-
-function ErrorState() {
-  const { setViewState, retry } = useGala();
-  const [busy, setBusy] = useState(false);
-  const tryAgain = async () => {
-    setBusy(true);
-    setViewState('default'); // clears the dev-switcher override; a real failure keeps showing this state
-    const ok = await retry();
-    setBusy(false);
-    toast(ok ? 'Back in business.' : "Still can't reach the server. Try again in a moment.", ok ? '' : 'err');
-  };
-  return (
-    <div className="empty err" role="alert">
-      <div className="ico xl" style={{ ...blob(3), color: 'var(--rosy-dark)' }}>
-        <Icon name="alert" size={44} />
-      </div>
-      <h3>The dashboard didn&apos;t load.</h3>
-      <p>Your gala is safe. Give it another try.</p>
-      <Button onClick={tryAgain} disabled={busy} aria-busy={busy}>
-        <Icon name="refresh" size={20} /> Try again
-      </Button>
-    </div>
-  );
-}
-
-function OfflineBar() {
-  return (
-    <div className="offl" role="status">
-      <Icon name="wifioff" size={22} />
-      <div>
-        <b>Connection&apos;s a bit shaky.</b> You&apos;re seeing the last saved version. Anything you change will sync
-        when you&apos;re back online.
-      </div>
-    </div>
-  );
-}
-
 /* ---------------- page ---------------- */
 
 export function Dashboard() {
-  const { viewState, liveState, members, phase } = useGala();
+  const { viewState, liveState, phase, openSheet, setViewState, retry } = useGala();
   // The dev switcher (any non-default viewState) wins; otherwise the real query state decides.
   const state = viewState !== 'default' ? viewState : liveState;
 
-  if (state === 'loading') return <Skeleton />;
-  if (state === 'error') return <ErrorState />;
+  if (state === 'loading') return <Skeleton label="Loading the dashboard" />;
+  if (state === 'error') {
+    const tryAgain = () => {
+      setViewState('default'); // clears the dev-switcher override; a real failure keeps showing this state
+      return retry();
+    };
+    return <ErrorState kind="dashboard" onRetry={tryAgain} />;
+  }
   // Only the dev switcher's "Empty" shows the full-page empty state; a lone planner sees the whole dashboard.
-  if (state === 'empty') return <EmptyState />;
+  if (state === 'empty') return <Empty kind="dashboard" onAction={() => openSheet('share')} />;
 
   return (
     <>
-      {state === 'offline' && <OfflineBar />}
+      {state === 'offline' && <Offline />}
       <Hero />
       {phase !== 'done' && <RouteStrip />}
       <div className="dgrid">

@@ -1,0 +1,105 @@
+/* Checklist tab. Ported from reference/otw/styles.css (.prog, .row.between.wrapr, .clist, .crow,
+   .ct, .asg, .fab). .cbox, .bar, .rh and .seg already live in the global styles. */
+
+/* ---- progress ---- */
+.prog :global(.rh) {
+  margin-bottom: 10px;
+}
+.prog :global(.fine) {
+  margin-top: 10px;
+}
+
+/* ---- filters + add ---- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ---- rows ---- */
+.clist {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cream);
+  border: 3px solid var(--blossom);
+  border-radius: 22px;
+  padding: 10px 14px;
+  min-height: 60px;
+}
+
+.ct {
+  flex: 1;
+  min-width: 0;
+  font-weight: 800;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.done .ct {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.asg {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  background: var(--blossom);
+  border-radius: 99px;
+  padding: 3px 12px 3px 3px;
+  flex: none;
+}
+
+/* "Small pop" when an item gets checked. The global reduced-motion rule turns it off. */
+.pop {
+  animation: chkpop 0.22s ease-out;
+}
+@keyframes chkpop {
+  50% {
+    transform: scale(1.18);
+  }
+}
+
+/* ---- mobile add button (reference .fab), above the bottom nav ---- */
+.fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+  place-items: center;
+  z-index: 21;
+  transition: transform 0.09s, box-shadow 0.09s;
+}
+.fab:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--rosy-dark);
+}
+
+/* Same breakpoint as the shell's .hide-m, so the FAB replaces the hidden "Add to Checklist". */
+@media (max-width: 639px) {
+  .fab {
+    display: grid;
+  }
+  .crow {
+    min-height: 64px;
+  }
+}

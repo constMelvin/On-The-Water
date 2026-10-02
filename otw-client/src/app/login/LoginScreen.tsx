@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, type CSSProperties, type FormEvent } from 'react';
+import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Icon } from '@/components/otw';
-import { mockSignIn } from '@/lib/otw/auth-mock';
+import { mockSignIn, useAccount } from '@/lib/otw/auth-mock';
 import { burstEl, toast } from '@/lib/otw/feedback';
 import styles from './login.module.css';
 
@@ -36,7 +36,21 @@ const PLANNER_ITEMS = [
 
 const USERNAME_MAX = 20;
 /** 3 to 20 letters, numbers or underscores (checked on Create account only). */
-const USERNAME = /^[A-Za-z0-9_]{3,20}$/;
+const USERNAME_MIN = 3;
+
+/** Cleans what people type: trims and drops a leading "@" (people often type @handle). */
+const cleanUsername = (v: string) => v.trim().replace(/^@+/, '');
+
+/** Says exactly what's wrong with a new username, or '' when it's fine. */
+function usernameError(raw: string): string {
+  const u = cleanUsername(raw);
+  if (!u) return 'Pumili ng username.';
+  if (/\s/.test(u)) return 'Bawal ang space sa username. Try underscore (_) instead.';
+  if (!/^[A-Za-z0-9_.]+$/.test(u)) return 'Letters, numbers, underscore (_) at period (.) lang ang puwede.';
+  if (u.length < USERNAME_MIN) return 'Medyo maikli. Kailangan at least 3 characters.';
+  if (u.length > USERNAME_MAX) return 'Medyo mahaba. Hanggang 20 characters lang.';
+  return '';
+}
 
 interface LoginScreenProps {
   initialTab: Tab;
@@ -54,6 +68,7 @@ interface LoginScreenProps {
  */
 export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
   const router = useRouter();
+  const { signedIn } = useAccount();
   const [tab, setTab] = useState<Tab>(initialTab);
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -65,14 +80,14 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (create && !name.trim()) return setError('We need something to call you.');
-    if (create ? !USERNAME.test(username.trim()) : !username.trim()) {
-      return setError(create ? 'Pick a username: 3 to 20 letters, numbers or underscores.' : 'Enter your username.');
-    }
+    const userErr = create ? usernameError(username) : cleanUsername(username) ? '' : 'Enter your username.';
+    if (userErr) return setError(userErr);
     if (password.length < 6) return setError('Make it at least 6 characters.');
     setError('');
     // TODO(backend): replace email with username in the auth payload. This is where the real
     // Supabase signUp (name, username, password) / signInWithPassword (username, password) call goes.
-    mockSignIn(create ? name.trim() : username.trim());
+    // Log in only knows the username; the mock restores the Name saved at Create account.
+    mockSignIn({ name: create ? name.trim() : '', username: cleanUsername(username) });
     toast(create ? 'Account created. Let’s go.' : 'Welcome back.');
     burstEl(e.currentTarget.querySelector('button[type="submit"]'));
     router.replace(next);
@@ -84,6 +99,14 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
   };
 
   const bar = ctx ? CTX_BAR[ctx] : gala ? `Saving ${gala} to your account.` : '';
+
+  // Already signed in: skip the form and go ahead (to ?next=, else My Galas; see page.tsx).
+  useEffect(() => {
+    if (signedIn) router.replace(next);
+  }, [signedIn, next, router]);
+
+  // Nothing while checking, or while redirecting a signed-in person, so the form never flashes.
+  if (signedIn !== false) return null;
 
   return (
     <main className={`bg-blossom ${styles.page}`}>
@@ -146,8 +169,13 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
                 autoComplete="username"
                 autoCapitalize="none"
                 spellCheck={false}
-                maxLength={USERNAME_MAX}
+                maxLength={USERNAME_MAX + 1 /* room for a leading @, which is dropped */}
               />
+              {create && (
+                <span className="fine" style={{ fontWeight: 700 }}>
+                  3 to 20 characters. Letters, numbers, underscore (_) o period (.). Walang space.
+                </span>
+              )}
             </label>
             <label className="fl">
               Password

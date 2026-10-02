@@ -1,0 +1,261 @@
+/* Chismis tab. Ported from reference/otw/styles.css "chat" block (.chatwrap, .chatcol, .pinned,
+   .chatlog, .msys, .mnew, .mcard, .msg, .mb, .mn, .react, .quick, .composer, .chatside, .mini). */
+
+/*
+ * The reference gives the shell's <main> a `chatmain` class (no padding, no gap, no scroll) so
+ * the log scrolls and the composer stays put. GalaShell isn't ours to edit, so this does the
+ * same from here: it only matches a <main> whose direct child is this tab's .chatwrap, i.e.
+ * only while the chat screen (not its skeleton / empty / error state) is showing.
+ * Unlayered, so it beats the shell's layered `.main` rules at every breakpoint.
+ */
+:global(.main):has(> .chatwrap) {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+/* Offline bar sits above the chat in the same <main>: give it back the padding it lost. */
+:global(.main):has(> .chatwrap) > :global(.offl) {
+  margin: 14px var(--pad) 0;
+}
+
+.chatwrap {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.chatcol {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* ---- pinned plan ---- */
+.pinned {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--zest);
+  color: var(--teal-dark);
+  margin: 14px var(--pad) 0;
+  border-radius: 22px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+.pinned > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.pinned span {
+  font-weight: 600;
+}
+.pinned :global(.ico) {
+  background: var(--cream);
+}
+
+/* ---- log ---- */
+.chatlog {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.msys {
+  align-self: center;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--blossom);
+  border-radius: 99px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+.msys i {
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.mnew {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--rosy-dark);
+}
+.mnew::before,
+.mnew::after {
+  content: '';
+  flex: 1;
+  border-top: 3px solid var(--rosy);
+}
+
+.mcard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  background: var(--cream);
+  border: 3px dashed var(--teal);
+  border-radius: 22px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+.mcard > div {
+  display: flex;
+  flex-direction: column;
+}
+.mcard :global(.ico) {
+  background: var(--blossom);
+}
+.mcard span {
+  font-weight: 600;
+}
+
+.msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  max-width: 82%;
+}
+.msg.me {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.mb {
+  background: var(--blossom);
+  border-radius: 24px 24px 24px 8px;
+  padding: 8px 14px;
+  position: relative;
+  min-width: 0;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.msg.me .mb {
+  background: var(--rosy);
+  color: var(--cream);
+  border-radius: 24px 24px 8px 24px;
+}
+
+.mn {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.mn i {
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.mb p {
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.react {
+  position: absolute;
+  right: -8px;
+  bottom: -12px;
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  background: var(--cream);
+  color: var(--teal-dark);
+  border: 3px solid var(--blossom);
+  border-radius: 99px;
+  padding: 0 8px;
+  height: 26px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.75;
+}
+.react:hover,
+.react.on {
+  opacity: 1;
+  color: var(--rosy);
+  border-color: var(--rosy);
+}
+
+/* ---- quick replies + composer ---- */
+.quick {
+  display: flex;
+  gap: 8px;
+  padding: 6px var(--pad);
+  overflow-x: auto;
+}
+.quick :global(.chip) {
+  flex: none;
+}
+
+.composer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px var(--pad) 14px;
+}
+
+/* ---- right panel (desktop only) ---- */
+.chatside {
+  border-left: 3px solid var(--blossom);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.mini {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mini li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 15px;
+  font-weight: 600;
+}
+.mini li > svg {
+  color: var(--teal);
+  margin-top: 2px;
+  flex: none;
+}
+
+/* ---- tablet + mobile (same breakpoint as the shell's bottom nav) ---- */
+@media (max-width: 1023px) {
+  .chatwrap {
+    grid-template-columns: 1fr;
+  }
+  .chatside {
+    display: none;
+  }
+  .pinned {
+    margin: 10px 14px 0;
+  }
+  .chatlog {
+    padding: 12px 14px;
+  }
+  .quick {
+    padding: 6px 14px;
+  }
+  /* Sits above the fixed bottom nav (reference: 96px). */
+  .composer {
+    padding: 6px 14px calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+}

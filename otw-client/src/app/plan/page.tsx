@@ -7,6 +7,7 @@ import styles from './plan.module.css';
 import { createRoom } from '@/lib/api/rooms';
 import { addDays, normCode, rememberRoom } from '@/lib/otw/gala-registry';
 import { toast } from '@/lib/otw/feedback';
+import { useAccount } from '@/lib/otw/auth-mock';
 
 /** Matches CreateRoomRequest.nickname (max 60) on the backend. */
 const NICKNAME_MAX = 40;
@@ -47,6 +48,17 @@ export default function PlanPage() {
   // Form states
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
+
+  // Default the nickname to the account Name once (still editable before submitting).
+  // TODO(backend): profile name from the auth user (Supabase user_metadata.name).
+  const account = useAccount();
+  const nicknamePrefilled = useRef(false);
+  useEffect(() => {
+    if (nicknamePrefilled.current || !account.name) return;
+    nicknamePrefilled.current = true;
+    setNickname((current) => current || account.name.slice(0, NICKNAME_MAX));
+  }, [account.name]);
+
   const [tripType, setTripType] = useState<'DAY_TOUR' | 'VACATION'>('DAY_TOUR');
   const [date, setDate] = useState('');
   const [daysInput, setDaysInput] = useState('3');

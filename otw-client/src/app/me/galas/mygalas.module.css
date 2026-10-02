@@ -1,0 +1,160 @@
+/* My Galas (stub). Gala card styles ported from reference/otw/styles.css (.gcard, .gdate, .gcb, .gl, .gh, .gate). */
+
+.page {
+  min-height: 100dvh;
+  padding: 0 var(--pad) 48px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 0;
+  margin-bottom: 10px;
+  border-bottom: 3px solid var(--blossom);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--teal-dark);
+  font-family: var(--fd);
+  font-size: 26px;
+}
+
+.brand svg {
+  color: var(--rosy);
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.who {
+  font-weight: 800;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inner {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.headRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+/* group heading + list */
+.gh {
+  font-size: 22px;
+  margin-top: 26px;
+  margin-bottom: 12px;
+}
+
+.gl {
+  display: grid;
+  gap: 14px;
+}
+
+/* gala card */
+.gcard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  flex-wrap: wrap;
+}
+
+.gdate {
+  width: 60px;
+  height: 60px;
+  border-radius: 22px;
+  background: var(--zest);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  font-family: var(--fd);
+  font-size: 24px;
+  line-height: 1;
+  flex: none;
+}
+
+.gdate i {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.gcb {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gcb h3 {
+  font-size: 20px;
+}
+
+.gcb p {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.code {
+  font-family: var(--fd);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* loading card */
+.skel {
+  height: 92px;
+}
+
+/* empty state */
+.gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 40px 0;
+}
+
+@media (max-width: 639px) {
+  .gcard {
+    padding: 12px 14px;
+  }
+
+  .gcard > a,
+  .gcard > button {
+    width: 100%;
+    justify-content: center;
+  }
+}

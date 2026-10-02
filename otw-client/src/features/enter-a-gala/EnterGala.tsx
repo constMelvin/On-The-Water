@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar, Button, Icon, Tag } from '@/components/otw';
 import { FocusLayout } from '@/features/plan-a-gala';
@@ -25,8 +24,10 @@ function formatCode(v: string) {
 }
 
 /**
- * Enter a Gala: accountless people come back with Gala Code + Gala Password,
- * then say who they are. Works for leaders and members (POST /rooms/enter + /enter/claim).
+ * Enter a Gala: get back into a gala on this device (new phone, cleared browser) with
+ * Gala Code + Gala Password (POST /rooms/enter). Requires an account (app/enter/layout.tsx).
+ * "Which one are you?" (POST /rooms/enter/claim) is the LEGACY path for members who joined
+ * anonymously, before accounts were required.
  */
 export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
   const router = useRouter();
@@ -78,12 +79,13 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
     if (!gala || busy) return;
     setBusy(true);
     try {
+      // TODO(backend): link the claimed member to the account (POST /me/link-account).
       await claimMember(normCode(code), pw, memberId);
       open(gala.roomId, name);
     } catch (e) {
       toast(
         isApiError(e, 'MEMBER_HAS_ACCOUNT')
-          ? `${name} has an account. Log in instead.`
+          ? `May account na si ${name}. Mag-log in sa account na 'yan.`
           : e instanceof Error
             ? e.message
             : "Couldn't pick that member.",
@@ -98,8 +100,13 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
     return (
       <FocusLayout tone="blossom">
         <div className="wiz">
-          <h1 className="h1 wq">Welcome back. Which one are you?</h1>
-          <p className="sub">Pick your name so the gala knows it&apos;s you.</p>
+          <Tag variant="cream" icon="clock">
+            Dating member na walang account
+          </Tag>
+          <h1 className="h1 wq">Which one are you?</h1>
+          <p className="sub">
+            Sumali ka dati nang walang account? Piliin ang pangalan mo para ma-link sa account mo.
+          </p>
           <div className="who">
             {gala.members.map((m, i) => (
               <button
@@ -107,7 +114,7 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
                 type="button"
                 className="whob"
                 disabled={busy || m.hasAccount}
-                title={m.hasAccount ? 'Has an account: log in instead' : undefined}
+                title={m.hasAccount ? "May account na 'to. Mag-log in sa account na 'yan." : undefined}
                 onClick={() => pick(m.memberId, m.nickname)}
               >
                 <Avatar name={m.nickname} tone={TONES[i % TONES.length]} size={44} />
@@ -128,7 +135,7 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
       <form onSubmit={submit} noValidate style={{ display: 'contents' }}>
         <div className="wiz narrow">
           <h1 className="h1 wq">Welcome back.</h1>
-          <p className="sub">Enter the gala code and password to jump back in. Works for leaders and members.</p>
+          <p className="sub">Bagong device? Ilagay ang Gala Code at Gala Password para makabalik ka sa gala.</p>
           <div className="wform">
             <label className="fl">
               Gala Code
@@ -191,11 +198,7 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
             )}
           </div>
           <p className="fine">
-            Have an account?{' '}
-            <Link className="lnk" href="/login">
-              Log in
-            </Link>{' '}
-            and your saved galas will be waiting.
+            Naka-save na sa account mo ang mga gala mo. Gamitin lang &apos;to kung hindi pa lumalabas dito ang gala.
           </p>
         </div>
         <div className="fbar">

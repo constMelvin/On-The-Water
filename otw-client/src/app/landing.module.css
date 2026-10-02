@@ -418,6 +418,16 @@
   }
 }
 
+.navName {
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .navLogin:focus-visible {
   outline: 3px solid var(--cream);
   outline-offset: 4px;
@@ -430,6 +440,11 @@
 
   .navLogin {
     padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .navName {
+    max-width: 96px;
     font-size: 13px;
   }
 

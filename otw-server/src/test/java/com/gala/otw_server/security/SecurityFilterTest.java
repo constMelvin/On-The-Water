@@ -86,6 +86,22 @@ class SecurityFilterTest {
     }
 
     @Test
+    @DisplayName("A rate-limited request returns 429 that still carries the CORS header")
+    void rateLimited_returns429WithCorsHeader() throws Exception {
+        org.mockito.Mockito.when(rateLimiterService.tryAcquireCount(
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.any(java.time.Duration.class)))
+                .thenReturn(false);
+
+        mockMvc.perform(get("/api/v1/auth/me").header("Origin", "http://localhost:3000"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"))
+                .andExpect(header().string("Retry-After", "60"))
+                .andExpect(jsonPath("$.code").value(ErrorCode.TOO_MANY_REQUESTS.name()));
+    }
+
+    @Test
     @DisplayName("GET /swagger-ui/index.html without token → passes security filter (not 401)")
     void swaggerUi_noAuth_passesSecurity() throws Exception {
         mockMvc.perform(get("/swagger-ui/index.html"))

@@ -46,6 +46,11 @@ import {
 
 export type Role = 'leader' | 'member';
 export type Phase = 'planning' | 'day' | 'done';
+/**
+ * Shell sheets. `'account'` is @deprecated: the optional "Save this gala" sheet is gone
+ * now that an account is required to plan or join. Nothing renders it; delete it after
+ * the feature lanes merge.
+ */
 export type SheetKey = 'more' | 'share' | 'account';
 /** Screen state for loading / empty / error / offline variants. */
 export type ViewState = 'default' | 'loading' | 'empty' | 'error' | 'offline';
@@ -68,6 +73,10 @@ export interface GalaState {
   me: string;
   role: Role;
   phase: Phase;
+  /**
+   * @deprecated Account-optional leftover. Everyone who plans or joins now has an account,
+   * so nothing should branch on this. Delete after the feature lanes merge.
+   */
   hasAccount: boolean;
   myStatus: AttendanceKey;
   stops: Stop[];
@@ -83,13 +92,17 @@ export interface GalaState {
   liveState: ViewState;
   /** Refetches the gala (room, members, summary): the "Try again" action. Resolves true when the refetch worked. */
   retry: () => Promise<boolean>;
-  /** The dashboard's account banner; dismissing hides it for the session. */
+  /**
+   * @deprecated The dashboard's "keep your gala with you" account banner was removed.
+   * Nothing reads this. Delete after the feature lanes merge.
+   */
   bannerOpen: boolean;
 
   /** Dev switcher override; the real role comes from the backend. */
   setRole: (role: Role) => void;
   /** Dev switcher override; the real phase comes from the backend. */
   setPhase: (phase: Phase) => void;
+  /** @deprecated Dev-switcher override for `hasAccount`; no longer used. Delete with `hasAccount`. */
   setHasAccount: (v: boolean) => void;
   /** PATCH /members/me/rsvp, then refreshes members + summary. */
   setMyStatus: (status: AttendanceKey) => void;
@@ -101,6 +114,7 @@ export interface GalaState {
   openSheet: (key: SheetKey) => void;
   closeSheet: () => void;
   setViewState: (v: ViewState) => void;
+  /** @deprecated See `bannerOpen`. Delete after the feature lanes merge. */
   dismissBanner: () => void;
 }
 

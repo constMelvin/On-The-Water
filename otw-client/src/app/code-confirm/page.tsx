@@ -471,7 +471,7 @@ function CodeConfirmContent() {
             </div>
 
             <p className={styles.passwordUnderText}>
-              Share the Gala Code with your friends. Keep the Gala Password somewhere safe so you can come back later.
+              I-share ang Gala Code sa tropa. Itago ang Gala Password, kailangan mo &apos;yan pag binuksan mo ang gala sa ibang device.
             </p>
 
           </div>

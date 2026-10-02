@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from './landing.module.css';
 import OtwConversationAd from './OtwConversationAd';
+import { useAccount } from '@/lib/otw/auth-mock';
 
 interface Sparkle {
   id: number;
@@ -373,7 +374,7 @@ function ForkCards() {
         onPointerLeave={untilt}
       >
         <span className={styles.forkTag}>ONE ACCOUNT, KAHIT ILANG GALA</span>
-        <h3>Make an account. Then go.</h3>
+        <h3>Account muna. Tapos G na.</h3>
         <p className={styles.forkSub}>
           Gumawa ng account para ma-save ang gala mo. Isang beses lang, tapos plan or join na kayo.
         </p>
@@ -405,9 +406,9 @@ function ForkCards() {
         onPointerMove={tilt}
         onPointerLeave={untilt}
       >
-        <span className={styles.forkTag}>WHAT YOU KEEP</span>
-        <h3>Your galas, always with you</h3>
-        <p className={styles.forkSub}>Your free account keeps everything in one place.</p>
+        <span className={styles.forkTag}>SAVED SA ACCOUNT MO</span>
+        <h3>Your galas, kasama mo kahit saan.</h3>
+        <p className={styles.forkSub}>Libre ang account. Nandito lahat ng gala mo.</p>
         <ul className={styles.forkList}>
           {LATER_ITEMS.map((t) => (
             <li key={t}>
@@ -453,7 +454,7 @@ function ReEnterGala() {
             <path d="M14 4h3a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-3M10 16l4-4-4-4M14 12H4" />
           </svg>
         </span>
-        <span className={styles.reenterSoft}>Been here before?</span> Enter a Gala
+        <span className={styles.reenterSoft}>Bagong device?</span> Enter a Gala
       </button>
     );
   }
@@ -575,6 +576,36 @@ function ShapeDefs() {
         </symbol>
       </defs>
     </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Nav actions: Log in / Create account, or the signed-in name       */
+/* ------------------------------------------------------------------ */
+
+function NavActions() {
+  const { signedIn, name, username } = useAccount();
+  // Nothing while checking, so neither version flashes.
+  if (signedIn === undefined) return <div className={styles.navActions} aria-hidden="true" />;
+  if (signedIn) {
+    return (
+      <div className={styles.navActions}>
+        <span className={styles.navName}>Hi, {name || username}</span>
+        <Link className={styles.navCta} href="/me/galas">
+          My Galas
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.navActions}>
+      <Link className={styles.navLogin} href="/login?tab=login">
+        Log in
+      </Link>
+      <Link className={styles.navCta} href="/login?tab=create">
+        Create account
+      </Link>
+    </div>
   );
 }
 
@@ -702,14 +733,7 @@ export default function LandingPage() {
             priority
           />
         </div>
-        <div className={styles.navActions}>
-          <Link className={styles.navLogin} href="/login?tab=login">
-            Log in
-          </Link>
-          <Link className={styles.navCta} href="/login?tab=create">
-            Create account
-          </Link>
-        </div>
+        <NavActions />
       </nav>
 
       {/* HERO : full rosy bleed */}
@@ -784,8 +808,7 @@ export default function LandingPage() {
             </div>
 
             <p className={`${styles.accountNote} ${styles.heroRise}`} style={delay(0.55)}>
-              Libre ang account. Isang minuto lang, tapos G na.{' '}
-              <Link href="/login">Log in</Link>
+              Libre ang account. Isang beses lang, tapos plan or join na kayo.
             </p>
             <p
               className={styles.heroRise}
@@ -849,7 +872,7 @@ export default function LandingPage() {
             <circle cx="12" cy="12" r="3" fill="var(--rosy-dark)" stroke="none" />
           </svg>
         </h2>
-        <p data-reveal style={delay(0.1)}>Free account. Zero planning skills required.</p>
+        <p data-reveal style={delay(0.1)}>Libre ang account. Zero planning skills required.</p>
         <div className={styles.ctaBtnWrap} data-reveal style={delay(0.2)}>
           <Link className={styles.btnDark} href="/plan">
             Tara G! — It&apos;s Free
@@ -876,7 +899,7 @@ export default function LandingPage() {
             <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#bfe3ec" />
           </svg>
         </p>
-        <p className={styles.footerNote}>Account required to plan or join. It&apos;s free.</p>
+        <p className={styles.footerNote}>Kailangan ng account para mag-plan o mag-join. Libre &apos;yan.</p>
         <nav className={styles.footerLinks} aria-label="Footer">
           <Link href="/plan">Plan a Gala</Link>
           <Link href="/join">Join a Gala</Link>
