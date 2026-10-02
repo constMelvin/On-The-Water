@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from './landing.module.css';
 import OtwConversationAd from './OtwConversationAd';
-import { useAccount } from '@/lib/otw/auth-mock';
+import { useAccount, mockSignOut } from '@/lib/otw/auth-mock';
 
 interface Sparkle {
   id: number;
@@ -594,6 +594,9 @@ function NavActions() {
         <Link className={styles.navCta} href="/me/galas">
           My Galas
         </Link>
+        <button type="button" className={styles.navLogin} onClick={mockSignOut}>
+          Log out
+        </button>
       </div>
     );
   }
