@@ -7,9 +7,9 @@ import { toast } from '@/lib/otw/feedback';
 import { MORE, galaHref } from './nav';
 import { useCopyCode } from './useCopyCode';
 
-/** Renders whichever shell sheet is open (More, Share, Account). Copy from reference sheetHtml(). */
+/** Renders whichever shell sheet is open (More, Share). Copy from reference sheetHtml(). */
 export function GalaSheets() {
-  const { sheet, closeSheet, openSheet, gala, hasAccount } = useGala();
+  const { sheet, closeSheet, gala } = useGala();
   const copyCode = useCopyCode();
 
   if (sheet === 'more') {
@@ -24,21 +24,12 @@ export function GalaSheets() {
               {d.label}
             </Link>
           ))}
-          {hasAccount ? (
-            <Link href="/me/galas" className="mo" onClick={closeSheet}>
-              <span className="ico" style={blob(MORE.length)}>
-                <Icon name="calendar" size={24} />
-              </span>
-              My Galas
-            </Link>
-          ) : (
-            <button type="button" className="mo" onClick={() => openSheet('account')}>
-              <span className="ico" style={blob(MORE.length)}>
-                <Icon name="calendar" size={24} />
-              </span>
-              Save gala
-            </button>
-          )}
+          <Link href="/me/galas" className="mo" onClick={closeSheet}>
+            <span className="ico" style={blob(MORE.length)}>
+              <Icon name="calendar" size={24} />
+            </span>
+            My Galas
+          </Link>
         </div>
       </Sheet>
     );
@@ -75,41 +66,6 @@ export function GalaSheets() {
     );
   }
 
-  if (sheet === 'account') {
-    return (
-      <Sheet
-        title="Want to keep your gala with you?"
-        onClose={closeSheet}
-        footer={
-          <>
-            <Button variant="ghost" onClick={closeSheet}>
-              Maybe Later
-            </Button>
-            <Link
-              className="btn rosy"
-              href={`/login?tab=create&gala=${encodeURIComponent(gala.code)}`}
-              onClick={closeSheet}
-            >
-              Create an Account
-            </Link>
-          </>
-        }
-      >
-        <p>
-          Create an account to save your galas, keep a personal calendar, view your gala history, and get reminders.
-        </p>
-        <ul className="ticks">
-          {['Saved galas, one tap away', 'Your galas on any device', 'Reminders when the day gets close'].map((x) => (
-            <li key={x}>
-              <Icon name="check" size={18} />
-              {x}
-            </li>
-          ))}
-        </ul>
-        <p className="fine">Your current gala can still continue without an account.</p>
-      </Sheet>
-    );
-  }
-
+  // 'account' (the optional "Save this gala" sheet) is retired: an account is required to plan or join.
   return null;
 }

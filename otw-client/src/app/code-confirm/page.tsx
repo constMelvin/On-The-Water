@@ -8,7 +8,6 @@ import { galaRoute } from '@/lib/otw/gala-registry';
 
 // Dashboard routes constants
 const LEADER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
-const CREATE_ACCOUNT_ROUTE = '/login?tab=create';
 
 interface SparkleParticle {
   id: number;
@@ -34,7 +33,6 @@ function CodeConfirmContent() {
   const [shareFeedback, setShareFeedback] = useState('');
   const [passwordCopied, setPasswordCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showAccountCard, setShowAccountCard] = useState(true);
   const [savedPassword, setSavedPassword] = useState('');
   const [srAnnouncement, setSrAnnouncement] = useState('');
   const [sparkles, setSparkles] = useState<SparkleParticle[]>([]);
@@ -476,33 +474,6 @@ function CodeConfirmContent() {
               Share the Gala Code with your friends. Keep the Gala Password somewhere safe so you can come back later.
             </p>
 
-            {/* Cream Account Card */}
-            {showAccountCard && (
-              <div className={`${styles.accountCard} ${styles.popInAccount}`}>
-                <h2 className={styles.accountTitle}>Want to keep your gala with you?</h2>
-                <p className={styles.accountCopy}>
-                  Create an account to save your galas, keep a personal calendar, view your gala history, and get reminders.
-                </p>
-
-                <div className={styles.accountButtonsRow}>
-                  <Link href={CREATE_ACCOUNT_ROUTE} className={styles.createAccountBtn}>
-                    Create an Account
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAccountCard(false)}
-                    className={styles.maybeLaterBtn}
-                  >
-                    Maybe Later
-                  </button>
-                </div>
-
-                <p className={styles.accountSmallNote}>
-                  Your current gala can still continue without an account.
-                </p>
-              </div>
-            )}
           </div>
         </div>
 

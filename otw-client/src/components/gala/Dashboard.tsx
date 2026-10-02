@@ -159,29 +159,10 @@ function Hero() {
   );
 }
 
-/* ---------------- banner + route ---------------- */
+/* ---------------- route ---------------- */
 
-function AccountBanner() {
-  const { hasAccount, bannerOpen, dismissBanner, openSheet } = useGala();
-  if (hasAccount || !bannerOpen) return null;
-  return (
-    <div className="banner">
-      <span className="ico sm">
-        <Icon name="sparkle" size={18} />
-      </span>
-      <div>
-        <b>Want to keep your gala with you?</b>
-        <span>Save your galas, calendar, history and reminders. This gala works fine without an account.</span>
-      </div>
-      <Button sm onClick={() => openSheet('account')}>
-        Create an Account
-      </Button>
-      <button type="button" className="ibtn" onClick={dismissBanner} aria-label="Dismiss">
-        <Icon name="x" size={20} />
-      </button>
-    </div>
-  );
-}
+// The "Want to keep your gala with you?" account banner is gone: an account is now required
+// to plan or join, so everyone in a gala already has one.
 
 const ROUTE: [label: string, icon: IconName, seg: string][] = [
   ['G tayo?', 'sparkle', ''],
@@ -419,7 +400,6 @@ export function Dashboard() {
     <>
       {state === 'offline' && <OfflineBar />}
       <Hero />
-      <AccountBanner />
       {phase !== 'done' && <RouteStrip />}
       <div className="dgrid">
         <FeatureGrid />

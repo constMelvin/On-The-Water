@@ -2,7 +2,7 @@
 
 /**
  * Browser Supabase client. The backend never issues tokens: every call to it carries the
- * Supabase session's access token. No account is needed inside a gala, so the first API
+ * Supabase session's access token. The first API
  * call on a device quietly starts an anonymous Supabase session (kept in localStorage,
  * so the same device stays the same member).
  */
@@ -22,7 +22,12 @@ export function supabase(): SupabaseClient {
 
 let signingIn: Promise<string> | null = null;
 
-/** The current access token, starting an anonymous session first if there is none. */
+/**
+ * The current access token, starting an anonymous session first if there is none.
+ * TODO(backend): require real auth here. Plan / Join / Enter are gated by a mock flag
+ * (lib/otw/auth-mock.ts); once real sign-up exists, stop starting anonymous sessions
+ * for those flows and use the signed-in Supabase session.
+ */
 export async function accessToken(): Promise<string> {
   const { data } = await supabase().auth.getSession();
   if (data.session) return data.session.access_token;

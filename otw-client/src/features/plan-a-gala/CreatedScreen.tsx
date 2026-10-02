@@ -86,20 +86,7 @@ export function CreatedScreen({ code, title, password }: CreatedScreenProps) {
           <p className="fine cream-t">
             Share the Gala Code with your friends. Keep the Gala Password somewhere safe so you can come back later.
           </p>
-          <div className="card prompt">
-            <h3>Want to keep your gala with you?</h3>
-            <p>Create an account to save your galas, keep a personal calendar, view your gala history, and get reminders.</p>
-            <div className="row wrapr">
-              {/* TODO(team): point at the real auth route once it exists. */}
-              <Link className="btn sm rosy" href={`/login?tab=create&gala=${encodeURIComponent(code)}`}>
-                Create an Account
-              </Link>
-              <Button variant="ghost" sm onClick={() => toast('No pressure. You can save it any time from the dashboard.')}>
-                Maybe Later
-              </Button>
-            </div>
-            <p className="fine">Your current gala can still continue without an account.</p>
-          </div>
+          {/* No optional-account card: an account is already required to plan a gala. */}
         </div>
       </div>
 
