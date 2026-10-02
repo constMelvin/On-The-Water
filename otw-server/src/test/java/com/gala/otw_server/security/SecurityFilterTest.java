@@ -9,7 +9,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.security.oauth2.jwt.Jwt;
+import java.util.List;
+import java.util.UUID;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.http.MediaType;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -106,5 +113,47 @@ class SecurityFilterTest {
     void swaggerUi_noAuth_passesSecurity() throws Exception {
         mockMvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().is(org.hamcrest.Matchers.not(401)));
+    }
+
+    private static SupabaseAuthenticationToken token(boolean anonymous, String email) {
+        Jwt.Builder b = Jwt.withTokenValue("t").header("alg", "RS256").subject(UUID.randomUUID().toString())
+                .claim("is_anonymous", anonymous);
+        if (email != null) b.claim("email", email);
+        Jwt jwt = b.build();
+        return new SupabaseAuthenticationToken(SupabaseUser.fromJwt(jwt), jwt, List.of());
+    }
+
+    @Test
+    @DisplayName("anonymous JWT on a protected route -> 401 ACCOUNT_REQUIRED, rate limiter untouched")
+    void anonymousJwt_accountRequired() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me").with(authentication(token(true, null))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCOUNT_REQUIRED.name()));
+        verifyNoInteractions(rateLimiterService);
+    }
+
+    @Test
+    @DisplayName("registered JWT on a protected route -> 200")
+    void accountJwt_passes() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me").with(authentication(token(false, "a@b.co"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("anonymous JWT on the public ping -> still 200")
+    void anonymousJwt_publicPing() throws Exception {
+        mockMvc.perform(get("/api/v1/public/ping").with(authentication(token(true, null))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("anonymous JWT on POST /rooms/join -> 401 ACCOUNT_REQUIRED (rejected before the controller)")
+    void anonymousJwt_joinRoom_accountRequired() throws Exception {
+        mockMvc.perform(post("/api/v1/rooms/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"X\"}")
+                        .with(authentication(token(true, null))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCOUNT_REQUIRED.name()));
     }
 }

@@ -4,6 +4,10 @@
 > **2026-09-29:** Group/barkada tier removed — see docs/OTW - WEB.pdf's flat Room-only tasking. Backend now has one authorization tier (Room), not two. ~~Anonymous Supabase sessions are rejected; a registered account is required (overrides the PDF's no-login flow).~~
 >
 > **2026-09-29 (later) — aligned with the product prototype artifact ("From “G tayo?” to “OTW na.”"):** reversed by the project owner. The app is **anonymous-first**: Supabase anonymous sessions are accepted for everything inside a gala; an account is optional and only gates the personal, cross-gala features (My Galas, calendar, history, notifications) via `@RequireAccount` → `401 ACCOUNT_REQUIRED`. Also added: Gala Password + "Enter a Gala" (code + password → "Which one are you?"), gala dates/destination/lifecycle (archive/restore/delete, leave, new code), member permission toggles, travel status, itinerary stop type + reorder, checklist claim, budget categories, expense category + recorded "Mark paid" payments, photo caption, dashboard summary, Chat, Couple Mode, and notification preferences + in-app feed. Design + rationale: `docs/superpowers/specs/2026-09-29-artifact-alignment-design.md`. Migrations V6–V15.
+>
+> **2026-10-02 — account required everywhere (owner decision):** reverses anonymous-first. Anonymous Supabase sessions are rejected on every route by AccountRequiredFilter (401 ACCOUNT_REQUIRED); login is email + password (OAuth later; Confirm email off); @RequireAccount, AccountRequiredAspect and POST /me/link-account removed; Enter a Gala kept for logged-in users. Spec: docs/superpowers/specs/2026-10-02-real-auth-account-required-design.md.
+>
+> **2026-10-02 (slice 2A):** `GET /me/rooms` items now include `roomCode`; the frontend My Galas and a new History page read the account-wide list instead of the device registry. Spec: docs/superpowers/specs/2026-10-02-my-galas-history-design.md.
 
 This guide takes the OTW Master Project Management Plan and narrows it to everything the backend team needs, from an empty repo to a production-ready API. Frontend/UI/branding work is intentionally out of scope here.
 
@@ -29,8 +33,9 @@ otw-backend/
 │   ├── config/              # SecurityConfig, RedisConfig, CacheConfig, CorsConfig, WebSocketConfig, RateLimitConfig
 │   ├── common/               # BaseException, ApiResponse, ErrorCode, AuditFields, PageResponse
 │   ├── security/
-│   │   ├── jwt/               # Supabase JWT filter + JWK verification (anonymous sessions accepted)
-│   │   ├── authz/              # @RequireRoomRole + RoomAccessAspect; @RequireAccount + AccountRequiredAspect
+│   │   ├── jwt/               # Supabase JWT filter + JWK verification (anonymous sessions rejected by AccountRequiredFilter)
+│   │   ├── authz/              # @RequireRoomRole + RoomAccessAspect
+│   │   ├── AccountRequiredFilter.java   # global account gate, lives directly in security/ (not authz/)
 │   ├── room/
 │   │   ├── controller/
 │   │   ├── dto/
@@ -309,7 +314,7 @@ erDiagram
 
 ## 4. API Contract (`/api/v1`)
 
-Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — an anonymous Supabase session is enough everywhere except the account-only `/me/...` endpoints (see §5.1), cursor-based pagination (`?cursor=...&limit=20`), errors as `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
+Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a registered (non-anonymous) account is required on every endpoint (§5.1), cursor-based pagination (`?cursor=...&limit=20`), errors as `{ "code": "ROOM_NOT_FOUND", "message": "..." }`.
 
 | Method | Path | Purpose | Role |
 |---|---|---|---|
@@ -341,7 +346,7 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — an a
 |---|---|---|---|
 | GET | `/rooms/preview?code=` | "Is this the one?" preview (title, dates, destination, type, member count, ≤12 nicknames, full) | Authenticated, rate-limited |
 | POST | `/rooms/enter` | Enter a Gala: `{roomCode, password}` → members for "Which one are you?" | Authenticated, rate-limited |
-| POST | `/rooms/enter/claim` | `{roomCode, password, memberId}` → rebind that anonymous member to the caller | Authenticated, rate-limited |
+| POST | `/rooms/enter/claim` | `{roomCode, password, memberId}` → rebind that unclaimed member to the caller | Authenticated, rate-limited |
 | GET | `/rooms/{roomId}/summary` | Dashboard cards + recap counts | Member |
 | PATCH | `/rooms/{roomId}` | Edit gala details + member permission toggles | Host |
 | PUT | `/rooms/{roomId}/password` | Change Gala Password | Host |
@@ -362,9 +367,8 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — an a
 | PUT | `/rooms/{roomId}/chat/read` · GET `/chat/unread` | Mark read · unread count + first unread id | Member ✱ · Member |
 | GET | `/rooms/{roomId}/couple/ideas` | Date idea catalog + saved flags (couple galas only) | Member |
 | PUT / DELETE | `/rooms/{roomId}/couple/ideas/{key}` | Save / unsave an idea | Member |
-| GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` | My Galas / calendar (≤62-day range) | Account |
+| GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` | My Galas / calendar (≤62-day range) · each item carries `roomCode` (8 chars, no `OTW-` prefix) so any device can route to `/gala/OTW-XXXX-XXXX` | Account |
 | GET | `/me/rooms/stats` | Gala History tiles | Account |
-| POST | `/me/link-account` | After upgrading an anonymous session: mark all its memberships `has_account` | Account |
 | GET / PUT | `/me/notification-preferences` | Seven reminder toggles | Account |
 | GET | `/me/notifications` · `/me/notifications/unread-count` | Feed (cursor) · bell badge | Account |
 | PATCH / POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | Mark read | Account |
@@ -373,19 +377,18 @@ Changed existing endpoints: `POST /rooms` now takes `startDate` (required), `end
 
 Every write endpoint: Bean Validation on the request DTO, ownership/role check via the `@RequireRoomRole` aspect (see §5.3), and — where relevant — emits a realtime event (§8) and evicts a cache key (§6).
 
-Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST /rooms/join` (nickname already taken by an active member of that room); `401 ACCOUNT_REQUIRED` on account-only endpoints for anonymous sessions (distinct from the generic `401 UNAUTHENTICATED` — see §5.1); `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `404 NOT_A_COUPLE_ROOM`, `PAYMENT_NOT_FOUND`, `CHAT_MESSAGE_NOT_FOUND`, `NOTIFICATION_NOT_FOUND`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `MEMBER_HAS_ACCOUNT`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`.
+Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST /rooms/join` (nickname already taken by an active member of that room); `401 ACCOUNT_REQUIRED` on any endpoint for anonymous or email-less tokens (distinct from the generic `401 UNAUTHENTICATED` — see §5.1); `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `404 NOT_A_COUPLE_ROOM`, `PAYMENT_NOT_FOUND`, `CHAT_MESSAGE_NOT_FOUND`, `NOTIFICATION_NOT_FOUND`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `MEMBER_HAS_ACCOUNT`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`.
 
 ---
 
 ## 5. Authentication & Authorization
 
 ### 5.1 Authentication (who are you)
-- Supabase Auth issues JWTs — including **anonymous** sessions (`signInAnonymously()`), which this backend accepts.
+- Supabase Auth issues JWTs (email + password; anonymous sessions are rejected, see below).
 - Spring Boot does **not** re-implement login, signup, or token refresh — the frontend talks to Supabase Auth directly and just attaches the resulting token as `Authorization: Bearer <token>`. The backend's only job is to **verify** that token on every request.
 - Reject any token whose `aud`/`iss` doesn't match your Supabase project.
-- **Anonymous-first (2026-09-29, reverses the earlier same-day rule; matches the product artifact).** No sign-up is needed to plan, join, or use any feature inside a gala. The account-only features (My Galas, calendar, history, notifications — everything under `/me/`) are marked `@RequireAccount`; `AccountRequiredAspect` returns `401 {"code":"ACCOUNT_REQUIRED"}` when `is_anonymous` is true or the token has no email (fail-closed), so the frontend can route to "Create an Account".
-- **Saving a gala to an account** keeps the same user id: the frontend upgrades the anonymous user with Supabase `updateUser`/`linkIdentity` (not a fresh sign-up), then calls `POST /me/link-account`, which sets `room_members.has_account = true` for every gala that user joined.
-- **Enter a Gala** (new device / cleared session → new anonymous `sub`): `POST /rooms/enter` checks the Gala Code + Gala Password (BCrypt) and lists members; `POST /rooms/enter/claim` rebinds the picked member row to the caller and `MemberIdentityRemapper` moves every room-scoped user-id column (items, shares, payments, photos, chat, …) in the same transaction. Members with `has_account = true` can't be claimed (`409 MEMBER_HAS_ACCOUNT`) — they log in instead. Both steps are rate-limited per client. Wrong code → `404 INVALID_CODE`; wrong password → `401 INVALID_GALA_PASSWORD`.
+- **Account required everywhere (2026-10-02, owner decision; reverses the 2026-09-29 anonymous-first rule).** Supabase anonymous sessions are **rejected**: `AccountRequiredFilter` returns `401 {"code":"ACCOUNT_REQUIRED"}` for any token that is anonymous (`is_anonymous`) or has no `email` claim (fail-closed), on every route except the public/health/docs paths. There is no per-endpoint annotation; new endpoints are protected by default. The frontend routes to `/login?next=...`. Supabase "Allow anonymous sign-ins" must stay OFF; login is email + password (OAuth providers planned; Confirm email off).
+- **Enter a Gala** (logged-in users only): `POST /rooms/enter` checks the Gala Code + Gala Password (BCrypt) and lists members; `POST /rooms/enter/claim` rebinds the picked unclaimed member row (legacy anonymous rows or members added before an account existed) to the caller and `MemberIdentityRemapper` moves every room-scoped user-id column (items, shares, payments, photos, chat, …) in the same transaction. Members with `has_account = true` can't be claimed (`409 MEMBER_HAS_ACCOUNT`). Both steps are rate-limited per client. Wrong code → `404 INVALID_CODE`; wrong password → `401 INVALID_GALA_PASSWORD`.
 
 #### 5.1.1 Implementation — verifying Supabase JWTs in Spring Boot
 
@@ -541,10 +544,12 @@ This layered guard is the single most important control against "guessing/manipu
 | Chat, hearts, couple ideas | ✅ | ✅ | ❌ |
 | View another room's data | ❌ | ❌ | ❌ |
 
-"Unauthenticated" means no valid token at all; an anonymous Supabase session counts as authenticated. Member permission toggles never restrict the host.
+"Unauthenticated" means no valid token at all; an anonymous Supabase session is rejected with 401 ACCOUNT_REQUIRED. Member permission toggles never restrict the host.
 
 ### 5.4 Row-Level Security as a second layer
 Even though Spring Boot enforces authorization, if the mobile team ever queries Supabase directly (e.g. Realtime subscription payloads, or a future direct-to-Supabase read), **RLS policies on every table must independently enforce room membership**. Defense in depth: don't rely on the API being the only door.
+
+> **Caveat (2026-10-02):** the API gate (`AccountRequiredFilter`) is global, but RLS read policies do not check `is_anonymous`. Legacy anonymous members whose Supabase sessions are still valid could therefore read their own rooms directly via PostgREST/Realtime. Turning the dashboard "Allow anonymous sign-ins" toggle OFF only stops NEW anonymous sign-ins; it does not revoke existing sessions. Direct Supabase access depends on RLS plus that dashboard setting.
 
 ---
 
@@ -692,5 +697,5 @@ Suggested acceptance targets to start from (refine after real load tests): P95 <
 - Exact room-code format/length and collision-retry strategy. (Current: 8 random chars from a 32-char unambiguous alphabet, 5 retries; the artifact's `OTW-` prefix is display-only and stripped on input.)
 - Live-location update interval and auto-expiry window (defaults suggested above, tune after testing).
 
-**Resolved 2026-09-29:** ~~Anonymous Supabase auth is not acceptable.~~ **Superseded the same day:** anonymous-first, account optional — see §5.1.
+**Resolved 2026-09-29:** ~~Anonymous Supabase auth is not acceptable.~~ **Superseded the same day:** anonymous-first, account optional — see §5.1. **Superseded 2026-10-02:** account required everywhere — see §5.1.
 **Resolved 2026-09-29:** Settlement supports recorded payments ("Mark paid", partial allowed) while staying a computed view — payments are insert/delete rows folded into the balance math on read, never a stored running total.

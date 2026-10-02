@@ -17,11 +17,10 @@ Back to [[00-Index]] · Full `SecurityConfig` code: master plan §5.1.1
 - 401 returns `{"code":"UNAUTHENTICATED",...}`; 403 returns `{"code":"FORBIDDEN",...}`.
 - The converter sets the principal name to `sub`. Read it through `CurrentUserProvider.getUserId()` rather than calling `SecurityContextHolder` everywhere.
 
-### Anonymous-first (revised 2026-09-29 to match the product artifact)
-- Anonymous Supabase sessions are **accepted** for everything inside a gala. No sign-up is needed to plan, join or use room features.
-- Account-only endpoints (everything under `/me/`: My Galas, calendar, history, notifications) carry `@RequireAccount`. `AccountRequiredAspect` returns `401 {"code":"ACCOUNT_REQUIRED"}` when `CurrentUserProvider.isAnonymous()` is true (`is_anonymous` claim, or no email — fail-closed).
-- "Save this gala": the frontend upgrades the anonymous user with `updateUser`/`linkIdentity` (same `sub`), then calls `POST /me/link-account` → `room_members.has_account = true` everywhere.
-- **Enter a Gala**: `POST /rooms/enter` (Gala Code + BCrypt Gala Password) lists members; `POST /rooms/enter/claim` rebinds an anonymous member row to the new session and `MemberIdentityRemapper` moves all room-scoped user-id columns in the same transaction. `has_account` members can't be claimed (`409 MEMBER_HAS_ACCOUNT`). Rate-limited per client.
+### Account required everywhere (2026-10-02; reverses the 2026-09-29 anonymous-first rule)
+- Supabase anonymous sessions are **rejected**. `AccountRequiredFilter` returns `401 {"code":"ACCOUNT_REQUIRED"}` for any token that is anonymous (`is_anonymous` claim) or has no `email` claim (fail-closed), on every route except public/health/docs paths. No per-endpoint annotation; new endpoints are protected by default.
+- Login is email + password via Supabase (OAuth planned; Confirm email off). "Allow anonymous sign-ins" must stay OFF in the Supabase dashboard. `@RequireAccount`, `AccountRequiredAspect` and `POST /me/link-account` are removed.
+- **Enter a Gala** (logged-in users only): `POST /rooms/enter` (Gala Code + BCrypt Gala Password) lists members; `POST /rooms/enter/claim` rebinds an unclaimed member row (legacy anonymous rows or members added before an account existed) to the caller and `MemberIdentityRemapper` moves all room-scoped user-id columns in the same transaction. `has_account` members can't be claimed (`409 MEMBER_HAS_ACCOUNT`). Rate-limited per client.
 
 ## Authorization: one tier (§5.2)
 **Room-scoped endpoints**, cheapest check first:

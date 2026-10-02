@@ -2,9 +2,8 @@
 
 /**
  * Browser Supabase client. The backend never issues tokens: every call to it carries the
- * Supabase session's access token. The first API
- * call on a device quietly starts an anonymous Supabase session (kept in localStorage,
- * so the same device stays the same member).
+ * Supabase session's access token. A real account session (email + password) is required;
+ * there are no guest sessions.
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
@@ -20,34 +19,19 @@ export function supabase(): SupabaseClient {
   return client;
 }
 
-let signingIn: Promise<string> | null = null;
+/** Thrown when there is no signed-in account session. The api() wrapper sends the user to /login. */
+export class NotSignedInError extends Error {
+  constructor() {
+    super('Please log in to continue.');
+    this.name = 'NotSignedInError';
+  }
+}
 
-/**
- * The current access token, starting an anonymous session first if there is none.
- * TODO(backend): require real auth here. Plan / Join / Enter are gated by a mock flag
- * (lib/otw/auth-mock.ts); once real sign-up exists, stop starting anonymous sessions
- * for those flows and use the signed-in Supabase session.
- */
+/** The current access token. Throws NotSignedInError when nobody is logged in (no guest sessions). */
 export async function accessToken(): Promise<string> {
   const { data } = await supabase().auth.getSession();
-  if (data.session) return data.session.access_token;
-
-  // One sign-in even when several requests start at once.
-  signingIn ??= supabase()
-    .auth.signInAnonymously()
-    .then(({ data: d, error }) => {
-      if (error || !d.session) {
-        throw new Error(
-          `Couldn't start a guest session: ${error?.message ?? 'no session'}. ` +
-            'Check that Anonymous sign-ins are enabled in Supabase (Authentication → Sign In / Providers).'
-        );
-      }
-      return d.session.access_token;
-    })
-    .finally(() => {
-      signingIn = null;
-    });
-  return signingIn;
+  if (!data.session) throw new NotSignedInError();
+  return data.session.access_token;
 }
 
 /** The Supabase user id (= the backend's userId) for this device, if a session exists. */

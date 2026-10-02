@@ -3,7 +3,6 @@ package com.gala.otw_server.room.repository;
 import com.gala.otw_server.room.entity.RoomMember;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -50,9 +49,4 @@ public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
             @Param("roomId") UUID roomId,
             @Param("cursor") UUID cursor,
             Pageable pageable);
-
-    /** "Save this gala": after the anonymous user links an account, all their memberships follow. */
-    @Modifying
-    @Query("UPDATE RoomMember m SET m.hasAccount = true WHERE m.userId = :userId AND m.hasAccount = false")
-    int markHasAccount(@Param("userId") UUID userId);
 }

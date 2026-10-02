@@ -29,19 +29,18 @@ public class CurrentUserProvider {
     }
 
     /**
+     * True when the caller has no registered account: a Supabase anonymous session, or
+     * (fail-closed) a token without an email. See {@link SupabaseUser#hasAccount()}.
+     */
+    public boolean isAnonymous() {
+        return !getUser().hasAccount();
+    }
+
+    /**
      * Returns the full {@link SupabaseUser} record from the verified JWT.
      *
      * @throws UnauthenticatedException if there is no authenticated principal in the context
      */
-    /**
-     * True when the caller has no registered account yet: a Supabase anonymous session,
-     * or (fail-closed) a token without an email, since every supported login is email-based.
-     */
-    public boolean isAnonymous() {
-        SupabaseUser user = getUser();
-        return user.isAnonymous() || user.email() == null || user.email().isBlank();
-    }
-
     public SupabaseUser getUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof SupabaseAuthenticationToken token) {

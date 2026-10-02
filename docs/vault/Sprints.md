@@ -22,7 +22,7 @@ Back to [[00-Index]]
 - What should the live-location interval and expiry window be?
 
 **Resolved 2026-09-29:** Group/barkada tier removed (see [[Schema]], [[Auth]]).
-**Resolved 2026-09-29 (later, supersedes the earlier "account required" rule):** anonymous-first, account optional — see [[Auth]].
+**Resolved 2026-09-29 (later, supersedes the earlier "account required" rule):** anonymous-first, account optional — see [[Auth]]. **Superseded 2026-10-02:** account required everywhere — see [[Auth]].
 **Resolved 2026-09-29:** Settlement supports recorded payments ("Mark paid", partial allowed) while staying a computed view.
 
 ## Artifact alignment (2026-09-29)

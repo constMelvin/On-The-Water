@@ -7,7 +7,7 @@ import styles from './join.module.css';
 import { useRouter } from 'next/navigation';
 import { lookupGala, joinGala, type GalaEvent } from './joinApi';
 import { galaRoute, isValidCode, normCode, roomIdFor } from '@/lib/otw/gala-registry';
-import { useAccount } from '@/lib/otw/auth-mock';
+import { useAccount } from '@/lib/auth/session';
 
 // Dashboard route for the gala the member just joined
 const MEMBER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
@@ -105,7 +105,7 @@ export default function JoinPage() {
   const [nickname, setNickname] = useState('');
 
   // Default the nickname to the account Name once (still editable before joining).
-  // TODO(backend): profile name from the auth user (Supabase user_metadata.name).
+  // The Name given at Create account (Supabase user_metadata.name).
   const account = useAccount();
   const nicknamePrefilled = useRef(false);
   useEffect(() => {

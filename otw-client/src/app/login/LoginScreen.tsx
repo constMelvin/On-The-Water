@@ -4,24 +4,26 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Icon } from '@/components/otw';
-import { mockSignIn, useAccount } from '@/lib/otw/auth-mock';
+import { signIn, signUp, useAccount } from '@/lib/auth/session';
 import { burstEl, toast } from '@/lib/otw/feedback';
 import styles from './login.module.css';
 
 type Tab = 'login' | 'create';
-type Ctx = 'plan' | 'join' | 'enter' | '';
+type Ctx = 'plan' | 'join' | 'enter' | 'me' | '';
 
 /** Why we're asking, by what the person was about to do (OTW voice: clear first, a little playful). */
 const CTX_BAR: Record<Exclude<Ctx, ''>, string> = {
   plan: 'Account first, then back to planning your gala.',
   join: 'Account first, then back to joining your gala.',
   enter: 'Log in, then we’ll take you back to your gala.',
+  me: 'Log in, then we’ll take you to your galas.',
 };
 
 const CREATE_SUB: Record<Ctx, string> = {
   plan: 'Just once. Then turn “G tayo?” into an actual plan.',
   join: 'Just once. Then jump in with your friends.',
   enter: 'Just once. Then let’s go.',
+  me: 'Just once. Then let’s go.',
   '': 'Just once. Then let’s go.',
 };
 
@@ -34,23 +36,8 @@ const PLANNER_ITEMS = [
   'Your galas on any device',
 ];
 
-const USERNAME_MAX = 20;
-/** 3 to 20 letters, numbers or underscores (checked on Create account only). */
-const USERNAME_MIN = 3;
-
-/** Cleans what people type: trims and drops a leading "@" (people often type @handle). */
-const cleanUsername = (v: string) => v.trim().replace(/^@+/, '');
-
-/** Says exactly what's wrong with a new username, or '' when it's fine. */
-function usernameError(raw: string): string {
-  const u = cleanUsername(raw);
-  if (!u) return 'Pumili ng username.';
-  if (/\s/.test(u)) return 'Bawal ang space sa username. Try underscore (_) instead.';
-  if (!/^[A-Za-z0-9_.]+$/.test(u)) return 'Letters, numbers, underscore (_) at period (.) lang ang puwede.';
-  if (u.length < USERNAME_MIN) return 'Medyo maikli. Kailangan at least 3 characters.';
-  if (u.length > USERNAME_MAX) return 'Medyo mahaba. Hanggang 20 characters lang.';
-  return '';
-}
+const PASSWORD_MIN = 8;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface LoginScreenProps {
   initialTab: Tab;
@@ -62,35 +49,40 @@ interface LoginScreenProps {
 }
 
 /**
- * Log in / Create account. Mock for now: any valid-looking details sign this device in.
- * TODO(backend): require real auth here. Call Supabase signUp / signInWithPassword and map
- * its errors to friendly copy (wrong password, username already taken).
+ * Log in / Create account with Supabase email + password (account required for everything).
  */
 export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
   const router = useRouter();
   const { signedIn } = useAccount();
   const [tab, setTab] = useState<Tab>(initialTab);
   const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const create = tab === 'create';
 
-  const submit = (e: FormEvent<HTMLFormElement>) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (busy) return;
     if (create && !name.trim()) return setError('We need something to call you.');
-    const userErr = create ? usernameError(username) : cleanUsername(username) ? '' : 'Enter your username.';
-    if (userErr) return setError(userErr);
-    if (password.length < 6) return setError('Make it at least 6 characters.');
+    if (!EMAIL_RE.test(email.trim())) return setError('Enter a valid email address.');
+    if (!password) return setError('Enter your password.');
+    if (create && password.length < PASSWORD_MIN) return setError(`Make it at least ${PASSWORD_MIN} characters.`);
     setError('');
-    // TODO(backend): replace email with username in the auth payload. This is where the real
-    // Supabase signUp (name, username, password) / signInWithPassword (username, password) call goes.
-    // Log in only knows the username; the mock restores the Name saved at Create account.
-    mockSignIn({ name: create ? name.trim() : '', username: cleanUsername(username) });
-    toast(create ? 'Account created. Let’s go.' : 'Welcome back.');
-    burstEl(e.currentTarget.querySelector('button[type="submit"]'));
-    router.replace(next);
+    setBusy(true);
+    const button = e.currentTarget.querySelector('button[type="submit"]');
+    try {
+      if (create) await signUp(name, email, password);
+      else await signIn(email, password);
+      toast(create ? 'Account created. Let’s go.' : 'Welcome back.');
+      burstEl(button);
+      router.replace(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setBusy(false);
+    }
   };
 
   const switchTab = (t: Tab) => {
@@ -157,25 +149,21 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
               </label>
             )}
             <label className="fl">
-              Username
+              Email
               <input
                 className="in"
-                value={username}
+                type="email"
+                value={email}
                 onChange={(e) => {
-                  setUsername(e.target.value);
+                  setEmail(e.target.value);
                   setError('');
                 }}
-                placeholder="Pumili ng username"
-                autoComplete="username"
+                placeholder="you@email.com"
+                autoComplete="email"
                 autoCapitalize="none"
                 spellCheck={false}
-                maxLength={USERNAME_MAX + 1 /* room for a leading @, which is dropped */}
+                inputMode="email"
               />
-              {create && (
-                <span className="fine" style={{ fontWeight: 700 }}>
-                  3 to 20 characters. Letters, numbers, underscore (_) o period (.). Walang space.
-                </span>
-              )}
             </label>
             <label className="fl">
               Password
@@ -200,6 +188,11 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
                   <Icon name={show ? 'eyeoff' : 'eye'} size={22} />
                 </button>
               </div>
+              {create && (
+                <span className="fine" style={{ fontWeight: 700 }}>
+                  At least 8 characters.
+                </span>
+              )}
             </label>
 
             {error && (
@@ -210,14 +203,14 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
             )}
 
             <div className={styles.actions}>
-              <Button type="submit" variant="rosy">
+              <Button type="submit" variant="rosy" disabled={busy}>
                 {create ? 'Create an Account' : 'Log in'}
               </Button>
               <button type="button" className="lnk" onClick={() => switchTab(create ? 'login' : 'create')}>
                 {create ? 'Already have an account? Log in' : 'New here? Create an account'}
               </button>
             </div>
-            {create && <p className="fine">Just a username and a password. We won’t ask for your life story.</p>}
+            {create && <p className="fine">Just an email and a password. We won’t ask for your life story.</p>}
           </form>
         </div>
 

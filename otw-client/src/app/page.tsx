@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from './landing.module.css';
 import OtwConversationAd from './OtwConversationAd';
-import { useAccount, mockSignOut } from '@/lib/otw/auth-mock';
+import { useAccount } from '@/lib/auth/session';
+import { useLogOut } from '@/components/gala/useLogOut';
 
 interface Sparkle {
   id: number;
@@ -584,17 +585,18 @@ function ShapeDefs() {
 /* ------------------------------------------------------------------ */
 
 function NavActions() {
-  const { signedIn, name, username } = useAccount();
+  const { signedIn, displayName } = useAccount();
+  const logOut = useLogOut();
   // Nothing while checking, so neither version flashes.
   if (signedIn === undefined) return <div className={styles.navActions} aria-hidden="true" />;
   if (signedIn) {
     return (
       <div className={styles.navActions}>
-        <span className={styles.navName}>Hi, {name || username}</span>
+        <span className={styles.navName}>Hi, {displayName}</span>
         <Link className={styles.navCta} href="/me/galas">
           My Galas
         </Link>
-        <button type="button" className={styles.navLogin} onClick={mockSignOut}>
+        <button type="button" className={styles.navLogin} onClick={logOut}>
           Log out
         </button>
       </div>

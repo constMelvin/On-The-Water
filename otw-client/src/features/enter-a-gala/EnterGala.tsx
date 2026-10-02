@@ -79,7 +79,6 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
     if (!gala || busy) return;
     setBusy(true);
     try {
-      // TODO(backend): link the claimed member to the account (POST /me/link-account).
       await claimMember(normCode(code), pw, memberId);
       open(gala.roomId, name);
     } catch (e) {

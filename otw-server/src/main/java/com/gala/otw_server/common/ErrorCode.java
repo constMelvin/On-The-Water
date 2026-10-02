@@ -12,7 +12,7 @@ public enum ErrorCode {
     FORBIDDEN,
     TOKEN_EXPIRED,
     TOKEN_INVALID,
-    ACCOUNT_REQUIRED,           // valid token, but an anonymous session on an account-only endpoint
+    ACCOUNT_REQUIRED,           // valid token, but an anonymous session on any endpoint
     INVALID_GALA_PASSWORD,      // Gala Code found, but the Gala Password doesn't match
 
     // ── Resource not found ──────────────────────────────────────────────────

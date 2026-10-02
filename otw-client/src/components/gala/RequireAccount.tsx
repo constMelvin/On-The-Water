@@ -2,28 +2,26 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSignedIn } from '@/lib/otw/auth-mock';
+import { useAccount } from '@/lib/auth/session';
+import { loginUrl } from '@/lib/auth/redirect';
 
 /** Which flow the person was starting; the login screen words its explanation from this. */
-export type AccountContext = 'plan' | 'join' | 'enter';
+export type AccountContext = 'plan' | 'join' | 'enter' | 'me';
 
 /**
- * Gate for Plan a Gala, Join a Gala and Enter a Gala: without an account (mock flag for now)
- * it sends the person to Create account, remembering the page to come back to.
- *
- * TODO(backend): require real auth here (Supabase non-anonymous session), and enforce it
- * on the API as well. This client check can be bypassed.
+ * UX gate for Plan, Join and Enter a Gala: without a real account session it sends the person to
+ * Log in / Create account, remembering the page to come back to. This is only convenience; the
+ * backend's AccountRequiredFilter is the actual enforcement.
  */
 export function RequireAccount({ ctx, children }: { ctx: AccountContext; children: ReactNode }) {
   const router = useRouter();
-  const signedIn = useSignedIn();
+  const { signedIn } = useAccount();
 
   useEffect(() => {
     if (signedIn !== false) return;
     const here = window.location.pathname + window.location.search;
     // Returning people (Enter a Gala) land on Log in; everyone else on Create account.
-    const tab = ctx === 'enter' ? 'login' : 'create';
-    router.replace(`/login?tab=${tab}&ctx=${ctx}&next=${encodeURIComponent(here)}`);
+    router.replace(loginUrl(here, { tab: ctx === 'enter' || ctx === 'me' ? 'login' : 'create', ctx }));
   }, [signedIn, ctx, router]);
 
   if (!signedIn) return null;

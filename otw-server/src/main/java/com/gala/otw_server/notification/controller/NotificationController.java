@@ -6,7 +6,6 @@ import com.gala.otw_server.notification.dto.NotificationPreferencesDto;
 import com.gala.otw_server.notification.dto.UnreadCountDto;
 import com.gala.otw_server.notification.service.NotificationService;
 import com.gala.otw_server.security.auth.CurrentUserProvider;
-import com.gala.otw_server.security.auth.RequireAccount;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +19,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/v1/me")
-@RequireAccount
 public class NotificationController {
 
     private final NotificationService notificationService;

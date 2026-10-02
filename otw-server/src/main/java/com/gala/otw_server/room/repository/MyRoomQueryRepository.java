@@ -20,11 +20,11 @@ public class MyRoomQueryRepository {
 
     public enum View { ONGOING, UPCOMING, COMPLETED, ARCHIVED }
 
-    public record Row(UUID roomId, String title, String destination, LocalDate startDate, LocalDate endDate,
+    public record Row(UUID roomId, String roomCode, String title, String destination, LocalDate startDate, LocalDate endDate,
                       RoomType type, String status, RoomRole myRole, int memberCount) {}
 
     private static final String SELECT = """
-            SELECT r.id, r.title, r.destination, r.start_date, r.end_date, r.room_type, r.status, rm.role,
+            SELECT r.id, r.room_code, r.title, r.destination, r.start_date, r.end_date, r.room_type, r.status, rm.role,
                    (SELECT COUNT(*) FROM room_members x WHERE x.room_id = r.id AND x.left_at IS NULL) AS member_count
             FROM room_members rm
             JOIN rooms r ON r.id = rm.room_id
@@ -111,6 +111,7 @@ public class MyRoomQueryRepository {
     private Row mapRow(java.sql.ResultSet rs, int i) throws java.sql.SQLException {
         return new Row(
                 rs.getObject("id", UUID.class),
+                rs.getString("room_code"),
                 rs.getString("title"),
                 rs.getString("destination"),
                 rs.getObject("start_date", LocalDate.class),

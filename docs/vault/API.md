@@ -7,7 +7,7 @@ source: master plan §4
 Back to [[00-Index]]
 
 ## Conventions
-- JSON. Every call needs `Authorization: Bearer <supabase_jwt>`. An **anonymous** Supabase session is enough everywhere except `/me/...` (account-only → `401 ACCOUNT_REQUIRED`) — see [[Auth]].
+- JSON. Every call needs `Authorization: Bearer <supabase_jwt>` and a registered account; anonymous or email-less tokens → `401 ACCOUNT_REQUIRED` — see [[Auth]].
 - Pagination is cursor-based: `?cursor=...&limit=20` (My Galas uses an opaque offset cursor).
 - Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`. Notable codes: `409 DUPLICATE_NICKNAME`; `401 ACCOUNT_REQUIRED`; `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `MEMBER_HAS_ACCOUNT`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`; `404 NOT_A_COUPLE_ROOM`; `400 INVALID_PHOTO_REFERENCE` (Drive validation failed).
 - Every write endpoint has Bean Validation on its DTO and a role guard ([[Auth]]). Where relevant, it also emits a realtime event ([[Realtime]]) and evicts cache ([[Caching]]).
@@ -47,11 +47,10 @@ Back to [[00-Index]]
 
 `POST /rooms/{roomId}/photos` registers metadata only — the backend verifies the submitted `driveFileId` via a read-only Google Drive API call: it must be a real, non-trashed image or video in the configured shared folder, or `400 INVALID_PHOTO_REFERENCE`. Binary upload to Drive is the client's job.
 
-## Endpoints — account (`@RequireAccount`)
+## Endpoints — account (`/me`)
 | Method | Path |
 |---|---|
-| GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` (≤62 days) · `/me/rooms/stats` |
-| POST | `/me/link-account` |
+| GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` (≤62 days) · `/me/rooms/stats` · each item carries `roomCode` (8 chars, no `OTW-` prefix) so any device can route to `/gala/OTW-XXXX-XXXX` |
 | GET / PUT | `/me/notification-preferences` |
 | GET | `/me/notifications` · `/me/notifications/unread-count` |
 | PATCH / POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` |

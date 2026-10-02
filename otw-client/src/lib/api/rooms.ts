@@ -134,3 +134,6 @@ export async function getAllMembers(roomId: string): Promise<RoomMemberDto[]> {
 
 export const updateRsvp = (roomId: string, rsvpStatus: RsvpStatus) =>
   api<RoomMemberDto>(`/rooms/${roomId}/members/me/rsvp`, { method: 'PATCH', body: { rsvpStatus } });
+
+/** Host only: brings an archived gala back ("revive" a shelved plan). */
+export const restoreRoom = (roomId: string) => api<RoomDto>(`/rooms/${roomId}/restore`, { method: 'POST' });

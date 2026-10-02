@@ -74,7 +74,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             allowed = rateLimiterService.tryAcquireCount(
                     "ratelimit:code:" + clientIdentifier, 10, Duration.ofMinutes(1));
         } else if (isCreateRoomEndpoint(path, method)) {
-            // Anonymous sessions are free to mint, so cap gala creation per client
+            // Cap gala creation per client
             allowed = rateLimiterService.tryAcquireCount(
                     "ratelimit:create:" + clientIdentifier, 10, Duration.ofHours(1));
         } else if (isWriteMethod(method)) {

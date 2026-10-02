@@ -7,7 +7,6 @@ import com.gala.otw_server.room.dto.MyRoomStatsDto;
 import com.gala.otw_server.room.repository.MyRoomQueryRepository;
 import com.gala.otw_server.room.repository.MyRoomQueryRepository.Row;
 import com.gala.otw_server.room.repository.MyRoomQueryRepository.View;
-import com.gala.otw_server.room.repository.RoomMemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Account area: My Galas + Calendar, Gala History, and "Save this gala" (link account).
+ * Account area: My Galas + Calendar, Gala History, and linking a gala to the account.
  * Paging uses an opaque offset cursor — lists are per-user and small.
  */
 @Service
@@ -28,12 +27,10 @@ public class MeService {
     private static final long MAX_RANGE_DAYS = 62;
 
     private final MyRoomQueryRepository query;
-    private final RoomMemberRepository memberRepo;
     private final GalaClock galaClock;
 
-    public MeService(MyRoomQueryRepository query, RoomMemberRepository memberRepo, GalaClock galaClock) {
+    public MeService(MyRoomQueryRepository query, GalaClock galaClock) {
         this.query = query;
-        this.memberRepo = memberRepo;
         this.galaClock = galaClock;
     }
 
@@ -63,20 +60,10 @@ public class MeService {
                 query.countArchived(userId));
     }
 
-    /**
-     * Called after the frontend upgrades an anonymous session to an account
-     * ({@code linkIdentity}/{@code updateUser} keep the same user id), so every gala
-     * this person joined anonymously is now "saved" and protected from being claimed.
-     */
-    @Transactional
-    public int linkAccount(UUID userId) {
-        return memberRepo.markHasAccount(userId);
-    }
-
     private PageResponse<MyRoomDto> page(List<Row> rows, int offset, int limit) {
         boolean hasMore = rows.size() > limit;
         List<MyRoomDto> items = rows.stream().limit(limit)
-                .map(r -> new MyRoomDto(r.roomId(), r.title(), r.destination(), r.startDate(), r.endDate(),
+                .map(r -> new MyRoomDto(r.roomId(), r.roomCode(), r.title(), r.destination(), r.startDate(), r.endDate(),
                         r.type(), r.status(), galaClock.phaseOf(r.startDate(), r.endDate()), r.myRole(),
                         r.memberCount()))
                 .toList();

@@ -7,7 +7,7 @@ import styles from './plan.module.css';
 import { createRoom } from '@/lib/api/rooms';
 import { addDays, galaRoute, normCode, rememberRoom } from '@/lib/otw/gala-registry';
 import { toast as notify } from '@/lib/otw/feedback';
-import { useAccount } from '@/lib/otw/auth-mock';
+import { useAccount } from '@/lib/auth/session';
 
 /**
  * Fast-Track Plan a Gala: one create screen, then the celebration. The account gate lives in
@@ -234,7 +234,7 @@ export default function PlanPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const doneHeadingRef = useRef<HTMLHeadingElement>(null);
 
-  const hostName = (account.name || account.username || '').trim();
+  const hostName = account.displayName.trim();
   const shareMsg = `G tayo? Join our gala "${createdTitle}". Code: ${code}`;
 
   useEffect(() => {
@@ -272,7 +272,6 @@ export default function PlanPage() {
       // POST /rooms (same call as before): the creator becomes the Gala Leader (host).
       const room = await createRoom({
         title,
-        // TODO(backend): profile name from the auth user (Supabase user_metadata.name).
         nickname: (hostName || 'Host').slice(0, NICKNAME_MAX),
         startDate: addDays(localToday(), DEFAULT_DAYS_AHEAD),
         destination: DEFAULT_DESTINATION,

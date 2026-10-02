@@ -8,7 +8,6 @@ import com.gala.otw_server.room.entity.RoomType;
 import com.gala.otw_server.room.repository.MyRoomQueryRepository;
 import com.gala.otw_server.room.repository.MyRoomQueryRepository.Row;
 import com.gala.otw_server.room.repository.MyRoomQueryRepository.View;
-import com.gala.otw_server.room.repository.RoomMemberRepository;
 import com.gala.otw_server.room.service.GalaClock;
 import com.gala.otw_server.room.service.MeService;
 import com.gala.otw_server.security.auth.RoomRole;
@@ -31,7 +30,6 @@ import static org.mockito.Mockito.*;
 class MeServiceTest {
 
     @Mock private MyRoomQueryRepository query;
-    @Mock private RoomMemberRepository memberRepo;
 
     private final GalaClock clock = new GalaClock(
             Clock.fixed(Instant.parse("2026-09-29T01:41:00Z"), ZoneId.of("Asia/Manila")));
@@ -40,11 +38,11 @@ class MeServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new MeService(query, memberRepo, clock);
+        service = new MeService(query, clock);
     }
 
     private Row row(String title, LocalDate start) {
-        return new Row(UUID.randomUUID(), title, "Somewhere", start, null, RoomType.GROUP, "ACTIVE", RoomRole.MEMBER, 5);
+        return new Row(UUID.randomUUID(), "ABCD2345", title, "Somewhere", start, null, RoomType.GROUP, "ACTIVE", RoomRole.MEMBER, 5);
     }
 
     @Test
@@ -60,6 +58,7 @@ class MeServiceTest {
 
         assertThat(page.items()).extracting(MyRoomDto::title).containsExactly("Tagaytay", "Baguio");
         assertThat(page.items()).allSatisfy(r -> assertThat(r.phase()).isEqualTo(GalaPhase.PLANNING));
+        assertThat(page.items()).extracting(MyRoomDto::roomCode).containsOnly("ABCD2345");
         assertThat(page.nextCursor()).isEqualTo("2");
     }
 
@@ -77,12 +76,5 @@ class MeServiceTest {
     void badCursor() {
         assertThatThrownBy(() -> service.getMyRooms(me, View.UPCOMING, "abc", 20))
                 .isInstanceOf(InvalidRequestException.class);
-    }
-
-    @Test
-    @DisplayName("linkAccount marks all of the caller's memberships as account-linked")
-    void linkAccount() {
-        when(memberRepo.markHasAccount(me)).thenReturn(3);
-        assertThat(service.linkAccount(me)).isEqualTo(3);
     }
 }

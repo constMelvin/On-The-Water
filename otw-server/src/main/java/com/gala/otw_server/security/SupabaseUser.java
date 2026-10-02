@@ -14,6 +14,14 @@ public record SupabaseUser(
         Map<String, Object> userMetadata,
         Map<String, Object> appMetadata
 ) {
+    /**
+     * The one definition of "has a registered account": not an anonymous Supabase session and
+     * an email claim is present (fail-closed: every supported login, password or OAuth, carries one).
+     */
+    public boolean hasAccount() {
+        return !isAnonymous && email != null && !email.isBlank();
+    }
+
     public static SupabaseUser fromJwt(org.springframework.security.oauth2.jwt.Jwt jwt) {
         UUID id = UUID.fromString(jwt.getSubject());
         String email = jwt.getClaimAsString("email");

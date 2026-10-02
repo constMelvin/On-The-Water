@@ -5,6 +5,7 @@ import com.gala.otw_server.common.ErrorCode;
 import com.gala.otw_server.common.ErrorResponse;
 import com.gala.otw_server.ratelimit.RateLimitFilter;
 import com.gala.otw_server.ratelimit.RateLimiterService;
+import com.gala.otw_server.security.AccountRequiredFilter;
 import com.gala.otw_server.security.SupabaseJwtAuthenticationConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -106,10 +107,12 @@ public class SecurityConfig {
                                     ErrorResponse.of(ErrorCode.FORBIDDEN, "Access denied"));
                         })
                 )
-                // After the JWT is verified (budgets keyed per user) and after CORS (429s keep
-                // Access-Control-Allow-Origin). See RateLimitFilter.
+                // Account gate right after the JWT is verified, then per-user rate limits (so
+                // anonymous traffic never consumes budget), both after CORS (429/401 keep
+                // Access-Control-Allow-Origin). See AccountRequiredFilter and RateLimitFilter.
+                .addFilterAfter(new AccountRequiredFilter(objectMapper), BearerTokenAuthenticationFilter.class)
                 .addFilterAfter(new RateLimitFilter(rateLimiterService.getIfAvailable(), objectMapper),
-                        BearerTokenAuthenticationFilter.class);
+                        AccountRequiredFilter.class);
 
         return http.build();
     }
@@ -143,8 +146,8 @@ public class SecurityConfig {
                     new OAuth2Error("invalid_audience", "JWT audience mismatch", null));
         };
 
-        // Anonymous Supabase sessions are accepted here on purpose (no-sign-up galas).
-        // Account-only endpoints are gated by @RequireAccount instead — see AccountRequiredAspect.
+        // Anonymous Supabase tokens still pass signature/iss/aud here; AccountRequiredFilter then
+        // rejects them with 401 ACCOUNT_REQUIRED on every protected route.
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(withIssuer, withAudience));
         return decoder;
     }

@@ -10,6 +10,7 @@ import java.util.UUID;
 /** A gala card on "My Galas" / "Gala History". */
 public record MyRoomDto(
         UUID roomId,
+        String roomCode,
         String title,
         String destination,
         LocalDate startDate,

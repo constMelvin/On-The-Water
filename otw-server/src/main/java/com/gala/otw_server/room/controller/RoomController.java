@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * Getting into a gala and the shared overview. Works for anonymous sessions — no
- * sign-up is needed to plan, join or come back to a gala.
+ * Getting into a gala and the shared overview. An account is required like on
+ * every endpoint (enforced globally by AccountRequiredFilter).
  */
 @RestController
 public class RoomController {
