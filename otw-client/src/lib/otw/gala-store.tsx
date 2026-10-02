@@ -79,6 +79,10 @@ export interface GalaState {
   /** Which shell sheet is open, if any. */
   sheet: SheetKey | null;
   viewState: ViewState;
+  /** Real screen state from the live queries: loading / error / offline (stale data) / default. The dev switcher's viewState wins over it. */
+  liveState: ViewState;
+  /** Refetches the gala (room, members, summary): the "Try again" action. Resolves true when the refetch worked. */
+  retry: () => Promise<boolean>;
   /** The dashboard's account banner; dismissing hides it for the session. */
   bannerOpen: boolean;
 
@@ -130,6 +134,15 @@ function toGala(r: RoomDto): Gala {
     days,
   };
 }
+
+const subscribeOnline = (cb: () => void) => {
+  window.addEventListener('online', cb);
+  window.addEventListener('offline', cb);
+  return () => {
+    window.removeEventListener('online', cb);
+    window.removeEventListener('offline', cb);
+  };
+};
 
 const noRetryOn4xx = (n: number, e: unknown) => !(isApiError(e) && e.status >= 400 && e.status < 500) && n < 2;
 
@@ -186,6 +199,7 @@ export function GalaProvider({ code, children }: { code: string; children: React
         c: TONES[i % TONES.length],
         s: m.userId === myUserId && statusOverride ? statusOverride : ATTEND[m.rsvpStatus],
         on: m.userId === myUserId ? 1 : 0,
+        role: m.role === 'HOST' ? 'leader' : 'member',
       })),
     [rows, myUserId, statusOverride]
   );
@@ -204,6 +218,21 @@ export function GalaProvider({ code, children }: { code: string; children: React
   );
   const expenses = expensesEdit ?? NO_EXPENSES;
   const unread = unreadEdit ?? summary?.unreadChat ?? 0;
+
+  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true);
+  const liveState: ViewState = !summaryQ.data
+    ? summaryQ.isError
+      ? 'error'
+      : 'loading'
+    : !online || summaryQ.isError || roomQ.isError || membersQ.isError
+      ? 'offline'
+      : 'default';
+
+  const retry = useCallback(async () => {
+    if (!roomId) return false;
+    await qc.invalidateQueries({ queryKey: ['room', roomId] });
+    return qc.getQueryState(['room', roomId, 'summary'])?.status === 'success';
+  }, [roomId, qc]);
 
   const firstError = roomQ.error ?? membersQ.error;
   const status: LoadStatus =
@@ -257,6 +286,8 @@ export function GalaProvider({ code, children }: { code: string; children: React
       unread,
       sheet,
       viewState,
+      liveState,
+      retry,
       bannerOpen,
       setRole,
       setPhase,
@@ -272,7 +303,7 @@ export function GalaProvider({ code, children }: { code: string; children: React
       setViewState,
       dismissBanner: () => setBannerOpen(false),
     }),
-    [status, error, roomId, gala, members, summary, myName, role, phase, hasAccount, myStatus, stops, items, budget, expenses, unread, sheet, viewState, bannerOpen, setMyStatus]
+    [status, error, roomId, gala, members, summary, myName, role, phase, hasAccount, myStatus, stops, items, budget, expenses, unread, sheet, viewState, liveState, retry, bannerOpen, setMyStatus]
   );
 
   return <GalaContext.Provider value={value}>{children}</GalaContext.Provider>;

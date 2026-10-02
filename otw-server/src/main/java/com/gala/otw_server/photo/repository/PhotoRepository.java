@@ -22,8 +22,7 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
             SELECT p FROM Photo p
             WHERE p.room.id = :roomId
               AND (:uploadedBy IS NULL OR p.uploadedBy = :uploadedBy)
-              AND (:cursorAt IS NULL
-                   OR p.createdAt < :cursorAt
+              AND (p.createdAt < :cursorAt
                    OR (p.createdAt = :cursorAt AND p.id < :cursorId))
             ORDER BY p.createdAt DESC, p.id DESC
             """)

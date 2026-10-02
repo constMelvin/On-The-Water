@@ -139,6 +139,7 @@ class RoomServiceTest {
                 member.getRole() == RoomRole.HOST &&
                 member.getUserId().equals(callerId) &&
                 "Merylle".equals(member.getNickname()) &&
+                member.getRsvpStatus() == RsvpStatus.GOING &&
                 !member.isHasAccount()
         ));
     }

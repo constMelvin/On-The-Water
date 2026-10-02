@@ -571,6 +571,15 @@
   margin-top: 8px;
 }
 
+/* Helper under the nickname field (step 1 is on the rosy background) */
+.nickHelper {
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--cream);
+  margin-top: 8px;
+}
+
 /* Form fields & inputs */
 .fieldGroup {
   display: flex;

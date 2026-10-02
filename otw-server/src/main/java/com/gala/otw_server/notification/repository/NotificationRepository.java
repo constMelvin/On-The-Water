@@ -23,8 +23,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     @Query("""
             SELECT n FROM Notification n
             WHERE n.userId = :userId
-              AND (:cursorAt IS NULL
-                   OR n.createdAt < :cursorAt
+              AND (n.createdAt < :cursorAt
                    OR (n.createdAt = :cursorAt AND n.id < :cursorId))
             ORDER BY n.createdAt DESC, n.id DESC
             """)

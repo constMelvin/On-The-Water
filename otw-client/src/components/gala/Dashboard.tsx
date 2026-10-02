@@ -27,7 +27,11 @@ function Countdown() {
 
   const left = gala.dateISO ? countdownTo(galaStart(gala.dateISO, gala.startTime), new Date(now)) : { d: 0, h: 0, m: 0 };
   return (
-    <div className="cdown" aria-label="Countdown">
+    <div
+      className="cdown"
+      role="group"
+      aria-label={`Countdown: ${left.d} days, ${left.h} hours, ${left.m} minutes`}
+    >
       <div>
         <b>{left.d}</b>
         <span>days</span>
@@ -140,7 +144,7 @@ function Hero() {
             </Tag>
           )}
           <Tag variant="cream" icon="users">
-            {members.length} people
+            {members.length} {members.length === 1 ? 'person' : 'people'}
           </Tag>
         </div>
       </div>
@@ -195,7 +199,7 @@ function RouteStrip() {
   const done = phase === 'planning' ? 5 : phase === 'day' ? 6 : 8;
   return (
     <div className="routewrap">
-      <ol className="route">
+      <ol className="route" aria-label="Gala journey">
         {ROUTE.map(([label, icon, seg], i) => (
           <li key={label} className={`rs ${i < done ? 'done' : i === done ? 'cur' : 'lock'}`}>
             <Link href={galaHref(gala.code, seg)} aria-current={i === done ? 'step' : undefined}>
@@ -253,7 +257,7 @@ function FeatureGrid() {
 }
 
 function Rail() {
-  const { gala, members, me, role } = useGala();
+  const { gala, members, me, role, openSheet } = useGala();
   const copyCode = useCopyCode();
   const c = counts(members);
   const href = (s: string) => galaHref(gala.code, s);
@@ -274,11 +278,39 @@ function Rail() {
               <span>
                 {m.n}
                 {m.n === me ? ' (you)' : ''}
+                {m.role === 'leader' && (
+                  <>
+                    {' '}
+                    <Icon name="crown" size={16} />
+                    <span
+                      style={{
+                        position: 'absolute',
+                        width: 1,
+                        height: 1,
+                        overflow: 'hidden',
+                        clip: 'rect(0 0 0 0)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Gala Leader
+                    </span>
+                  </>
+                )}
               </span>
               <StatusBadge status={m.s} />
             </li>
           ))}
         </ul>
+        {members.length <= 1 && (
+          // Only the planner so far: the empty copy lives here, the rest of the dashboard stays.
+          <div className="empty" style={{ padding: '10px 0', margin: 0, maxWidth: 'none' }}>
+            <h3>Just you so far.</h3>
+            <p className="fine">Share the gala code and get your friends in.</p>
+            <Button sm onClick={() => openSheet('share')}>
+              Share Gala
+            </Button>
+          </div>
+        )}
         <Link className="lnk" href={href('attendance')}>
           See everyone
         </Link>
@@ -310,9 +342,9 @@ function Rail() {
 
 function Skeleton() {
   return (
-    <div className="skl" aria-busy="true" aria-label="Loading">
-      <div className="sk" style={{ height: 132 }} />
-      <div className="g g3">
+    <div className="skl" role="status" aria-busy="true" aria-label="Loading the dashboard">
+      <div className="sk" style={{ height: 132 }} aria-hidden="true" />
+      <div className="g g3" aria-hidden="true">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="sk" style={{ height: 110 }} />
         ))}
@@ -336,20 +368,23 @@ function EmptyState() {
 }
 
 function ErrorState() {
-  const { setViewState } = useGala();
+  const { setViewState, retry } = useGala();
+  const [busy, setBusy] = useState(false);
+  const tryAgain = async () => {
+    setBusy(true);
+    setViewState('default'); // clears the dev-switcher override; a real failure keeps showing this state
+    const ok = await retry();
+    setBusy(false);
+    toast(ok ? 'Back in business.' : "Still can't reach the server. Try again in a moment.", ok ? '' : 'err');
+  };
   return (
-    <div className="empty err">
+    <div className="empty err" role="alert">
       <div className="ico xl" style={{ ...blob(3), color: 'var(--rosy-dark)' }}>
         <Icon name="alert" size={44} />
       </div>
       <h3>The dashboard didn&apos;t load.</h3>
       <p>Your gala is safe. Give it another try.</p>
-      <Button
-        onClick={() => {
-          setViewState('default');
-          toast('Back in business.');
-        }}
-      >
+      <Button onClick={tryAgain} disabled={busy} aria-busy={busy}>
         <Icon name="refresh" size={20} /> Try again
       </Button>
     </div>
@@ -371,15 +406,18 @@ function OfflineBar() {
 /* ---------------- page ---------------- */
 
 export function Dashboard() {
-  const { viewState, members, phase } = useGala();
+  const { viewState, liveState, members, phase } = useGala();
+  // The dev switcher (any non-default viewState) wins; otherwise the real query state decides.
+  const state = viewState !== 'default' ? viewState : liveState;
 
-  if (viewState === 'loading') return <Skeleton />;
-  if (viewState === 'empty' || members.length <= 1) return <EmptyState />;
-  if (viewState === 'error') return <ErrorState />;
+  if (state === 'loading') return <Skeleton />;
+  if (state === 'error') return <ErrorState />;
+  // Only the dev switcher's "Empty" shows the full-page empty state; a lone planner sees the whole dashboard.
+  if (state === 'empty') return <EmptyState />;
 
   return (
     <>
-      {viewState === 'offline' && <OfflineBar />}
+      {state === 'offline' && <OfflineBar />}
       <Hero />
       <AccountBanner />
       {phase !== 'done' && <RouteStrip />}

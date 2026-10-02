@@ -8,8 +8,8 @@ import { createRoom } from '@/lib/api/rooms';
 import { addDays, normCode, rememberRoom } from '@/lib/otw/gala-registry';
 import { toast } from '@/lib/otw/feedback';
 
-/** The wizard doesn't ask the leader's name yet; the backend needs a nickname, so this is it. */
-const LEADER_NICKNAME = 'Gala Leader';
+/** Matches CreateRoomRequest.nickname (max 60) on the backend. */
+const NICKNAME_MAX = 40;
 
 /**
  * Returns today's date formatted as YYYY-MM-DD in local time (not UTC).
@@ -46,6 +46,7 @@ export default function PlanPage() {
 
   // Form states
   const [name, setName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [tripType, setTripType] = useState<'DAY_TOUR' | 'VACATION'>('DAY_TOUR');
   const [date, setDate] = useState('');
   const [daysInput, setDaysInput] = useState('3');
@@ -65,6 +66,7 @@ export default function PlanPage() {
   // Error states per step
   const [errors, setErrors] = useState<{
     name?: string;
+    nickname?: string;
     date?: string;
     days?: string;
     startTime?: string;
@@ -78,6 +80,7 @@ export default function PlanPage() {
   // Input refs for auto-focusing on validation failure
   const headingRef = useRef<HTMLHeadingElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const nicknameInputRef = useRef<HTMLInputElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const daysInputRef = useRef<HTMLInputElement>(null);
   const startTimeInputRef = useRef<HTMLInputElement>(null);
@@ -88,6 +91,7 @@ export default function PlanPage() {
 
   // Generated accessible IDs
   const nameId = useId();
+  const nicknameId = useId();
   const tripTypeId = useId();
   const dateId = useId();
   const daysId = useId();
@@ -167,6 +171,11 @@ export default function PlanPage() {
           name: 'Give your gala a name (at least 2 characters).',
         }));
         nameInputRef.current?.focus();
+        return;
+      }
+      if (!nickname.trim()) {
+        setErrors((prev) => ({ ...prev, nickname: 'Kailangan namin ng itatawag sa’yo.' }));
+        nicknameInputRef.current?.focus();
         return;
       }
       setErrors({});
@@ -266,7 +275,7 @@ export default function PlanPage() {
         // POST /rooms: the creator becomes the Gala Leader (host).
         const room = await createRoom({
           title: name.trim(),
-          nickname: LEADER_NICKNAME,
+          nickname: nickname.trim(),
           startDate: date,
           endDate: finalDays > 1 ? addDays(date, finalDays - 1) : undefined,
           startTime,
@@ -465,6 +474,38 @@ export default function PlanPage() {
                   </svg>
                   <span>Use example</span>
                 </button>
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label htmlFor={nicknameId} className={styles.label}>
+                  Your nickname
+                </label>
+                <input
+                  ref={nicknameInputRef}
+                  id={nicknameId}
+                  name="nickname"
+                  type="text"
+                  placeholder="Merylle"
+                  maxLength={NICKNAME_MAX}
+                  autoComplete="nickname"
+                  value={nickname}
+                  onChange={(e) => {
+                    setNickname(e.target.value);
+                    if (errors.nickname) setErrors((prev) => ({ ...prev, nickname: undefined }));
+                  }}
+                  aria-describedby={errors.nickname ? `${nicknameId}-error` : `${nicknameId}-help`}
+                  aria-invalid={errors.nickname ? 'true' : 'false'}
+                  className={`${styles.pillInput} ${errors.nickname ? styles.pillInputError : ''}`}
+                />
+                {errors.nickname ? (
+                  <span id={`${nicknameId}-error`} role="alert" className={styles.errorPill}>
+                    {errors.nickname}
+                  </span>
+                ) : (
+                  <span id={`${nicknameId}-help`} className={styles.nickHelper}>
+                    Ano itatawag sa&apos;yo ng GC?
+                  </span>
+                )}
               </div>
             </div>
           )}
