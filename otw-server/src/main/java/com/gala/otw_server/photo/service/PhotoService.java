@@ -79,7 +79,7 @@ public class PhotoService {
     public PageResponse<PhotoDto> getPhotos(UUID roomId, UUID uploadedBy, UUID cursor, int limit) {
         verifyRoomExists(roomId);
 
-        OffsetDateTime cursorAt = null;
+        OffsetDateTime cursorAt = com.gala.otw_server.common.CursorBounds.NEWEST;
         UUID cursorId = null;
         if (cursor != null) {
             Photo c = photoRepo.findByIdAndRoom_Id(cursor, roomId).orElse(null);

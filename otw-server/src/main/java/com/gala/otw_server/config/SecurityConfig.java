@@ -3,7 +3,10 @@ package com.gala.otw_server.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gala.otw_server.common.ErrorCode;
 import com.gala.otw_server.common.ErrorResponse;
+import com.gala.otw_server.ratelimit.RateLimitFilter;
+import com.gala.otw_server.ratelimit.RateLimiterService;
 import com.gala.otw_server.security.SupabaseJwtAuthenticationConverter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +29,7 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -45,14 +49,17 @@ public class SecurityConfig {
     private final SupabaseJwtAuthenticationConverter supabaseJwtConverter;
     private final CorsConfigurationSource corsConfigurationSource;
     private final ObjectMapper objectMapper;
+    private final ObjectProvider<RateLimiterService> rateLimiterService;
 
     public SecurityConfig(
             SupabaseJwtAuthenticationConverter supabaseJwtConverter,
             CorsConfigurationSource corsConfigurationSource,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ObjectProvider<RateLimiterService> rateLimiterService) {
         this.supabaseJwtConverter = supabaseJwtConverter;
         this.corsConfigurationSource = corsConfigurationSource;
         this.objectMapper = objectMapper;
+        this.rateLimiterService = rateLimiterService;
     }
 
     @Bean
@@ -98,7 +105,11 @@ public class SecurityConfig {
                             objectMapper.writeValue(response.getWriter(),
                                     ErrorResponse.of(ErrorCode.FORBIDDEN, "Access denied"));
                         })
-                );
+                )
+                // After the JWT is verified (budgets keyed per user) and after CORS (429s keep
+                // Access-Control-Allow-Origin). See RateLimitFilter.
+                .addFilterAfter(new RateLimitFilter(rateLimiterService.getIfAvailable(), objectMapper),
+                        BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }

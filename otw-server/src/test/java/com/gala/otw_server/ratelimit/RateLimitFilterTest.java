@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Duration;
 
@@ -130,6 +132,25 @@ class RateLimitFilterTest {
         filter.doFilterInternal(request, response, filterChain);
 
         verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("Authenticated requests are budgeted per user, not per IP")
+    void authenticatedRequest_isKeyedByUser() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/rooms/some-id");
+        request.setRemoteAddr("127.0.0.1");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("user-123", null, "ROLE_USER"));
+        try {
+            when(rateLimiterService.tryAcquireCount(anyString(), anyInt(), any(Duration.class))).thenReturn(true);
+
+            filter.doFilterInternal(request, response, filterChain);
+
+            verify(rateLimiterService).tryAcquireCount(eq("ratelimit:read:user:user-123"), eq(180), any(Duration.class));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     @Test

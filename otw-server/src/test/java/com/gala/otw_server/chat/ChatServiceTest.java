@@ -100,7 +100,7 @@ class ChatServiceTest {
         ChatMessage newest = message(UUID.randomUUID(), "Check the Gastos tab.", now);
         ChatMessage older = message(me, "Magkano ba?", now.minusMinutes(1));
         ChatMessage oldest = message(null, "Alex joined the gala.", now.minusMinutes(2));
-        when(messageRepo.findPage(eq(roomId), isNull(), isNull(), any())).thenReturn(List.of(newest, older, oldest));
+        when(messageRepo.findPage(eq(roomId), eq(com.gala.otw_server.common.CursorBounds.NEWEST), isNull(), any())).thenReturn(List.of(newest, older, oldest));
         when(reactionRepo.countByMessageIds(List.of(newest.getId(), older.getId())))
                 .thenReturn(List.<Object[]>of(new Object[]{newest.getId(), 2L}));
         when(reactionRepo.findReactedMessageIds(List.of(newest.getId(), older.getId()), me))
@@ -161,7 +161,9 @@ class ChatServiceTest {
     @DisplayName("getUnread with nothing new returns 0 and no divider")
     void unread_none() {
         when(markerRepo.findById(any())).thenReturn(Optional.empty());
-        when(messageRepo.countUnread(roomId, me, null)).thenReturn(0L);
+        // No marker: the service binds the epoch, never null (a null bind breaks on PostgreSQL).
+        when(messageRepo.countUnread(roomId, me, OffsetDateTime.ofInstant(java.time.Instant.EPOCH, java.time.ZoneOffset.UTC)))
+                .thenReturn(0L);
 
         UnreadDto dto = chatService.getUnread(roomId, me);
 

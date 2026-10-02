@@ -21,8 +21,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
     @Query("""
             SELECT m FROM ChatMessage m
             WHERE m.roomId = :roomId
-              AND (:cursorAt IS NULL
-                   OR m.createdAt < :cursorAt
+              AND (m.createdAt < :cursorAt
                    OR (m.createdAt = :cursorAt AND m.id < :cursorId))
             ORDER BY m.createdAt DESC, m.id DESC
             """)
@@ -36,7 +35,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
     @Query("""
             SELECT COUNT(m) FROM ChatMessage m
             WHERE m.roomId = :roomId
-              AND (:since IS NULL OR m.createdAt > :since)
+              AND m.createdAt > :since
               AND (m.senderUserId IS NULL OR m.senderUserId <> :userId)
             """)
     long countUnread(@Param("roomId") UUID roomId,
@@ -46,7 +45,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> 
     @Query("""
             SELECT m FROM ChatMessage m
             WHERE m.roomId = :roomId
-              AND (:since IS NULL OR m.createdAt > :since)
+              AND m.createdAt > :since
               AND (m.senderUserId IS NULL OR m.senderUserId <> :userId)
             ORDER BY m.createdAt ASC, m.id ASC
             """)

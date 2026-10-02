@@ -1,0 +1,235 @@
+/* Everything is centered: the page content sits in the middle, horizontally and vertically. */
+.page {
+  min-height: 100dvh;
+  padding: 40px var(--pad);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Two fixed-width columns (form + planner) centered together as one group in the viewport. */
+.wrap {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 460px) 300px;
+  justify-content: center;
+  gap: 40px;
+  align-items: center;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.heading {
+  font-size: calc(var(--h2) + 6px);
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.ctx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--cream);
+  color: var(--teal-dark);
+  border-radius: 18px;
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  /* field labels read better left-aligned inside the centered form */
+  text-align: left;
+}
+
+.form > p:global(.fine) {
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* ---- planner card: paper, spiral rings, ruled lines ---- */
+.planner {
+  position: relative;
+  background: var(--cream);
+  color: var(--teal-dark);
+  border-radius: 28px 28px 28px 14px;
+  padding: 34px 22px 20px;
+  box-shadow: 0 6px 0 var(--rosy-dark);
+  transform: rotate(-1deg);
+}
+
+.rings {
+  position: absolute;
+  top: -10px;
+  left: 28px;
+  right: 28px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.rings i {
+  width: 14px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--teal);
+  border: 3px solid var(--teal-dark);
+  box-sizing: border-box;
+}
+
+.plannerHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--blossom);
+}
+
+.plannerHead b {
+  display: block;
+  font-family: var(--fd);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.plannerHead span:not(.plannerIcon) {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.plannerIcon {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px 18px 18px 8px;
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+
+.plannerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.plannerList li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  border-bottom: 2px solid var(--blossom);
+  font-weight: 800;
+}
+
+.plannerNote {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---- checkbox that ticks itself ---- */
+.tick {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 3px solid var(--teal);
+  background: var(--teal);
+  color: var(--cream);
+  /* each line is written first, then its box gets ticked */
+  animation: tickFill 0.25s ease both;
+  animation-delay: calc(0.5s + var(--i) * 1s + 0.85s);
+}
+
+.tick path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: tickDraw 0.35s ease-out both;
+  animation-delay: calc(0.5s + var(--i) * 1s + 0.85s);
+}
+
+/* ---- text that writes itself, left to right ---- */
+.written {
+  display: inline-block;
+  animation: write 0.85s steps(22, end) both;
+  animation-delay: calc(0.5s + var(--i) * 1s);
+}
+
+/* Base styles above are the finished state, so reduced motion (animation: none) shows everything. */
+@keyframes write {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes tickFill {
+  from {
+    background: var(--cream);
+    color: transparent;
+  }
+  to {
+    background: var(--teal);
+    color: var(--cream);
+  }
+}
+
+@keyframes tickDraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick,
+  .tick path,
+  .written {
+    animation: none;
+  }
+}
+
+@media (max-width: 859px) {
+  .wrap {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .planner {
+    width: 100%;
+    max-width: 380px;
+  }
+}

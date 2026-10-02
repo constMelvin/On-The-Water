@@ -38,6 +38,8 @@ export interface Member {
   s: AttendanceKey;
   /** 1 when online right now. */
   on: 0 | 1;
+  /** 'leader' for the Gala Leader (shows a crown). Absent in the mock data. */
+  role?: 'leader' | 'member';
 }
 
 export interface StatusMeta {

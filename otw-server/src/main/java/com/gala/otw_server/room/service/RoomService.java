@@ -102,6 +102,7 @@ public class RoomService {
         host.setUserId(callerId);
         host.setNickname(req.nickname().trim());
         host.setRole(RoomRole.HOST);
+        host.setRsvpStatus(RsvpStatus.GOING); // the planner is going to their own gala
         host.setHasAccount(callerHasAccount);
         memberRepo.save(host);
 

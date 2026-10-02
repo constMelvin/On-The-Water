@@ -64,6 +64,30 @@ export function roomIdFor(code: string): string | null {
   return readRooms()[rawCode(code)] ?? null;
 }
 
+/**
+ * Raw snapshot of the code -> roomId map ('{}' when empty). A string, so it can be used
+ * directly as a `useSyncExternalStore` snapshot (stable until the map really changes).
+ */
+export function roomsSnapshot(): string {
+  if (typeof window === 'undefined') return '{}';
+  try {
+    return window.localStorage.getItem(ROOMS_KEY) ?? '{}';
+  } catch {
+    return '{}';
+  }
+}
+
+/** Every gala this device has joined, as display codes + room ids (from a snapshot string). */
+export function listRooms(snapshot: string = roomsSnapshot()): { code: string; roomId: string }[] {
+  let rooms: Record<string, string> = {};
+  try {
+    rooms = JSON.parse(snapshot) as Record<string, string>;
+  } catch {
+    /* corrupt entry: treat as empty */
+  }
+  return Object.entries(rooms).map(([raw, roomId]) => ({ code: normCode(raw), roomId }));
+}
+
 /** Calls `cb` when the code -> roomId map changes, in this tab or another one. */
 export function subscribeRooms(cb: () => void): () => void {
   if (typeof window === 'undefined') return () => {};

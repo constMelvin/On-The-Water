@@ -59,7 +59,7 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public PageResponse<NotificationDto> getNotifications(UUID userId, UUID cursor, int limit) {
-        OffsetDateTime cursorAt = null;
+        OffsetDateTime cursorAt = com.gala.otw_server.common.CursorBounds.NEWEST;
         UUID cursorId = null;
         if (cursor != null) {
             Notification c = notificationRepo.findByIdAndUserId(cursor, userId).orElse(null);

@@ -1,0 +1,156 @@
+/* Ambagan tab. Ported from reference/otw/styles.css (.tiles.t4, .tile, .two-col.exp, .elist, .erow,
+   .eb, .ea, .sh, .dl, .drow, .dt, .da, .settled, .cel, .fab). */
+
+/* ---- summary tiles ---- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap);
+}
+
+.tile {
+  border-radius: 30px 30px 30px 12px;
+  padding: 16px 20px;
+  border: 3px solid var(--cream);
+  box-shadow: 0 5px 0 var(--sh, var(--blossom));
+  display: flex;
+  flex-direction: column;
+}
+.tile b {
+  font-family: var(--fd);
+  font-size: 36px;
+  line-height: 1.05;
+}
+.tile span {
+  font-size: 14px;
+  font-weight: 800;
+}
+.tile:global(.c-cream) {
+  border-color: var(--blossom);
+}
+
+/* ---- two columns ---- */
+.cols {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+
+/* ---- expense list ---- */
+.elist {
+  display: grid;
+  gap: 12px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.erow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.eb {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.eb span {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.ea {
+  font-family: var(--fd);
+  font-size: 20px;
+}
+
+/* ---- who owes whom ---- */
+.sh {
+  font-size: 15px;
+  margin: 14px 0 6px;
+  color: var(--rosy-dark);
+}
+.dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.drow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
+.dt {
+  flex: 1;
+}
+.da {
+  font-family: var(--fd);
+  font-size: 18px;
+}
+.paid {
+  opacity: 0.6;
+}
+
+.settled {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 4px;
+}
+.cel {
+  background: var(--zest);
+  color: var(--rosy);
+  margin-bottom: 6px;
+}
+
+/* ---- mobile add button (reference .fab), above the bottom nav ---- */
+.fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+  place-items: center;
+  z-index: 21;
+  transition: transform 0.09s, box-shadow 0.09s;
+}
+.fab:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--rosy-dark);
+}
+
+/* ---- tablet + mobile ---- */
+@media (max-width: 1023px) {
+  .tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Same breakpoint as the shell's .hide-m, so the FAB replaces the hidden "Add expense". */
+@media (max-width: 639px) {
+  .tile b {
+    font-size: 26px;
+  }
+  .fab {
+    display: grid;
+  }
+}

@@ -1,0 +1,162 @@
+/* Gastos tab. Ported from reference/otw/styles.css (.two-col.bud, .brows, .brow, .peso, .ppl,
+   .stepper, .bres, .card.big, .splitbar, .sb-*, .legend). */
+
+/* ---- layout ---- */
+.cols {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+
+/* ---- estimated costs ---- */
+.rows {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.row :global(.ico) {
+  background: var(--blossom);
+  color: var(--teal-dark);
+}
+
+.label {
+  flex: 1;
+  font-weight: 800;
+}
+
+.peso {
+  position: relative;
+  width: 150px;
+  flex: none;
+}
+.peso i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-style: normal;
+  font-weight: 800;
+  color: var(--teal);
+  pointer-events: none;
+}
+.peso :global(.in) {
+  padding-left: 30px;
+}
+
+.people {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 3px dashed var(--blossom);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blossom);
+  border-radius: 99px;
+  padding: 2px;
+  flex: none;
+}
+.stepper b {
+  font-family: var(--fd);
+  font-size: 20px;
+  min-width: 30px;
+  text-align: center;
+}
+
+/* ---- results ---- */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.big {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.big span {
+  font-weight: 800;
+}
+.big b {
+  font-family: var(--fd);
+  font-size: 44px;
+  line-height: 1.05;
+}
+
+.split {
+  display: flex;
+  height: 22px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--blossom);
+}
+.split i {
+  display: block;
+  transition: width 0.25s;
+}
+
+.legend {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.legend i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: block;
+  flex: none;
+}
+.legend b {
+  margin-left: auto;
+}
+
+/* Category colors (reference BCOL), shared by the bar segments and the legend dots. */
+.teal { background: var(--teal); }
+.rosy { background: var(--rosy); }
+.zest { background: var(--zest); }
+.blossom { background: var(--blossom); box-shadow: inset 0 0 0 2px var(--teal-dark); }
+.tealDark { background: var(--teal-dark); }
+
+.ambagan {
+  align-self: center;
+  text-align: center;
+}
+
+/* ---- tablet + mobile: one column (same breakpoint as the shell) ---- */
+@media (max-width: 1023px) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 639px) {
+  .big b {
+    font-size: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .split i {
+    transition: none;
+  }
+}

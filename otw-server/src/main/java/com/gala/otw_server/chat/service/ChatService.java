@@ -18,7 +18,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 @Service
@@ -50,7 +52,7 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public PageResponse<ChatMessageDto> getMessages(UUID roomId, UUID callerId, UUID cursor, int limit) {
-        OffsetDateTime cursorAt = null;
+        OffsetDateTime cursorAt = com.gala.otw_server.common.CursorBounds.NEWEST;
         UUID cursorId = null;
         if (cursor != null) {
             ChatMessage c = messageRepo.findByIdAndRoomId(cursor, roomId).orElse(null);
@@ -150,7 +152,9 @@ public class ChatService {
     private OffsetDateTime lastReadAt(UUID roomId, UUID userId) {
         return markerRepo.findById(new ChatReadMarkerId(roomId, userId))
                 .map(ChatReadMarker::getLastReadAt)
-                .orElse(null);
+                // Never null: the unread queries compare "createdAt > :since", and no marker
+                // means everything is unread.
+                .orElse(OffsetDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC));
     }
 
     private void upsertMarker(UUID roomId, UUID userId, OffsetDateTime at) {

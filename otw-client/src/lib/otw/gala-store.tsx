@@ -46,6 +46,11 @@ import {
 
 export type Role = 'leader' | 'member';
 export type Phase = 'planning' | 'day' | 'done';
+/**
+ * Shell sheets. `'account'` is @deprecated: the optional "Save this gala" sheet is gone
+ * now that an account is required to plan or join. Nothing renders it; delete it after
+ * the feature lanes merge.
+ */
 export type SheetKey = 'more' | 'share' | 'account';
 /** Screen state for loading / empty / error / offline variants. */
 export type ViewState = 'default' | 'loading' | 'empty' | 'error' | 'offline';
@@ -68,6 +73,10 @@ export interface GalaState {
   me: string;
   role: Role;
   phase: Phase;
+  /**
+   * @deprecated Account-optional leftover. Everyone who plans or joins now has an account,
+   * so nothing should branch on this. Delete after the feature lanes merge.
+   */
   hasAccount: boolean;
   myStatus: AttendanceKey;
   stops: Stop[];
@@ -79,13 +88,21 @@ export interface GalaState {
   /** Which shell sheet is open, if any. */
   sheet: SheetKey | null;
   viewState: ViewState;
-  /** The dashboard's account banner; dismissing hides it for the session. */
+  /** Real screen state from the live queries: loading / error / offline (stale data) / default. The dev switcher's viewState wins over it. */
+  liveState: ViewState;
+  /** Refetches the gala (room, members, summary): the "Try again" action. Resolves true when the refetch worked. */
+  retry: () => Promise<boolean>;
+  /**
+   * @deprecated The dashboard's "keep your gala with you" account banner was removed.
+   * Nothing reads this. Delete after the feature lanes merge.
+   */
   bannerOpen: boolean;
 
   /** Dev switcher override; the real role comes from the backend. */
   setRole: (role: Role) => void;
   /** Dev switcher override; the real phase comes from the backend. */
   setPhase: (phase: Phase) => void;
+  /** @deprecated Dev-switcher override for `hasAccount`; no longer used. Delete with `hasAccount`. */
   setHasAccount: (v: boolean) => void;
   /** PATCH /members/me/rsvp, then refreshes members + summary. */
   setMyStatus: (status: AttendanceKey) => void;
@@ -97,6 +114,7 @@ export interface GalaState {
   openSheet: (key: SheetKey) => void;
   closeSheet: () => void;
   setViewState: (v: ViewState) => void;
+  /** @deprecated See `bannerOpen`. Delete after the feature lanes merge. */
   dismissBanner: () => void;
 }
 
@@ -130,6 +148,15 @@ function toGala(r: RoomDto): Gala {
     days,
   };
 }
+
+const subscribeOnline = (cb: () => void) => {
+  window.addEventListener('online', cb);
+  window.addEventListener('offline', cb);
+  return () => {
+    window.removeEventListener('online', cb);
+    window.removeEventListener('offline', cb);
+  };
+};
 
 const noRetryOn4xx = (n: number, e: unknown) => !(isApiError(e) && e.status >= 400 && e.status < 500) && n < 2;
 
@@ -173,6 +200,8 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const [sheet, setSheet] = useState<SheetKey | null>(null);
   const [viewState, setViewState] = useState<ViewState>('default');
   const [bannerOpen, setBannerOpen] = useState(true);
+  // My RSVP shown right away while PATCH /members/me/rsvp is in flight (cleared once the refetch lands).
+  const [statusOverride, setStatusOverride] = useState<AttendanceKey | null>(null);
 
   const rows = useMemo(() => membersQ.data ?? [], [membersQ.data]);
   const mine = rows.find((m) => m.userId === myUserId);
@@ -182,14 +211,15 @@ export function GalaProvider({ code, children }: { code: string; children: React
       rows.map((m, i) => ({
         n: m.nickname,
         c: TONES[i % TONES.length],
-        s: ATTEND[m.rsvpStatus],
+        s: m.userId === myUserId && statusOverride ? statusOverride : ATTEND[m.rsvpStatus],
         on: m.userId === myUserId ? 1 : 0,
+        role: m.role === 'HOST' ? 'leader' : 'member',
       })),
-    [rows, myUserId]
+    [rows, myUserId, statusOverride]
   );
 
   const myName = mine?.nickname ?? '';
-  const myStatus: AttendanceKey = mine ? ATTEND[mine.rsvpStatus] : 'm';
+  const myStatus: AttendanceKey = statusOverride ?? (mine ? ATTEND[mine.rsvpStatus] : 'm');
   const role: Role = roleOverride ?? (room?.myRole === 'HOST' ? 'leader' : 'member');
   const phase: Phase = phaseOverride ?? (room ? PHASE[room.phase] : 'planning');
   const hasAccount = accountOverride ?? !!mine?.hasAccount;
@@ -202,6 +232,21 @@ export function GalaProvider({ code, children }: { code: string; children: React
   );
   const expenses = expensesEdit ?? NO_EXPENSES;
   const unread = unreadEdit ?? summary?.unreadChat ?? 0;
+
+  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true);
+  const liveState: ViewState = !summaryQ.data
+    ? summaryQ.isError
+      ? 'error'
+      : 'loading'
+    : !online || summaryQ.isError || roomQ.isError || membersQ.isError
+      ? 'offline'
+      : 'default';
+
+  const retry = useCallback(async () => {
+    if (!roomId) return false;
+    await qc.invalidateQueries({ queryKey: ['room', roomId] });
+    return qc.getQueryState(['room', roomId, 'summary'])?.status === 'success';
+  }, [roomId, qc]);
 
   const firstError = roomQ.error ?? membersQ.error;
   const status: LoadStatus =
@@ -221,9 +266,11 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const setMyStatus = useCallback(
     (s: AttendanceKey) => {
       if (!roomId) return;
+      setStatusOverride(s); // instant: card counts, "Who's in" and the status control update now
       updateRsvp(roomId, RSVP[s])
         .then(() => qc.invalidateQueries({ queryKey: ['room', roomId] }))
-        .catch((e: unknown) => toast(e instanceof Error ? e.message : "Couldn't update your status.", 'err'));
+        .catch((e: unknown) => toast(e instanceof Error ? e.message : "Couldn't update your status.", 'err'))
+        .finally(() => setStatusOverride(null)); // back to the server value (new on success, old on failure)
     },
     [roomId, qc]
   );
@@ -253,6 +300,8 @@ export function GalaProvider({ code, children }: { code: string; children: React
       unread,
       sheet,
       viewState,
+      liveState,
+      retry,
       bannerOpen,
       setRole,
       setPhase,
@@ -268,7 +317,7 @@ export function GalaProvider({ code, children }: { code: string; children: React
       setViewState,
       dismissBanner: () => setBannerOpen(false),
     }),
-    [status, error, roomId, gala, members, summary, myName, role, phase, hasAccount, myStatus, stops, items, budget, expenses, unread, sheet, viewState, bannerOpen, setMyStatus]
+    [status, error, roomId, gala, members, summary, myName, role, phase, hasAccount, myStatus, stops, items, budget, expenses, unread, sheet, viewState, liveState, retry, bannerOpen, setMyStatus]
   );
 
   return <GalaContext.Provider value={value}>{children}</GalaContext.Provider>;

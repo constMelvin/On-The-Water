@@ -1,5 +1,17 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Checklist } from '@/components/gala/checklist/Checklist';
 
-export default function ChecklistPage() {
-  return <ComingSoon title="Don't forget the important stuff." />;
+interface ChecklistPageProps {
+  params: Promise<{ code: string }>;
+}
+
+/** Checklist tab. The gala code keys the checklist slice. */
+export default async function ChecklistPage({ params }: ChecklistPageProps) {
+  const { code } = await params;
+  let decoded = code;
+  try {
+    decoded = decodeURIComponent(code);
+  } catch {
+    /* keep the raw segment */
+  }
+  return <Checklist code={decoded} />;
 }

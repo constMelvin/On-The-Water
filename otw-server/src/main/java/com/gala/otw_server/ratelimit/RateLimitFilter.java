@@ -7,27 +7,33 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
 
-
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 50)
+/**
+ * Per-client request budgets. Not a @Component on purpose: SecurityConfig adds it to the
+ * security chain right after the bearer-token filter, so
+ * <ul>
+ *   <li>the JWT is already verified and budgets are keyed per user ({@code user:<sub>}),
+ *       not per IP (everyone behind one NAT or on localhost would otherwise share a budget);</li>
+ *   <li>it runs after the CorsFilter, so a 429 still carries Access-Control-Allow-Origin and
+ *       the browser shows the 429 instead of a misleading CORS error.</li>
+ * </ul>
+ * Requests with no valid token fall back to the client IP (they are rejected with 401 later).
+ */
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimiterService rateLimiterService;
     private final ObjectMapper objectMapper;
 
-    public RateLimitFilter(@org.springframework.beans.factory.annotation.Autowired(required = false) RateLimiterService rateLimiterService, ObjectMapper objectMapper) {
+    /** @param rateLimiterService may be null (no limiter configured): every request passes. */
+    public RateLimitFilter(RateLimiterService rateLimiterService, ObjectMapper objectMapper) {
         this.rateLimiterService = rateLimiterService;
         this.objectMapper = objectMapper;
     }

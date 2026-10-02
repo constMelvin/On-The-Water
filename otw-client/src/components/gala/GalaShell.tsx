@@ -11,7 +11,7 @@ import { useCopyCode } from './useCopyCode';
 import { DevSwitcher } from './DevSwitcher';
 
 export function GalaShell({ children }: { children: ReactNode }) {
-  const { gala, members, role, hasAccount, unread, openSheet } = useGala();
+  const { gala, members, role, unread, openSheet } = useGala();
   const pathname = usePathname();
   const copyCode = useCopyCode();
 
@@ -64,17 +64,11 @@ export function GalaShell({ children }: { children: ReactNode }) {
             <Icon name="sliders" size={22} />
             <span className="lbl">Settings</span>
           </Link>
-          {hasAccount ? (
-            <Link href="/me/galas" className="sn" title="My Galas">
-              <Icon name="calendar" size={22} />
-              <span className="lbl">My Galas</span>
-            </Link>
-          ) : (
-            <button type="button" className="savecard" onClick={() => openSheet('account')} title="Save this gala">
-              <Icon name="sparkle" size={16} />
-              <span className="lbl">Save this gala</span>
-            </button>
-          )}
+          {/* An account is required to be in a gala, so there is no "Save this gala" prompt any more. */}
+          <Link href="/me/galas" className="sn" title="My Galas">
+            <Icon name="calendar" size={22} />
+            <span className="lbl">My Galas</span>
+          </Link>
         </div>
       </aside>
 

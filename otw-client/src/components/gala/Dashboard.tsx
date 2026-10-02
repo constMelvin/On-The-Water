@@ -4,21 +4,14 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { Avatar, Button, Icon, StatusBadge, Tag, blob } from '@/components/otw';
 import type { IconName } from '@/lib/otw/icons';
-import {
-  NOW_TO_GALA,
-  ST,
-  budTotal,
-  counts,
-  peso,
-  photoCountFor,
-  spent,
-  type AttendanceKey,
-} from '@/lib/otw/data';
+import { ST, counts, peso, type AttendanceKey } from '@/lib/otw/data';
 import { countdownTo, galaStart } from '@/lib/otw/gala-registry';
 import { useGala } from '@/lib/otw/gala-store';
 import { burstEl, toast } from '@/lib/otw/feedback';
+import { postSystemLine } from '@/lib/otw/mock/chat';
 import { galaHref } from './nav';
 import { useCopyCode } from './useCopyCode';
+import { Empty, ErrorState, Offline, Skeleton } from './States';
 
 type Tone = 'blossom' | 'zest' | 'cream' | 'teal' | 'rosy';
 
@@ -34,9 +27,13 @@ function Countdown() {
     return () => clearInterval(t);
   }, []);
 
-  const left = gala.dateISO ? countdownTo(galaStart(gala.dateISO, gala.startTime), new Date(now)) : NOW_TO_GALA;
+  const left = gala.dateISO ? countdownTo(galaStart(gala.dateISO, gala.startTime), new Date(now)) : { d: 0, h: 0, m: 0 };
   return (
-    <div className="cdown" aria-label="Countdown">
+    <div
+      className="cdown"
+      role="group"
+      aria-label={`Countdown: ${left.d} days, ${left.h} hours, ${left.m} minutes`}
+    >
       <div>
         <b>{left.d}</b>
         <span>days</span>
@@ -55,8 +52,10 @@ function Countdown() {
 
 /** "Your status" 3-way control (reference seg3). */
 function StatusSeg() {
-  const { myStatus, setMyStatus } = useGala();
+  const { gala, me, myStatus, setMyStatus } = useGala();
   const pick = (k: AttendanceKey, e: MouseEvent<HTMLButtonElement>) => {
+    postSystemLine(gala.code, `${me} changed their status to ${ST[k].l}.`);
+    // TODO(backend): push the RSVP change to other members over realtime instead of waiting for the 15 s poll.
     setMyStatus(k);
     if (k === 'g') {
       toast("You're marked as G. The chat knows.");
@@ -77,8 +76,10 @@ function StatusSeg() {
 }
 
 function Hero() {
-  const { phase, gala, members } = useGala();
+  const { phase, gala, members, summary } = useGala();
   const href = (s: string) => galaHref(gala.code, s);
+  // Live travel counts from GET /summary; a tag with nobody in it is hidden.
+  const travel = summary?.travel;
 
   if (phase === 'done') {
     return (
@@ -101,15 +102,21 @@ function Hero() {
           <h1 className="h1s">Today&apos;s the day.</h1>
           <p className="lead2">{[gala.title, gala.dest].filter(Boolean).join(' · ')}</p>
           <div className="pmeta">
-            <Tag variant="cream" icon="check">
-              1 already there
-            </Tag>
-            <Tag variant="zest" icon="nav">
-              1 almost there
-            </Tag>
-            <Tag variant="cream" icon="clock">
-              2 on the way
-            </Tag>
+            {!!travel?.arrived && (
+              <Tag variant="cream" icon="check">
+                {travel.arrived} already there
+              </Tag>
+            )}
+            {!!travel?.almostThere && (
+              <Tag variant="zest" icon="nav">
+                {travel.almostThere} almost there
+              </Tag>
+            )}
+            {!!travel?.onTheWay && (
+              <Tag variant="cream" icon="clock">
+                {travel.onTheWay} on the way
+              </Tag>
+            )}
           </div>
         </div>
         <div className="dright">
@@ -139,7 +146,7 @@ function Hero() {
             </Tag>
           )}
           <Tag variant="cream" icon="users">
-            {members.length} people
+            {members.length} {members.length === 1 ? 'person' : 'people'}
           </Tag>
         </div>
       </div>
@@ -154,29 +161,10 @@ function Hero() {
   );
 }
 
-/* ---------------- banner + route ---------------- */
+/* ---------------- route ---------------- */
 
-function AccountBanner() {
-  const { hasAccount, bannerOpen, dismissBanner, openSheet } = useGala();
-  if (hasAccount || !bannerOpen) return null;
-  return (
-    <div className="banner">
-      <span className="ico sm">
-        <Icon name="sparkle" size={18} />
-      </span>
-      <div>
-        <b>Want to keep your gala with you?</b>
-        <span>Save your galas, calendar, history and reminders. This gala works fine without an account.</span>
-      </div>
-      <Button sm onClick={() => openSheet('account')}>
-        Create an Account
-      </Button>
-      <button type="button" className="ibtn" onClick={dismissBanner} aria-label="Dismiss">
-        <Icon name="x" size={20} />
-      </button>
-    </div>
-  );
-}
+// The "Want to keep your gala with you?" account banner is gone: an account is now required
+// to plan or join, so everyone in a gala already has one.
 
 const ROUTE: [label: string, icon: IconName, seg: string][] = [
   ['G tayo?', 'sparkle', ''],
@@ -194,7 +182,7 @@ function RouteStrip() {
   const done = phase === 'planning' ? 5 : phase === 'day' ? 6 : 8;
   return (
     <div className="routewrap">
-      <ol className="route">
+      <ol className="route" aria-label="Gala journey">
         {ROUTE.map(([label, icon, seg], i) => (
           <li key={label} className={`rs ${i < done ? 'done' : i === done ? 'cur' : 'lock'}`}>
             <Link href={galaHref(gala.code, seg)} aria-current={i === done ? 'step' : undefined}>
@@ -213,21 +201,25 @@ function RouteStrip() {
 /* ---------------- feature grid + rail ---------------- */
 
 function FeatureGrid() {
-  const { gala, members, stops, items, budget, expenses, phase, unread, summary } = useGala();
+  const { gala, members, phase, unread, summary } = useGala();
   const c = counts(members);
-  // Real counts from GET /summary; the local lists are only a fallback until it loads.
-  const stopCount = summary?.itineraryStops ?? stops.length;
-  const packed = summary?.checklistDone ?? items.filter((i) => i.d).length;
-  const itemCount = summary?.checklistTotal ?? items.length;
-  const perPerson = summary ? summary.budgetPerPerson : budTotal(budget) / budget.n;
-  const spentSoFar = summary ? summary.totalSpent : spent(expenses);
-  const photos = summary ? summary.photoCount : photoCountFor(phase);
+  // Everything below comes from GET /summary; "—" shows until it loads.
+  const stopCount = summary ? summary.itineraryStops : '—';
+  // TODO(backend): "What are we bringing?" reads checklist counts from /summary; will reconcile when the checklist CRUD is wired.
+  const packed = summary ? summary.checklistDone : '—';
+  const itemCount = summary ? summary.checklistTotal : '—';
+  // TODO(backend): dashboard reads budget from /summary; will reconcile when the budget PUT is wired.
+  // Until then the Gastos tab's mock slice edits don't move this card.
+  const perPerson = summary ? peso(summary.budgetPerPerson) : '—';
+  // TODO(backend): "Who paid?" reads totalSpent from /summary; will reconcile when the expenses endpoints are wired.
+  const spentSoFar = summary ? peso(summary.totalSpent) : '—';
+  const photos = summary?.photoCount ?? 0;
 
   const F: [seg: string, title: string, sub: string, icon: IconName, tone: Tone, tag: string][] = [
     ['attendance', "Who's G?", `${c.g} going · ${c.m} maybe`, 'users', 'blossom', 'Attendance'],
     ['route', "What's the plan?", `${stopCount} stops on the route`, 'route', 'zest', 'Itinerary'],
-    ['budget', 'How much?', `${peso(perPerson)} per person`, 'calc', 'cream', 'Budget'],
-    ['ambagan', 'Who paid?', `${peso(spentSoFar)} spent so far`, 'wallet', 'teal', 'Ambagan'],
+    ['budget', 'How much?', `${perPerson} per person`, 'calc', 'cream', 'Budget'],
+    ['ambagan', 'Who paid?', `${spentSoFar} spent so far`, 'wallet', 'teal', 'Ambagan'],
     ['checklist', 'What are we bringing?', `${packed} of ${itemCount} packed`, 'checklist', 'blossom', 'Checklist'],
     ['map', 'Where is everyone?', phase === 'planning' ? 'Opens on gala day' : "Tap to see who's OTW", 'nav', 'rosy', 'Live location'],
     ['chat', "What's the chismis?", `${unread} new messages`, 'chat', 'zest', 'Chat'],
@@ -252,7 +244,7 @@ function FeatureGrid() {
 }
 
 function Rail() {
-  const { gala, members, me, role } = useGala();
+  const { gala, members, me, role, openSheet } = useGala();
   const copyCode = useCopyCode();
   const c = counts(members);
   const href = (s: string) => galaHref(gala.code, s);
@@ -273,11 +265,39 @@ function Rail() {
               <span>
                 {m.n}
                 {m.n === me ? ' (you)' : ''}
+                {m.role === 'leader' && (
+                  <>
+                    {' '}
+                    <Icon name="crown" size={16} />
+                    <span
+                      style={{
+                        position: 'absolute',
+                        width: 1,
+                        height: 1,
+                        overflow: 'hidden',
+                        clip: 'rect(0 0 0 0)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Gala Leader
+                    </span>
+                  </>
+                )}
               </span>
               <StatusBadge status={m.s} />
             </li>
           ))}
         </ul>
+        {members.length <= 1 && (
+          // Only the planner so far: the empty copy lives here, the rest of the dashboard stays.
+          <div className="empty" style={{ padding: '10px 0', margin: 0, maxWidth: 'none' }}>
+            <h3>Just you so far.</h3>
+            <p className="fine">Share the gala code and get your friends in.</p>
+            <Button sm onClick={() => openSheet('share')}>
+              Share Gala
+            </Button>
+          </div>
+        )}
         <Link className="lnk" href={href('attendance')}>
           See everyone
         </Link>
@@ -305,82 +325,28 @@ function Rail() {
   );
 }
 
-/* ---------------- states ---------------- */
-
-function Skeleton() {
-  return (
-    <div className="skl" aria-busy="true" aria-label="Loading">
-      <div className="sk" style={{ height: 132 }} />
-      <div className="g g3">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="sk" style={{ height: 110 }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function EmptyState() {
-  const { openSheet } = useGala();
-  return (
-    <div className="empty">
-      <div className="ico xl" style={blob(2)}>
-        <Icon name="users" size={44} />
-      </div>
-      <h3>Just you so far.</h3>
-      <p>Share the gala code and get your friends in.</p>
-      <Button onClick={() => openSheet('share')}>Share Gala</Button>
-    </div>
-  );
-}
-
-function ErrorState() {
-  const { setViewState } = useGala();
-  return (
-    <div className="empty err">
-      <div className="ico xl" style={{ ...blob(3), color: 'var(--rosy-dark)' }}>
-        <Icon name="alert" size={44} />
-      </div>
-      <h3>The dashboard didn&apos;t load.</h3>
-      <p>Your gala is safe. Give it another try.</p>
-      <Button
-        onClick={() => {
-          setViewState('default');
-          toast('Back in business.');
-        }}
-      >
-        <Icon name="refresh" size={20} /> Try again
-      </Button>
-    </div>
-  );
-}
-
-function OfflineBar() {
-  return (
-    <div className="offl" role="status">
-      <Icon name="wifioff" size={22} />
-      <div>
-        <b>Connection&apos;s a bit shaky.</b> You&apos;re seeing the last saved version. Anything you change will sync
-        when you&apos;re back online.
-      </div>
-    </div>
-  );
-}
-
 /* ---------------- page ---------------- */
 
 export function Dashboard() {
-  const { viewState, members, phase } = useGala();
+  const { viewState, liveState, phase, openSheet, setViewState, retry } = useGala();
+  // The dev switcher (any non-default viewState) wins; otherwise the real query state decides.
+  const state = viewState !== 'default' ? viewState : liveState;
 
-  if (viewState === 'loading') return <Skeleton />;
-  if (viewState === 'empty' || members.length <= 1) return <EmptyState />;
-  if (viewState === 'error') return <ErrorState />;
+  if (state === 'loading') return <Skeleton label="Loading the dashboard" />;
+  if (state === 'error') {
+    const tryAgain = () => {
+      setViewState('default'); // clears the dev-switcher override; a real failure keeps showing this state
+      return retry();
+    };
+    return <ErrorState kind="dashboard" onRetry={tryAgain} />;
+  }
+  // Only the dev switcher's "Empty" shows the full-page empty state; a lone planner sees the whole dashboard.
+  if (state === 'empty') return <Empty kind="dashboard" onAction={() => openSheet('share')} />;
 
   return (
     <>
-      {viewState === 'offline' && <OfflineBar />}
+      {state === 'offline' && <Offline />}
       <Hero />
-      <AccountBanner />
       {phase !== 'done' && <RouteStrip />}
       <div className="dgrid">
         <FeatureGrid />

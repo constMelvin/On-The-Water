@@ -7,6 +7,7 @@ import styles from './join.module.css';
 import { useRouter } from 'next/navigation';
 import { lookupGala, joinGala, type GalaEvent } from './joinApi';
 import { galaRoute, isValidCode, normCode, roomIdFor } from '@/lib/otw/gala-registry';
+import { useAccount } from '@/lib/otw/auth-mock';
 
 // Dashboard route for the gala the member just joined
 const MEMBER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
@@ -102,6 +103,17 @@ export default function JoinPage() {
 
   const [code, setCode] = useState('');
   const [nickname, setNickname] = useState('');
+
+  // Default the nickname to the account Name once (still editable before joining).
+  // TODO(backend): profile name from the auth user (Supabase user_metadata.name).
+  const account = useAccount();
+  const nicknamePrefilled = useRef(false);
+  useEffect(() => {
+    if (nicknamePrefilled.current || !account.name) return;
+    nicknamePrefilled.current = true;
+    setNickname((current) => current || account.name.slice(0, 20));
+  }, [account.name]);
+
   const [codeError, setCodeError] = useState('');
   const [nicknameError, setNicknameError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -377,7 +389,7 @@ export default function JoinPage() {
               <svg width="12" height="12" viewBox="0 0 24 24" className={styles.badgeIcon} aria-hidden="true">
                 <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="currentColor" />
               </svg>
-              <span>NO ACCOUNT NEEDED</span>
+              <span>ONE ACCOUNT, KAHIT ILANG GALA</span>
             </div>
 
             <h1 ref={step1HeadingRef} tabIndex={-1} className={styles.heading}>
