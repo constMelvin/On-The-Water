@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     /** All domain exceptions that carry their own code + status. */
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleDomainException(BaseException ex) {
-        log.debug("Domain exception: {} — {}", ex.getErrorCode(), ex.getMessage());
+        log.warn("Domain exception: {} — {}", ex.getErrorCode(), ex.getMessage());
         return ResponseEntity
                 .status(ex.getHttpStatus())
                 .body(ErrorResponse.of(ex.getErrorCode(), ex.getMessage()));
