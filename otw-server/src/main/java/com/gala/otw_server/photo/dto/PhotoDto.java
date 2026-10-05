@@ -14,6 +14,7 @@ public record PhotoDto(
         String driveFileId,
         UUID uploadedBy,
         String caption,
+        String mimeType,
         String status,
         OffsetDateTime createdAt
 ) {
@@ -24,6 +25,7 @@ public record PhotoDto(
                 photo.getDriveFileId(),
                 photo.getUploadedBy(),
                 photo.getCaption(),
+                photo.getMimeType(),
                 photo.getStatus(),
                 photo.getCreatedAt()
         );

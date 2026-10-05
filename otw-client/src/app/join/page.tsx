@@ -6,6 +6,7 @@ import Image from 'next/image';
 import styles from './join.module.css';
 import { useRouter } from 'next/navigation';
 import { lookupGala, joinGala, type GalaEvent } from './joinApi';
+import { GalaDirectory } from './GalaDirectory';
 import { galaRoute, isValidCode, normCode, roomIdFor } from '@/lib/otw/gala-registry';
 import { useAccount } from '@/lib/auth/session';
 
@@ -103,6 +104,8 @@ export default function JoinPage() {
 
   const [code, setCode] = useState('');
   const [nickname, setNickname] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // Default the nickname to the account Name once (still editable before joining).
   // The Name given at Create account (Supabase user_metadata.name).
@@ -124,6 +127,7 @@ export default function JoinPage() {
 
   const codeInputRef = useRef<HTMLInputElement>(null);
   const nicknameInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const step1HeadingRef = useRef<HTMLHeadingElement>(null);
   const step2HeadingRef = useRef<HTMLHeadingElement>(null);
   const successHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -179,19 +183,21 @@ export default function JoinPage() {
     if (nicknameError) setNicknameError('');
   };
 
-  // Step 1: Submit code to look up gala details
-  const handleStep1Submit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (isSubmitting) return;
+  const codeFail = (message: string) => {
+    setCodeError(message);
+    setCodeShake(true);
+    setTimeout(() => setCodeShake(false), 400);
+    codeInputRef.current?.focus();
+  };
 
-    const normalized = normalizeGalaCode(code);
+  /** Looks the gala up by code (GET /rooms/preview) and moves on to "Is this the one?". */
+  const openGala = async (raw: string) => {
+    if (isSubmitting) return;
+    const normalized = normalizeGalaCode(raw);
     setCode(normalized);
 
     if (!isValidCode(normalized)) {
-      setCodeError('Enter the full code, like OTW-7K2P-ABCD.');
-      setCodeShake(true);
-      setTimeout(() => setCodeShake(false), 400);
-      codeInputRef.current?.focus();
+      codeFail('Enter the full code, like OTW-7K2P-ABCD.');
       return;
     }
 
@@ -202,35 +208,44 @@ export default function JoinPage() {
       const result = await lookupGala(normalized);
 
       if (!result.ok) {
-        setCodeError(
+        codeFail(
           result.error === 'ROOM_FULL'
             ? 'This gala is already full.'
             : result.error === 'OTHER'
               ? (result.message ?? 'Something went wrong. Try again.')
               : "Hmm, we can't find that code. Check your group chat and try again."
         );
-        setCodeShake(true);
-        setTimeout(() => setCodeShake(false), 400);
-        codeInputRef.current?.focus();
         return;
       }
 
       setEvent(result.event);
+      setPassword('');
+      setPasswordError('');
       setStep(2);
     } catch {
-      setCodeError("Hmm, we can't find that code. Check your group chat and try again.");
-      setCodeShake(true);
-      setTimeout(() => setCodeShake(false), 400);
-      codeInputRef.current?.focus();
+      codeFail("Hmm, we can't find that code. Check your group chat and try again.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Step 1: typed code
+  const handleStep1Submit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void openGala(code);
   };
 
   // Step 2: Submit nickname and complete joining
   const handleStep2Submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    if (!password) {
+      setPasswordError("Enter the Gala Password. Ask your Gala Leader if you don't have it.");
+      passwordInputRef.current?.focus();
+      return;
+    }
+    setPasswordError('');
 
     const trimmedNick = nickname.trim();
     if (trimmedNick.length < 2 || trimmedNick.length > 20) {
@@ -248,6 +263,7 @@ export default function JoinPage() {
       const result = await joinGala({
         code: normalizeGalaCode(code),
         nickname: trimmedNick,
+        password,
       });
 
       if (!result.ok) {
@@ -258,6 +274,9 @@ export default function JoinPage() {
           // Already in this gala on this device: open it (or re-enter if the id was lost).
           const c = normalizeGalaCode(code);
           router.push(roomIdFor(c) ? MEMBER_DASHBOARD_ROUTE(c) : `/enter?code=${encodeURIComponent(c)}`);
+        } else if (result.error === 'INVALID_GALA_PASSWORD' || result.error === 'MISSING_PASSWORD') {
+          setPasswordError("That password doesn't match. Check with your Gala Leader.");
+          passwordInputRef.current?.focus();
         } else if (result.error === 'DUPLICATE_NICKNAME') {
           setNicknameError('Someone in this gala already uses that nickname. Pick another one.');
         } else if (result.error === 'ROOM_FULL') {
@@ -300,6 +319,8 @@ export default function JoinPage() {
   const handleBackToStep1 = () => {
     setStep(1);
     setNicknameError('');
+    setPassword('');
+    setPasswordError('');
   };
 
   const isTealBackground = step === 1 && !isSuccess;
@@ -324,7 +345,9 @@ export default function JoinPage() {
         </Link>
       </div>
 
-      <div className={`${styles.card} ${isTealBackground ? styles.cardTeal : styles.cardRosy}`}>
+      <div
+        className={`${styles.card} ${isTealBackground ? `${styles.cardTeal} ${styles.cardWide}` : styles.cardRosy}`}
+      >
         {isSuccess ? (
           /* Success Screen */
           <div className={styles.successCard}>
@@ -393,11 +416,15 @@ export default function JoinPage() {
             </div>
 
             <h1 ref={step1HeadingRef} tabIndex={-1} className={styles.heading}>
-              Got a code? Let&apos;s go.
+              Saan tayo sasama?
             </h1>
             <p className={styles.subCopy}>
-              Type the gala code from your group chat and pick a nickname para makilala ka ng tropa.
+              Browse the galas, check the details, then join with the Gala Password. Got a code? Use it below.
             </p>
+
+            <GalaDirectory onPick={(c) => void openGala(c)} disabled={isSubmitting} />
+
+            <div className={styles.orDivider}>or use a gala code</div>
 
             <form onSubmit={handleStep1Submit} noValidate className={styles.form}>
               <div className={styles.fieldGroup}>
@@ -537,6 +564,38 @@ export default function JoinPage() {
             )}
 
             <form onSubmit={handleStep2Submit} noValidate className={styles.form}>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="gala-password" className={styles.label}>
+                  Gala Password
+                </label>
+                <input
+                  ref={passwordInputRef}
+                  id="gala-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
+                  placeholder="From your Gala Leader"
+                  autoComplete="off"
+                  maxLength={72}
+                  aria-invalid={!!passwordError}
+                  aria-describedby={passwordError ? 'gala-password-error' : 'gala-password-hint'}
+                  disabled={isSubmitting}
+                  className={styles.nicknameInput}
+                />
+                {passwordError ? (
+                  <div id="gala-password-error" role="alert" className={styles.errorText}>
+                    {passwordError}
+                  </div>
+                ) : (
+                  <div id="gala-password-hint" className={styles.hint}>
+                    Every gala has one. The Gala Leader can see it in Settings.
+                  </div>
+                )}
+              </div>
+
               <div className={styles.fieldGroup}>
                 <label htmlFor="nickname" className={styles.label}>
                   What should we call you?

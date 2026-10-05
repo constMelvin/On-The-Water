@@ -1,5 +1,6 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Settings } from '@/components/gala/settings/Settings';
 
+/** Settings tab: gala settings for the Gala Leader, "Your settings" for members. */
 export default function SettingsPage() {
-  return <ComingSoon title="Your settings" leaderTitle="Gala settings" />;
+  return <Settings />;
 }

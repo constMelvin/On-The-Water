@@ -1,5 +1,6 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Dump } from '@/components/gala/dump/Dump';
 
+/** The Gala Dump (photos) tab. */
 export default function DumpPage() {
-  return <ComingSoon title="The Gala Dump" />;
+  return <Dump />;
 }

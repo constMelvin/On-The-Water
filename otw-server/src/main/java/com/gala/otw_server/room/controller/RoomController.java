@@ -2,6 +2,7 @@ package com.gala.otw_server.room.controller;
 
 import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.room.dto.*;
+import com.gala.otw_server.room.service.RoomDirectoryService;
 import com.gala.otw_server.room.service.RoomService;
 import com.gala.otw_server.room.service.RoomSummaryService;
 import com.gala.otw_server.security.auth.CurrentUserProvider;
@@ -22,13 +23,16 @@ public class RoomController {
 
     private final RoomService roomService;
     private final RoomSummaryService summaryService;
+    private final RoomDirectoryService directoryService;
     private final CurrentUserProvider currentUser;
 
     public RoomController(RoomService roomService,
                           RoomSummaryService summaryService,
+                          RoomDirectoryService directoryService,
                           CurrentUserProvider currentUser) {
         this.roomService = roomService;
         this.summaryService = summaryService;
+        this.directoryService = directoryService;
         this.currentUser = currentUser;
     }
 
@@ -45,6 +49,17 @@ public class RoomController {
     @GetMapping("/api/v1/rooms/preview")
     public RoomPreviewDto previewRoom(@RequestParam String code) {
         return roomService.previewRoom(code);
+    }
+
+    // ── GET /rooms/directory — Join a Gala: listed galas (not room-scoped) ────
+
+    @GetMapping("/api/v1/rooms/directory")
+    public PageResponse<DirectoryRoomDto> directory(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int limit) {
+        String search = q == null ? null : q.length() > 100 ? q.substring(0, 100) : q;
+        return directoryService.list(currentUser.getUserId(), search, cursor, Math.max(1, Math.min(limit, 50)));
     }
 
     // ── POST /rooms/join — join by code ───────────────────────────────────────

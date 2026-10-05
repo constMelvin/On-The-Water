@@ -1,6 +1,6 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Recap } from '@/components/gala/recap/Recap';
 
-/** Gala recap ("See the recap" on a finished gala). Placeholder for now. */
+/** Gala recap ("See the recap" on a finished gala). */
 export default function RecapPage() {
-  return <ComingSoon title="You made it happen." />;
+  return <Recap />;
 }

@@ -98,7 +98,11 @@ public class RateLimiterService {
             try {
                 Long current = redis.opsForValue().increment(key);
                 if (current != null) {
-                    if (current == 1) {
+                    // Set the window on the first hit, and repair a counter that lost its TTL
+                    // (e.g. the expire call failed once): without one it never resets and the
+                    // client stays locked out for good.
+                    Long ttl = current == 1 ? null : redis.getExpire(key);
+                    if (current == 1 || (ttl != null && ttl < 0)) {
                         redis.expire(key, window);
                     }
                     return current <= maxRequests;

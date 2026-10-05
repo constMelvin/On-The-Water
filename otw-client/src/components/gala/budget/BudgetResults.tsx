@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card } from '@/components/otw';
 import { peso } from '@/lib/otw/data';
-import type { BudgetVM } from '@/lib/otw/mock/types';
+import type { BudgetVM } from '@/lib/api/types';
 import { galaHref } from '../nav';
 import { CATS } from './categories';
 import s from './budget.module.css';

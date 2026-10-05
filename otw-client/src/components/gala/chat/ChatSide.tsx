@@ -7,8 +7,7 @@ import s from './chat.module.css';
 /** Desktop right panel: "Locked in" summary + "Online now" (reference .chatside). Hidden under 1024px. */
 export function ChatSide({ stops }: { stops: number }) {
   const { gala, members, me } = useGala();
-  // TODO(backend): presence. Members only carry on=1 for me today (gala-store); real "online now"
-  // needs Supabase Realtime presence on room:{roomId}.
+  // on=1 comes from Supabase Realtime presence on room:{roomId} (lib/otw/live.ts).
   const online = members.filter((m) => m.on === 1);
   return (
     <aside className={s.chatside} aria-label="Gala details">
@@ -38,7 +37,7 @@ export function ChatSide({ stops }: { stops: number }) {
         <h3>Online now</h3>
         <ul className="mlist">
           {online.map((m) => (
-            <li key={m.n}>
+            <li key={m.id ?? m.n}>
               <Avatar name={m.n} tone={m.c} size={30} online />
               <span>
                 {m.n}

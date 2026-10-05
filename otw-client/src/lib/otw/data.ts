@@ -30,6 +30,8 @@ export interface Gala {
 }
 
 export interface Member {
+  /** Backend userId (RoomMemberDto.userId). Absent in the reference demo data. */
+  id?: string;
   /** Display name. */
   n: string;
   /** Avatar tone. */

@@ -4,15 +4,20 @@ import { Avatar, Button, StatusBadge } from '@/components/otw';
 import { ST, type AttendanceKey } from '@/lib/otw/data';
 import { useGala } from '@/lib/otw/gala-store';
 import { toast } from '@/lib/otw/feedback';
+import { nudgeMember } from '@/lib/api/gala';
 import s from './attendance.module.css';
 
 /** One card per status with its members. The leader can nudge the Maybes. */
 export function MemberGroups() {
-  const { members, me, role } = useGala();
+  const { members, memberRows, me, role, roomId } = useGala();
+  // The server only nudges members who answered Maybe (not the ones who haven't answered yet).
+  const saidMaybe = new Set(memberRows.filter((r) => r.rsvpStatus === 'MAYBE').map((r) => r.userId));
 
-  const nudge = (name: string) => {
-    // TODO(backend): nudge notification endpoint (POST /rooms/{roomId}/members/{userId}/nudge, host only).
-    toast(`Nudged ${name}.`);
+  const nudge = (userId: string, name: string) => {
+    if (!roomId) return;
+    nudgeMember(roomId, userId)
+      .then(() => toast(`Nudged ${name}.`))
+      .catch((e: unknown) => toast(e instanceof Error && e.message ? e.message : `Couldn't nudge ${name}.`, 'err'));
   };
 
   return (
@@ -28,14 +33,14 @@ export function MemberGroups() {
             <ul className="mlist">
               {group.length ? (
                 group.map((m) => (
-                  <li key={m.n}>
+                  <li key={m.id ?? m.n}>
                     <Avatar name={m.n} tone={m.c} size={34} online={!!m.on} />
                     <span>
                       {m.n}
                       {m.n === me ? ' (you)' : ''}
                     </span>
-                    {k === 'm' && role === 'leader' && m.n !== me && (
-                      <Button variant="ghost" sm onClick={() => nudge(m.n)} aria-label={`Nudge ${m.n}`}>
+                    {k === 'm' && role === 'leader' && m.n !== me && m.id && saidMaybe.has(m.id) && (
+                      <Button variant="ghost" sm onClick={() => nudge(m.id!, m.n)} aria-label={`Nudge ${m.n}`}>
                         Nudge
                       </Button>
                     )}

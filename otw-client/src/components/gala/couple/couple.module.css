@@ -1,0 +1,207 @@
+/* Couple Mode tab. Ported from reference/otw/styles.css "couple" block (.cintro, .cprev, .chero,
+   .cpair, .heartb, .ctabs, .idea, .heart.on, .plc, .two-col.bud, .bres, .brow, .peso). */
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 20px 0;
+}
+.cel {
+  background: var(--zest);
+  color: var(--rosy);
+}
+.prev {
+  width: 100%;
+  margin: 14px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap);
+}
+.prev :global(.card) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border-radius: 30px;
+  padding: 18px 24px;
+  flex-wrap: wrap;
+}
+.hero h2 {
+  margin: 0;
+}
+.pair {
+  display: flex;
+  align-items: center;
+}
+.heartb {
+  color: var(--cream);
+  background: var(--rosy);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 0 -8px;
+  z-index: 1;
+}
+.meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+.tabs button {
+  flex: none;
+  border: 3px solid var(--blossom);
+  background: var(--cream);
+  border-radius: 99px;
+  padding: 8px 18px;
+  font-weight: 800;
+  color: var(--teal-dark);
+  cursor: pointer;
+}
+.tabs button[aria-selected='true'] {
+  background: var(--rosy);
+  color: var(--cream);
+  border-color: var(--rosy);
+  box-shadow: 0 4px 0 var(--rosy-dark);
+}
+
+.ideas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+.idea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+.idea > div {
+  display: flex;
+  flex-direction: column;
+}
+.idea b {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 18px;
+}
+.idea span {
+  font-size: 14px;
+  font-weight: 600;
+}
+.heartOn {
+  color: var(--rosy);
+}
+.heartOn :global(svg) {
+  fill: var(--rosy);
+}
+
+.plc {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plc li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cream);
+  border: 3px solid var(--blossom);
+  border-radius: 22px;
+  padding: 10px 14px;
+}
+.plc li > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.stn {
+  width: 38px;
+  height: 38px;
+  background: var(--rosy);
+  color: var(--cream);
+  display: grid;
+  place-items: center;
+  font-family: var(--fd);
+  font-size: 16px;
+  flex: none;
+  border: 3px solid var(--cream);
+}
+.eta {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bud {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+.rows {
+  display: grid;
+  gap: 12px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.label {
+  flex: 1;
+  font-weight: 800;
+}
+.peso {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.peso i {
+  font-style: normal;
+  font-weight: 800;
+}
+.peso :global(.in) {
+  width: 130px;
+}
+.res {
+  display: grid;
+  gap: var(--gap);
+}
+.big {
+  display: flex;
+  flex-direction: column;
+}
+.big b {
+  font-family: var(--fd);
+  font-size: 36px;
+  line-height: 1.05;
+}
+
+@media (max-width: 1023px) {
+  .bud,
+  .ideas {
+    grid-template-columns: 1fr;
+  }
+  .prev {
+    grid-template-columns: 1fr 1fr;
+  }
+}

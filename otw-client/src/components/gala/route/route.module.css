@@ -1,0 +1,205 @@
+/* The plan (itinerary) tab. Ported from reference/otw/styles.css (.phead.row, .two-col, .stops,
+   .stop, .stn, .stopc, .grip, .sbody, .srow1, .stime, .addby, .sact, .mapcard, .map, .mapnote,
+   .hint, .fab). .card, .tag, .ibtn and .av already live in the global styles. */
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+
+/* ---- timeline ---- */
+.stops {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stop {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  position: relative;
+}
+.stop:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 23px;
+  top: 50px;
+  bottom: -16px;
+  border-left: 4px dashed var(--teal);
+}
+.stn {
+  width: 48px;
+  height: 48px;
+  background: var(--rosy);
+  color: var(--cream);
+  display: grid;
+  place-items: center;
+  font-family: var(--fd);
+  font-size: 20px;
+  flex: none;
+  z-index: 1;
+  border: 3px solid var(--cream);
+}
+.stopc {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-color: var(--blossom);
+  min-width: 0;
+}
+.grip {
+  color: var(--teal);
+  cursor: grab;
+  margin-top: 2px;
+}
+.sbody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sbody b {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 18px;
+}
+.sbody p {
+  margin: 0;
+}
+.srow1 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.stime {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--rosy-dark);
+}
+.addby {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.sact {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  opacity: 0.3;
+}
+.stop:hover .sact,
+.sact:focus-within {
+  opacity: 1;
+}
+.done b {
+  text-decoration: line-through;
+}
+
+/* drag and drop (desktop) */
+.drag {
+  opacity: 0.4;
+}
+.over :global(.card) {
+  border-color: var(--rosy);
+  box-shadow: 0 6px 0 var(--rosy);
+}
+
+/* ---- map preview ---- */
+.mapcard {
+  padding: 10px;
+  position: sticky;
+  top: 0;
+}
+.mapnote {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 6px 2px;
+  font-size: 14px;
+}
+.hint {
+  text-align: center;
+  display: none;
+}
+
+/* ---- mobile add button (reference .fab), above the bottom nav ---- */
+.fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+  place-items: center;
+  z-index: 21;
+  transition: transform 0.09s, box-shadow 0.09s;
+}
+.fab:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--rosy-dark);
+}
+
+@media (max-width: 1023px) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+  .mapcard {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .grip {
+    display: none;
+  }
+  .sact {
+    flex-direction: row;
+    opacity: 1;
+  }
+  .stopc {
+    flex-wrap: wrap;
+  }
+  .hint {
+    display: block;
+  }
+  .fab {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab {
+    transition: none;
+  }
+}

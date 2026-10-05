@@ -52,10 +52,13 @@ public class RealtimeEventPublisher {
 
         String topic = "room:" + roomId;
 
+        // private = only subscribers who pass the realtime.messages RLS policy (active room
+        // members, V16) receive it; the channel is never readable by anyone holding the anon key.
         Map<String, Object> message = Map.of(
                 "topic", topic,
                 "event", event,
-                "payload", payload
+                "payload", payload,
+                "private", true
         );
 
         try {

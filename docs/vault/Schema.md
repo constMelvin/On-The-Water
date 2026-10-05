@@ -18,7 +18,7 @@ All `id` columns are `UUID DEFAULT gen_random_uuid()`. All timestamps are `TIMES
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `rooms` | room_code VARCHAR(8) UNIQUE, title(120), destination(150), start_date/end_date DATE, start_time/end_time TIME, schedule_at (kept = start date+time), meeting_lat/lng/label, password_hash(100, BCrypt), host_user_id, status (ACTIVE/ARCHIVED), room_type (GROUP/COUPLE), members_can_edit_plan / members_can_add_photos / members_can_delete_own_photos / location_sharing_enabled BOOLEAN | Phase (PLANNING/GALA_DAY/DONE) is computed from dates in `otw.timezone`, never stored |
+| `rooms` | room_code VARCHAR(8) UNIQUE, title(120), destination(150), destination_lat/lng (V19, nullable map pin), start_date/end_date DATE, start_time/end_time TIME, schedule_at (kept = start date+time), meeting_lat/lng/label, password_hash(100, BCrypt), host_user_id, status (ACTIVE/ARCHIVED), room_type (GROUP/COUPLE), members_can_edit_plan / members_can_add_photos / members_can_delete_own_photos / location_sharing_enabled BOOLEAN | Phase (PLANNING/GALA_DAY/DONE) is computed from dates in `otw.timezone`, never stored |
 | `room_members` | room_id FK CASCADE, user_id (= auth.users.id), nickname(60), role (HOST/MEMBER), rsvp_status (GOING/MAYBE/NOT_GOING/PENDING), has_account BOOL, travel_status (STILL_HOME/ON_THE_WAY/ALMOST_THERE/ARRIVED), joined_at, left_at | UNIQUE(room_id, user_id) — rejoining reactivates the old row; nickname unique per room (case-insensitive, active only) |
 | `itinerary_items` | room_id FK CASCADE, title(150) = place, notes TEXT, starts_at, stop_type (MEET_UP/ACTIVITY/FOOD), position INT, created_by, completed BOOL, **version INT** | Optimistic locking; reorder rewrites positions 0..n-1 |
 | `checklist_items` | room_id FK CASCADE, label(150), assigned_to (nullable), is_done, done_by, done_at, **version INT**, created_at | Optimistic locking |
@@ -54,5 +54,5 @@ There is no `users` table. Identity comes from Supabase `auth.users`, and `user_
 - Expenses and payments are insert-only, so they need no locking. Settlement is **computed on read** (net = paid − shares + payments sent − payments received) and never stored as a running total.
 
 ## Flyway (§3.4)
-- Migrations are additive (no `DROP COLUMN` early on), with one feature per file (V6 gala details … V15 notifications).
+- Migrations are additive (no `DROP COLUMN` early on), with one feature per file (V6 gala details … V15 notifications; V16 RLS on `realtime.messages` for private room channels, Supabase only; V17 `rooms.is_listed`, now unused: the directory lists every active gala; V18 `rooms.drive_folder_id` (per-gala Drive folder) + `photos.mime_type`; V19 `rooms.destination_lat/lng`).
 - Never edit a migration that has already run in a shared environment. Add a new one instead.

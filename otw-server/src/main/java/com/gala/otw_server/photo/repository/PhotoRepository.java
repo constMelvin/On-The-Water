@@ -8,14 +8,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface PhotoRepository extends JpaRepository<Photo, UUID> {
 
     Optional<Photo> findByIdAndRoom_Id(UUID id, UUID roomId);
+
+    /** Which of these Drive file ids still have a photo row (used by the orphan sweep). */
+    @Query("SELECT p.driveFileId FROM Photo p WHERE p.driveFileId IN :ids")
+    Set<String> findExistingDriveFileIds(@Param("ids") Collection<String> ids);
 
     /** Newest first (the Dump shows new photos at the top); keyset on (createdAt, id). */
     @Query("""

@@ -20,6 +20,9 @@ public record RoomDto(
         String roomCode,
         String title,
         String destination,
+        /** The destination's map pin; both null when none was picked. */
+        Double destinationLat,
+        Double destinationLng,
         LocalDate startDate,
         LocalDate endDate,
         LocalTime startTime,
@@ -34,6 +37,7 @@ public record RoomDto(
         GalaPhase phase,
         boolean hasPassword,
         RoomPermissionsDto permissions,
+        boolean listed,
         RoomRole myRole,
         Integer memberCount,
         OffsetDateTime createdAt
@@ -48,6 +52,8 @@ public record RoomDto(
                 r.getRoomCode(),
                 r.getTitle(),
                 r.getDestination(),
+                r.getDestinationLat(),
+                r.getDestinationLng(),
                 r.getStartDate(),
                 r.getEndDate(),
                 r.getStartTime(),
@@ -62,6 +68,7 @@ public record RoomDto(
                 phase,
                 r.getPasswordHash() != null,
                 RoomPermissionsDto.from(r),
+                r.isListed(),
                 myRole,
                 memberCount,
                 r.getCreatedAt()

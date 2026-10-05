@@ -85,13 +85,14 @@ class RoomSettingsServiceTest {
     void updateRoom_partial() {
         RoomDto dto = service.updateRoom(roomId, new UpdateRoomRequest(
                 "Baguio Na Talaga", null, null, LocalDate.of(2026, 11, 15), null, null, null,
-                null, null, null, false, null, null, false));
+                null, null, null, false, null, null, false, true, null, null));
 
         assertThat(dto.title()).isEqualTo("Baguio Na Talaga");
         assertThat(dto.endDate()).isEqualTo(LocalDate.of(2026, 11, 15));
         assertThat(dto.permissions().membersCanEditPlan()).isFalse();
         assertThat(dto.permissions().membersCanAddPhotos()).isTrue();
         assertThat(dto.permissions().locationSharingEnabled()).isFalse();
+        assertThat(dto.listed()).isTrue();
         verify(realtime).publish(eq(roomId), eq("room.updated"), any());
     }
 
@@ -100,7 +101,71 @@ class RoomSettingsServiceTest {
     void updateRoom_badDates() {
         assertThatThrownBy(() -> service.updateRoom(roomId, new UpdateRoomRequest(
                 null, null, null, LocalDate.of(2026, 11, 1), null, null, null,
-                null, null, null, null, null, null, null)))
+                null, null, null, null, null, null, null, null, null, null)))
+                .isInstanceOf(InvalidRequestException.class);
+        verify(roomRepo, never()).save(any());
+    }
+
+    private UpdateRoomRequest destinationUpdate(String destination, Double lat, Double lng) {
+        return new UpdateRoomRequest(null, destination, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, lat, lng);
+    }
+
+    @Test
+    @DisplayName("updateRoom pins the destination without changing its text")
+    void updateRoom_pinDestination() {
+        room.setDestination("Baguio City");
+
+        RoomDto dto = service.updateRoom(roomId, destinationUpdate(null, 16.4023, 120.596));
+
+        assertThat(dto.destination()).isEqualTo("Baguio City");
+        assertThat(dto.destinationLat()).isEqualTo(16.4023);
+        assertThat(dto.destinationLng()).isEqualTo(120.596);
+    }
+
+    @Test
+    @DisplayName("updateRoom clears the old pin when the destination text changes without a new one")
+    void updateRoom_newDestinationTextClearsPin() {
+        room.setDestination("Baguio City");
+        room.setDestinationLat(16.4023);
+        room.setDestinationLng(120.596);
+
+        RoomDto dto = service.updateRoom(roomId, destinationUpdate("Tagaytay", null, null));
+
+        assertThat(dto.destination()).isEqualTo("Tagaytay");
+        assertThat(dto.destinationLat()).isNull();
+        assertThat(dto.destinationLng()).isNull();
+    }
+
+    @Test
+    @DisplayName("updateRoom keeps the pin when the destination text is sent unchanged")
+    void updateRoom_sameDestinationTextKeepsPin() {
+        room.setDestination("Baguio City");
+        room.setDestinationLat(16.4023);
+        room.setDestinationLng(120.596);
+
+        RoomDto dto = service.updateRoom(roomId, destinationUpdate("Baguio City", null, null));
+
+        assertThat(dto.destinationLat()).isEqualTo(16.4023);
+    }
+
+    @Test
+    @DisplayName("updateRoom moves the pin along with new destination text")
+    void updateRoom_newDestinationWithPin() {
+        room.setDestination("Baguio City");
+        room.setDestinationLat(16.4023);
+        room.setDestinationLng(120.596);
+
+        RoomDto dto = service.updateRoom(roomId, destinationUpdate("Tagaytay", 14.1153, 120.9621));
+
+        assertThat(dto.destinationLat()).isEqualTo(14.1153);
+        assertThat(dto.destinationLng()).isEqualTo(120.9621);
+    }
+
+    @Test
+    @DisplayName("updateRoom rejects a destination pin with only one coordinate")
+    void updateRoom_halfDestinationPin() {
+        assertThatThrownBy(() -> service.updateRoom(roomId, destinationUpdate(null, null, 120.596)))
                 .isInstanceOf(InvalidRequestException.class);
         verify(roomRepo, never()).save(any());
     }

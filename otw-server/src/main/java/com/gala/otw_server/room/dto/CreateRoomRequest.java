@@ -1,6 +1,8 @@
 package com.gala.otw_server.room.dto;
 
 import com.gala.otw_server.room.entity.RoomType;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -46,5 +48,14 @@ public record CreateRoomRequest(
         Double meetingLng,
 
         @Size(max = 255, message = "Meeting label must be at most 255 characters")
-        String meetingLabel
+        String meetingLabel,
+
+        /** The destination's map pin (from the place picker); send both or neither. */
+        @DecimalMin(value = "-90", message = "Latitude must be between -90 and 90")
+        @DecimalMax(value = "90", message = "Latitude must be between -90 and 90")
+        Double destinationLat,
+
+        @DecimalMin(value = "-180", message = "Longitude must be between -180 and 180")
+        @DecimalMax(value = "180", message = "Longitude must be between -180 and 180")
+        Double destinationLng
 ) {}

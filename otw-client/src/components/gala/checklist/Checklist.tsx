@@ -2,15 +2,23 @@
 
 /**
  * Checklist tab. Reference: src/proto2.js views.checklist (+ proto3 chk / chk-f / chk-del / claim /
- * save-item), checklist-*.png. Data is the mock checklist slice (lib/otw/mock/checklist.ts).
- * TODO(backend): checklist CRUD with version (see checklist.ts); realtime checklist.* on room:{roomId}.
+ * save-item), checklist-*.png. Data is GET /rooms/{roomId}/checklist; every write sends the item's
+ * version (a stale one is a 409: toast + refetch). Other members' edits arrive over realtime.
  */
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button, Card, Icon, PageHead, ProgressBar, SegmentedControl } from '@/components/otw';
 import { burst, toast } from '@/lib/otw/feedback';
 import { useGala } from '@/lib/otw/gala-store';
-import { mockUserId, useSlice } from '@/lib/otw/mock';
-import { addItem, checklist, claimItem, deleteItem, toggleDone } from '@/lib/otw/mock/checklist';
+import { featureKey } from '@/lib/otw/live';
+import { failed, removeFrom, upsertIn, useChecklist, useTabState } from '@/lib/otw/gala-queries';
+import {
+  claimChecklistItem,
+  createChecklistItem,
+  deleteChecklistItem,
+  updateChecklistItem,
+} from '@/lib/api/gala';
+import type { ChecklistItemVM } from '@/lib/api/types';
 import { Empty, StateGate } from '../States';
 import { ChecklistRow } from './ChecklistRow';
 import { AddItemSheet } from './AddItemSheet';
@@ -27,15 +35,69 @@ const FILTERS: { value: Filter; label: string }[] = [
 /** Reference burstMid(): the sparkle burst from the middle of the screen. */
 const burstMid = () => burst(window.innerWidth / 2, window.innerHeight / 2);
 
-export function Checklist({ code }: { code: string }) {
-  const { members, me, viewState, liveState, setViewState, retry } = useGala();
-  // Same rule as the dashboard: the dev switcher wins, otherwise the live query state.
-  const state = viewState !== 'default' ? viewState : liveState;
+/** The room comes from the gala context (GalaProvider in the /gala/[code] layout). */
+export function Checklist() {
+  const { members, nameOf, roomId, myUserId, setViewState } = useGala();
+  const qc = useQueryClient();
+  const q = useChecklist();
+  const state = useTabState(q);
+  const key = featureKey(roomId, 'checklist');
+  const summaryKey = featureKey(roomId, 'summary');
 
-  const [items] = useSlice(checklist, code);
+  const items = q.data ?? [];
   const [filter, setFilter] = useState<Filter>('all');
   const [adding, setAdding] = useState(false);
-  const myId = mockUserId(me);
+  const myId = myUserId ?? '';
+
+  /** Shows the change right away, then swaps in the server's row (or rolls back on failure). */
+  const write = (it: ChecklistItemVM, local: Partial<ChecklistItemVM>, send: () => Promise<ChecklistItemVM>) => {
+    if (!roomId) return;
+    upsertIn(qc, key, { ...it, ...local });
+    send()
+      .then((row) => {
+        upsertIn(qc, key, row);
+        void qc.invalidateQueries({ queryKey: summaryKey });
+      })
+      .catch((e: unknown) => failed(qc, [key], e, "Couldn't update the checklist."));
+  };
+
+  const onToggle = (it: ChecklistItemVM) => {
+    const isDone = !it.isDone;
+    write(it, { isDone, doneBy: isDone ? myId : null }, () =>
+      updateChecklistItem(roomId!, it.id, { isDone, version: it.version })
+    );
+    // Checking the last open item finishes the list.
+    if (isDone && items.every((x) => x.id === it.id || x.isDone)) burstMid();
+  };
+
+  const onClaim = (it: ChecklistItemVM) => {
+    write(it, { assignedTo: myId }, () => claimChecklistItem(roomId!, it.id, it.version));
+    toast("It's yours now.");
+  };
+
+  const onDelete = (it: ChecklistItemVM) => {
+    if (!roomId) return;
+    removeFrom(qc, key, it.id);
+    deleteChecklistItem(roomId, it.id)
+      .then(() => {
+        toast('Item removed.');
+        void qc.invalidateQueries({ queryKey: summaryKey });
+      })
+      .catch((e: unknown) => failed(qc, [key], e, "Couldn't remove that item."));
+  };
+
+  const onAdd = async (label: string, assignedTo: string | null) => {
+    if (!roomId) return;
+    try {
+      const row = await createChecklistItem(roomId, label.trim() || 'New item', assignedTo);
+      upsertIn(qc, key, row);
+      void qc.invalidateQueries({ queryKey: summaryKey });
+      setAdding(false);
+      toast('Item added to the checklist.');
+    } catch (e) {
+      failed(qc, [key], e, "Couldn't add that item.");
+    }
+  };
 
   const packed = items.filter((it) => it.isDone).length;
   const pct = items.length ? Math.round((packed / items.length) * 100) : 0;
@@ -58,9 +120,9 @@ export function Checklist({ code }: { code: string }) {
           setViewState('default');
           openAdd();
         }}
-        onRetry={() => {
+        onRetry={async () => {
           setViewState('default');
-          return retry();
+          return (await q.refetch()).isSuccess;
         }}
       >
         {items.length === 0 ? (
@@ -92,17 +154,10 @@ export function Checklist({ code }: { code: string }) {
                     key={it.id}
                     item={it}
                     members={members}
-                    onToggle={() => {
-                      if (toggleDone(code, it.id, myId)) burstMid();
-                    }}
-                    onClaim={() => {
-                      claimItem(code, it.id, myId);
-                      toast("It's yours now.");
-                    }}
-                    onDelete={() => {
-                      deleteItem(code, it.id);
-                      toast('Item removed.');
-                    }}
+                    who={it.assignedTo ? nameOf(it.assignedTo) : null}
+                    onToggle={() => onToggle(it)}
+                    onClaim={() => onClaim(it)}
+                    onDelete={() => onDelete(it)}
                   />
                 ))
               ) : (
@@ -121,11 +176,7 @@ export function Checklist({ code }: { code: string }) {
         <AddItemSheet
           members={members}
           onClose={() => setAdding(false)}
-          onAdd={(label, assignedTo) => {
-            addItem(code, label, assignedTo);
-            setAdding(false);
-            toast('Item added to the checklist.');
-          }}
+          onAdd={onAdd}
         />
       )}
     </>

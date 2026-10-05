@@ -3,11 +3,10 @@
 import { useState, type FormEvent } from 'react';
 import { Button, Sheet } from '@/components/otw';
 import type { Member } from '@/lib/otw/data';
-import { mockUserId } from '@/lib/otw/mock';
 
 export interface AddItemSheetProps {
   members: Member[];
-  onAdd: (label: string, assignedTo: string | null) => void;
+  onAdd: (label: string, assignedTo: string | null) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -15,10 +14,17 @@ export interface AddItemSheetProps {
 export function AddItemSheet({ members, onAdd, onClose }: AddItemSheetProps) {
   const [label, setLabel] = useState('');
   const [who, setWho] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const submit = (e?: FormEvent) => {
+  const submit = async (e?: FormEvent) => {
     e?.preventDefault();
-    onAdd(label, who || null);
+    if (busy) return;
+    setBusy(true);
+    try {
+      await onAdd(label, who || null);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -30,7 +36,9 @@ export function AddItemSheet({ members, onAdd, onClose }: AddItemSheetProps) {
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => submit()}>Add to Checklist</Button>
+          <Button onClick={() => void submit()} disabled={busy}>
+            Add to Checklist
+          </Button>
         </>
       }
     >
@@ -50,7 +58,7 @@ export function AddItemSheet({ members, onAdd, onClose }: AddItemSheetProps) {
           <select className="in" value={who} onChange={(e) => setWho(e.target.value)}>
             <option value="">Nobody yet</option>
             {members.map((m) => (
-              <option key={m.n} value={mockUserId(m.n)}>
+              <option key={m.id ?? m.n} value={m.id}>
                 {m.n}
               </option>
             ))}

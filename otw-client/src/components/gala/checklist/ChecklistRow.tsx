@@ -3,25 +3,25 @@
 import { useState } from 'react';
 import { Avatar, Button, Icon } from '@/components/otw';
 import type { Member } from '@/lib/otw/data';
-import { nameOf } from '@/lib/otw/mock';
-import type { ChecklistItemVM } from '@/lib/otw/mock/types';
+import type { ChecklistItemVM } from '@/lib/api/types';
 import s from './checklist.module.css';
 
 export interface ChecklistRowProps {
   item: ChecklistItemVM;
   members: Member[];
+  /** Assignee's nickname, null when nobody has claimed it. */
+  who: string | null;
   onToggle: () => void;
   onClaim: () => void;
   onDelete: () => void;
 }
 
 /** One checklist row (reference .crow): checkbox, label, assignee chip or Claim, delete. */
-export function ChecklistRow({ item, members, onToggle, onClaim, onDelete }: ChecklistRowProps) {
+export function ChecklistRow({ item, members, who, onToggle, onClaim, onDelete }: ChecklistRowProps) {
   // Pops on each check (not on uncheck, not on first render). Cleared when the animation ends so
   // the next check replays it; the button is never remounted, so keyboard focus stays put.
   const [popping, setPopping] = useState(false);
-  const who = item.assignedTo ? nameOf(item.assignedTo) : null;
-  const tone = who ? members.find((m) => m.n === who)?.c : undefined;
+  const tone = item.assignedTo ? members.find((m) => m.id === item.assignedTo)?.c : undefined;
 
   return (
     <li className={`${s.crow}${item.isDone ? ` ${s.done}` : ''}`}>

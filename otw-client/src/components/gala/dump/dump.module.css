@@ -1,0 +1,314 @@
+/* Gala Dump tab. Ported from reference/otw/styles.css "dump" block (.masonry, .phw, .ph, .ph-cap,
+   .ph-del, .lb*, .drop, .uplist, .uprow, .un, .ubar, .us) plus .phead.row and .fab. */
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.headActs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ---- photo grid: equal square tiles ---- */
+.masonry {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.m2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.phw {
+  aspect-ratio: 1;
+  position: relative;
+}
+.ph {
+  width: 100%;
+  height: 100%;
+  border: 3px solid var(--cream);
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  box-shadow: 0 4px 0 var(--sh, var(--blossom));
+  cursor: pointer;
+}
+.ph img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.phI {
+  opacity: 0.55;
+}
+.cap {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  background: var(--cream);
+  color: var(--teal-dark);
+  border-radius: 14px;
+  padding: 4px 10px;
+  text-align: left;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.cap i {
+  font-style: normal;
+  font-weight: 600;
+}
+.del {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--cream);
+  width: 34px;
+  height: 34px;
+}
+
+@media (hover: hover) and (min-width: 640px) {
+  .cap {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .ph:hover .cap,
+  .ph:focus-visible .cap {
+    opacity: 1;
+  }
+}
+
+/* ---- lightbox ---- */
+.lb {
+  position: fixed;
+  inset: 0;
+  background: var(--teal-dark);
+  color: var(--cream);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+.lbX {
+  align-self: flex-end;
+  color: var(--cream);
+}
+.lbX:hover,
+.lbN:hover {
+  background: var(--teal);
+}
+.stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 0;
+}
+.lbN {
+  color: var(--cream);
+  width: 52px;
+  height: 52px;
+}
+.lbImg {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  display: grid;
+  /* Bounded track: otherwise the row grows to the image's height and max-height: 100% never bites. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
+  /* Lets the video frame size itself from this box (cqw/cqh). */
+  container-type: size;
+}
+/* The cream frame hugs the media: a photo keeps its own shape, scaled down to fit. */
+.lbImg img,
+.lbImg iframe {
+  display: block;
+  border: 4px solid var(--cream);
+  border-radius: 30px;
+  background: var(--teal);
+}
+.lbImg img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+/* Drive's player has no size of its own (and videos store none), so a 16:9 frame as big as fits. */
+.lbImg iframe {
+  width: min(100cqw, 100cqh * 16 / 9);
+  aspect-ratio: 16 / 9;
+}
+.lbCap {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  flex-wrap: wrap;
+}
+.lbC {
+  background: var(--teal);
+  border-radius: 99px;
+  padding: 2px 12px;
+}
+
+/* ---- upload sheet ---- */
+.drop {
+  border: 4px dashed var(--teal);
+  border-radius: 28px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  color: var(--teal);
+}
+.drop b {
+  font-family: var(--fd);
+  font-size: 20px;
+  color: var(--teal-dark);
+}
+.drop span {
+  color: var(--teal-dark);
+  font-weight: 600;
+  font-size: 14px;
+}
+.dropOn {
+  background: var(--blossom);
+}
+.uplist {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.uprow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  background: var(--cream);
+  border: 3px solid var(--blossom);
+  border-radius: 20px;
+  padding: 6px 12px;
+}
+.un {
+  width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ubar {
+  flex: 1;
+  height: 10px;
+  background: var(--blossom);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.ubar i {
+  display: block;
+  height: 100%;
+  background: var(--teal);
+  transition: width 0.4s;
+}
+.us {
+  font-weight: 800;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.ok .us {
+  color: var(--teal);
+}
+.fail {
+  border-color: var(--rosy-dark);
+}
+.fail .ubar i {
+  background: var(--rosy-dark);
+}
+.fail .us {
+  color: var(--rosy-dark);
+}
+
+/* ---- mobile add button ---- */
+.fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+  place-items: center;
+  z-index: 21;
+}
+
+@media (max-width: 1023px) {
+  .masonry {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .m2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .masonry {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lbN {
+    display: none;
+  }
+  .fab {
+    display: grid;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ubar i,
+  .cap {
+    transition: none;
+  }
+}
+
+/* Video tiles: a play badge over the thumbnail. */
+.play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--rosy);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 0 var(--rosy-dark);
+  z-index: 1;
+}

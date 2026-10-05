@@ -9,6 +9,12 @@ const supabaseWs = supabaseUrl.replace(/^http/, 'ws');
 // Baseline CSP. The session lives in localStorage, so limiting what can run or be contacted is the
 // main defence against XSS token theft. Next.js needs inline scripts/styles (no nonce setup yet);
 // dev also needs eval for fast refresh.
+// Third parties, each for one feature:
+// - www.googleapis.com: the Gala Dump upload (the browser PUTs to a one-time Drive link the
+//   backend opened; nobody signs in to Google).
+// - drive.google.com: the video player in the Dump viewer (thumbnails fall under img-src https:).
+// - nominatim.openstreetmap.org: Plan a Gala's place search (map tiles fall under img-src https:).
+
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
@@ -16,7 +22,8 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
   // Supabase (REST + realtime) and the OTW backend.
-  `connect-src 'self' ${backendUrl} ${supabaseUrl} ${supabaseWs}${isDev ? ' ws://localhost:*' : ''}`.trim(),
+  `connect-src 'self' ${backendUrl} ${supabaseUrl} ${supabaseWs}${isDev ? ' ws://localhost:*' : ''} https://www.googleapis.com https://nominatim.openstreetmap.org`.trim(),
+  'frame-src https://drive.google.com',
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -34,6 +41,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Dev only: lets a phone on the same Wi-Fi open the dev server by the PC's LAN address.
+  allowedDevOrigins: ['192.168.2.4'],
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

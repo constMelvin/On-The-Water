@@ -15,5 +15,10 @@ public record JoinRoomRequest(
 
         @NotBlank(message = "Nickname is required")
         @Size(max = 60, message = "Nickname must be at most 60 characters")
-        String nickname
+        String nickname,
+
+        /** Every join needs the Gala Password (2026-10-05). */
+        @NotBlank(message = "Gala password is required")
+        @Size(max = 72, message = "Gala password is too long")
+        String password
 ) {}

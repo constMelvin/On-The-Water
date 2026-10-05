@@ -21,7 +21,7 @@ Targets: **P95 < 500 ms, P99 < 1.5 s, error rate < 1%**.
 
 ## Deployment (§11)
 - **Environments**: local (docker-compose with Postgres and Redis), staging, and production (Spring Boot on Render; DB/Auth/Realtime on managed Supabase).
-- **Env vars** (never committed): `SUPABASE_URL`, `SUPABASE_JWT_AUD`, `SUPABASE_JWKS_URL`, `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`, `REDIS_URL`, `GOOGLE_DRIVE_*`.
+- **Env vars** (never committed): `SUPABASE_URL`, `SUPABASE_JWT_AUD`, `SUPABASE_JWKS_URL`, `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`, `REDIS_URL`, `GOOGLE_DRIVE_*` (incl. optional `GOOGLE_DRIVE_ORPHAN_SWEEP_CRON` / `_MIN_AGE`; setup in docs/GOOGLE_DRIVE_SETUP.md).
 - **CORS**: the Vercel frontend URL(s) plus localhost.
 - **CI** (every PR): unit and integration tests, and Flyway against a throwaway Testcontainers DB. Any migration error fails the build.
 - **Pre-release checklist**:

@@ -17,13 +17,22 @@ export type LookupGalaResult =
 export interface JoinGalaParams {
   code: string;
   nickname: string;
+  password: string;
 }
 
 export type JoinGalaResult =
   | { ok: true; roomId: string }
   | {
       ok: false;
-      error: 'NOT_FOUND' | 'INVALID_NICKNAME' | 'DUPLICATE_NICKNAME' | 'ROOM_FULL' | 'ALREADY_A_MEMBER' | 'OTHER';
+      error:
+        | 'NOT_FOUND'
+        | 'INVALID_NICKNAME'
+        | 'MISSING_PASSWORD'
+        | 'INVALID_GALA_PASSWORD'
+        | 'DUPLICATE_NICKNAME'
+        | 'ROOM_FULL'
+        | 'ALREADY_A_MEMBER'
+        | 'OTHER';
       message?: string;
     };
 
@@ -51,17 +60,18 @@ export async function lookupGala(code: string): Promise<LookupGalaResult> {
 }
 
 /** POST /rooms/join. On success this device remembers the room id for the code. */
-export async function joinGala({ code, nickname }: JoinGalaParams): Promise<JoinGalaResult> {
+export async function joinGala({ code, nickname, password }: JoinGalaParams): Promise<JoinGalaResult> {
   const trimmed = nickname.trim();
+  if (!password) return { ok: false, error: 'MISSING_PASSWORD' };
   if (trimmed.length < 2 || trimmed.length > 20) return { ok: false, error: 'INVALID_NICKNAME' };
 
   try {
-    const m = await joinRoom(code, trimmed);
+    const m = await joinRoom(code, trimmed, password);
     rememberRoom(code, m.roomId);
     return { ok: true, roomId: m.roomId };
   } catch (e) {
     if (notFound(e)) return { ok: false, error: 'NOT_FOUND' };
-    for (const code of ['DUPLICATE_NICKNAME', 'ROOM_FULL', 'ALREADY_A_MEMBER'] as const) {
+    for (const code of ['INVALID_GALA_PASSWORD', 'DUPLICATE_NICKNAME', 'ROOM_FULL', 'ALREADY_A_MEMBER'] as const) {
       if (isApiError(e, code)) return { ok: false, error: code, message: e.message };
     }
     return { ok: false, error: 'OTHER', message: e instanceof Error ? e.message : undefined };

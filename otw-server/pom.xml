@@ -92,9 +92,10 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- Google Drive: read-only metadata validation of a client-supplied
-		     driveFileId (see PhotoService/GoogleDriveFileValidator). The backend
-		     never uploads or downloads photo binaries. -->
+		<!-- Google Drive: per-gala folders, one-time upload sessions, checking a
+		     client-supplied driveFileId, trashing deleted/orphaned files (see the
+		     photo package). The browser sends the bytes to Google; the backend
+		     never uploads or downloads photo binaries itself. -->
 		<dependency>
 			<groupId>com.google.api-client</groupId>
 			<artifactId>google-api-client</artifactId>

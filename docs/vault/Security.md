@@ -14,7 +14,7 @@ Back to [[00-Index]] · See also [[Auth]]
 | Mass assignment | Bind to explicit DTOs only, never to entities |
 | Resource consumption (API4) | Pagination, request size limits, Bucket4j rate limits on writes (especially location) |
 | JWT misuse | Verify signature, `exp`, `aud`, `iss` on every request |
-| Malicious uploads | Store only a Drive file reference. Verify the file belongs to the expected Drive folder/owner before marking it `READY` |
+| Malicious uploads | Store only a Drive file reference. Verify the file belongs to the gala's Drive folder before marking it `READY`; upload names cleaned and extension must match photo/video type; files with no row trashed by the orphan sweep |
 | CORS | Allow-list the known frontend origins only |
 | Cache leakage | Scope every key by room (and user for membership). No global entries |
 | Location privacy | Opt-in, short TTL, hard delete on stop, rate limit |

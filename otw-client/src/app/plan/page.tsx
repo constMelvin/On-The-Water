@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './plan.module.css';
 import { createRoom } from '@/lib/api/rooms';
-import { addDays, galaRoute, normCode, rememberRoom } from '@/lib/otw/gala-registry';
+import { galaRoute, normCode, rememberRoom } from '@/lib/otw/gala-registry';
+import { DateRangePicker } from '@/components/plan/DateRangePicker';
+import { LocationPicker } from '@/components/plan/LocationPicker';
 import { toast as notify } from '@/lib/otw/feedback';
 import { useAccount } from '@/lib/auth/session';
 
@@ -13,11 +15,11 @@ import { useAccount } from '@/lib/auth/session';
  * Fast-Track Plan a Gala: one create screen, then the celebration. The account gate lives in
  * plan/layout.tsx (<RequireAccount ctx="plan">) and is untouched.
  *
- * Fields that left this screen are still collected later, on the dashboard:
- * - TODO(team): dashboard Settings: let the host pick the date/time (PATCH /rooms/{id}) and the
- *   destination. Until then POST /rooms gets the placeholders below.
- * - TODO(team): dashboard Settings: show the generated Gala Password (read it from
- *   sessionStorage 'otw:gala-password') and let the host change it (PUT /rooms/{id}/settings/password).
+ * Everything POST /rooms stores is collected here (CreateRoomRequest): name, type (group or
+ * couple), the host's nickname, start date (required), end date, start / end time, destination
+ * (required), a meeting place and the Gala Password. The leader can edit all of it in Settings.
+ * - The host picks the Gala Password here (6 to 72 characters); this device keeps a copy in
+ *   sessionStorage 'otw:gala-password' so Settings can show it, and Settings can change it.
  * - TODO(backend): the host vibe has no field on the room/member yet; it is client-only for now.
  */
 
@@ -26,26 +28,18 @@ const NICKNAME_MAX = 40;
 const NAME_MIN = 2;
 const NAME_MAX = 40;
 
-// TODO(backend): CreateRoomRequest still requires startDate + destination + password, so the
-// create call sends these until the dashboard collects the real ones (or the API makes them optional).
-const DEFAULT_DAYS_AHEAD = 30;
-const DEFAULT_DESTINATION = 'TBD';
+/** CreateRoomRequest limits. */
+const DESTINATION_MAX = 150;
+const MEETING_MAX = 255;
 
-const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+/** What the backend accepts for a Gala Password (CreateRoomRequest.password). */
+const PASSWORD_MIN = 6;
+const PASSWORD_MAX = 72;
 
-/** Random 8-character gala password (6 to 72 is what the backend accepts). */
-function generatePassword(): string {
-  const bytes = new Uint32Array(8);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => PASSWORD_ALPHABET[b % PASSWORD_ALPHABET.length]).join('');
-}
-
-/** Today as YYYY-MM-DD in local time (not UTC). */
-function localToday(): string {
+/** Midnight today, local time (the date picker's earliest day). */
+function startOfToday(): Date {
   const now = new Date();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${now.getFullYear()}-${m}-${d}`;
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
 /* ---------------- icons (24px, 2px stroke, inline SVG only) ---------------- */
@@ -226,15 +220,45 @@ export default function PlanPage() {
   const [vibe, setVibe] = useState('chill');
   const [filling, setFilling] = useState(false);
   const [error, setError] = useState('');
+  const [galaType, setGalaType] = useState<'GROUP' | 'COUPLE'>('GROUP');
+  const [nickname, setNickname] = useState('');
+  const [destination, setDestination] = useState('');
+  // The picked place's map pin; typing over the text drops it (LocationPicker sends no coords then).
+  const [destinationPin, setDestinationPin] = useState<{ lat: number; lng: number } | null>(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [meetingLabel, setMeetingLabel] = useState('');
+  const [detailsError, setDetailsError] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [createdPassword, setCreatedPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [code, setCode] = useState('');
   const [createdTitle, setCreatedTitle] = useState('');
   const [copied, setCopied] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const detailsRef = useRef<HTMLDivElement>(null);
   const doneHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const hostName = account.displayName.trim();
+
+  // Couple Mode's "Start Couple Mode" opens /plan?type=couple. Read after mount (no URL on the server).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (new URLSearchParams(window.location.search).get('type') === 'couple') setGalaType('COUPLE');
+  }, []);
+  // The nickname starts as the account name (still editable).
+  const nicknamePrefilled = useRef(false);
+  useEffect(() => {
+    if (nicknamePrefilled.current || !hostName) return;
+    nicknamePrefilled.current = true;
+    setNickname((n) => n || hostName.slice(0, NICKNAME_MAX));
+  }, [hostName]);
   const shareMsg = `G tayo? Join our gala "${createdTitle}". Code: ${code}`;
 
   useEffect(() => {
@@ -265,28 +289,58 @@ export default function PlanPage() {
       return;
     }
     setError('');
+    const detailsProblem = !nickname.trim()
+      ? 'Add your nickname for this gala.'
+      : !destination.trim()
+        ? 'Where are you going? Add a destination.'
+        : !startDate
+          ? 'Pick the start date.'
+          : endDate && endDate < startDate
+            ? "The end date can't be before the start date."
+            : endTime && !startTime
+              ? 'Add a start time too, or clear the end time.'
+              : (!endDate || endDate === startDate) && startTime && endTime && endTime < startTime
+                ? "The end time can't be before the start time."
+                : '';
+    if (detailsProblem) {
+      setDetailsError(detailsProblem);
+      detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setDetailsError('');
+    if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
+      setPasswordError(`Set a Gala Password (${PASSWORD_MIN} to ${PASSWORD_MAX} characters).`);
+      passwordRef.current?.focus();
+      return;
+    }
+    setPasswordError('');
     setSubmitting(true);
     const btn = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
     try {
-      const password = generatePassword();
-      // POST /rooms (same call as before): the creator becomes the Gala Leader (host).
+      // POST /rooms: the creator becomes the Gala Leader (host).
       const room = await createRoom({
         title,
-        nickname: (hostName || 'Host').slice(0, NICKNAME_MAX),
-        startDate: addDays(localToday(), DEFAULT_DAYS_AHEAD),
-        destination: DEFAULT_DESTINATION,
+        nickname: nickname.trim().slice(0, NICKNAME_MAX),
+        startDate,
+        ...(endDate && { endDate }),
+        ...(startTime && { startTime }),
+        ...(startTime && endTime && { endTime }),
+        destination: destination.trim(),
+        ...(destinationPin && { destinationLat: destinationPin.lat, destinationLng: destinationPin.lng }),
+        ...(meetingLabel.trim() && { meetingLabel: meetingLabel.trim() }),
         password,
-        type: 'GROUP',
+        type: galaType,
       });
       const roomCode = normCode(room.roomCode);
       rememberRoom(roomCode, room.id);
       try {
-        // TODO(D3-01): replace with real state. Settings reads this to show the Gala Password.
+        // Settings reads this to show the Gala Password on this device.
         sessionStorage.setItem('otw:gala-password', password);
       } catch {
         /* storage blocked: the host can set a new password in Settings */
       }
       setCode(roomCode);
+      setCreatedPassword(password);
       setCreatedTitle(room.title || title);
       if (btn) burst.fire(btn, true);
       setTimeout(() => setStage('done'), 240);
@@ -383,6 +437,155 @@ export default function PlanPage() {
             })}
           </div>
 
+          <div ref={detailsRef} className={styles.details}>
+            <div className={styles.typeRow} role="group" aria-label="Gala type">
+              {(
+                [
+                  ['GROUP', 'Barkada gala'],
+                  ['COUPLE', 'Couple gala (2 lang)'],
+                ] as const
+              ).map(([k, l]) => (
+                <button
+                  key={k}
+                  type="button"
+                  className={`${styles.chip} ${styles.vibe} ${galaType === k ? styles.vibeOn : ''}`}
+                  aria-pressed={galaType === k}
+                  onClick={() => setGalaType(k)}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            <label className={styles.field}>
+              <span className={styles.vibeLabel}>Your nickname</span>
+              <input
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                maxLength={NICKNAME_MAX}
+                placeholder="Ano tawag sa'yo ng tropa?"
+                autoComplete="off"
+                className={`${styles.input} ${styles.inputSm}`}
+              />
+            </label>
+
+            <div className={styles.field}>
+              <label htmlFor="gala-destination" className={styles.vibeLabel}>
+                Destination
+              </label>
+              <LocationPicker
+                id="gala-destination"
+                value={destination}
+                onChange={(v, coords) => {
+                  setDestination(v);
+                  setDestinationPin(coords ?? null);
+                  if (detailsError) setDetailsError('');
+                }}
+                maxLength={DESTINATION_MAX}
+                placeholder="Search a place, e.g. Baguio City"
+                inputClassName={`${styles.input} ${styles.inputSm}`}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="gala-dates" className={styles.vibeLabel}>
+                Date
+              </label>
+              <DateRangePicker
+                id="gala-dates"
+                start={startDate}
+                end={endDate}
+                min={startOfToday()}
+                onChange={(from, to) => {
+                  setStartDate(from);
+                  setEndDate(to);
+                  if (detailsError) setDetailsError('');
+                }}
+                className={`${styles.input} ${styles.inputSm}`}
+              />
+            </div>
+
+            <div className={styles.grid2}>
+              <label className={styles.field}>
+                <span className={styles.vibeLabel}>Start time (optional)</span>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className={`${styles.input} ${styles.inputSm}`}
+                />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.vibeLabel}>End time (optional)</span>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className={`${styles.input} ${styles.inputSm}`}
+                />
+              </label>
+            </div>
+
+            <label className={styles.field}>
+              <span className={styles.vibeLabel}>Meeting place (optional)</span>
+              <input
+                value={meetingLabel}
+                onChange={(e) => setMeetingLabel(e.target.value)}
+                maxLength={MEETING_MAX}
+                placeholder="Cubao bus terminal, Gate 2"
+                autoComplete="off"
+                className={`${styles.input} ${styles.inputSm}`}
+              />
+            </label>
+
+            {detailsError && (
+              <p role="alert" className={styles.error} style={{ marginTop: 0 }}>
+                {detailsError}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="gala-password" className={styles.vibeLabel}>
+              Gala Password
+            </label>
+            <div className={styles.pwRow}>
+              <input
+                ref={passwordRef}
+                id="gala-password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError('');
+                }}
+                maxLength={PASSWORD_MAX}
+                placeholder="Para sa barkada lang"
+                autoComplete="new-password"
+                aria-invalid={passwordError ? 'true' : 'false'}
+                aria-describedby={passwordError ? 'gala-password-error' : 'gala-password-hint'}
+                className={`${styles.input} ${passwordError ? styles.inputError : ''}`}
+              />
+              <button
+                type="button"
+                className={styles.pwToggle}
+                onClick={() => setShowPassword((v) => !v)}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {passwordError ? (
+              <p id="gala-password-error" role="alert" className={styles.error} style={{ marginTop: 10 }}>
+                {passwordError}
+              </p>
+            ) : (
+              <p id="gala-password-hint" className={styles.vibeHint}>
+                {PASSWORD_MIN} to {PASSWORD_MAX} characters. Everyone needs it to join, so share it with your barkada.
+              </p>
+            )}
+          </div>
+
           <div className={styles.divider} />
 
           <div>
@@ -411,7 +614,7 @@ export default function PlanPage() {
           <button type="submit" disabled={submitting} className={`${styles.btn} ${styles.cta}`}>
             {submitting ? 'Sandali lang...' : 'G na agad!'}
           </button>
-          <p className={styles.reassure}>Walang petsa? Okay lang. Ayusin n&apos;yo sa loob.</p>
+          <p className={styles.reassure}>Pwede pang baguhin lahat sa Settings mamaya.</p>
         </form>
       ) : (
         <div className={styles.done}>
@@ -450,6 +653,21 @@ export default function PlanPage() {
               onClick={(e) => copy(e.currentTarget, code, 'Nakopya na. Ilapag mo na sa GC.')}
             >
               <Ic name={copied ? 'check' : 'copy'} size={22} />
+            </button>
+          </div>
+
+          <div className={styles.ticket}>
+            <div className={styles.ticketText}>
+              <div className={styles.ticketLabel}>Gala Password</div>
+              <b className={styles.code}>{createdPassword}</b>
+            </div>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.copyBtn}`}
+              aria-label="Copy password"
+              onClick={(e) => copy(e.currentTarget, createdPassword, 'Nakopya ang password.')}
+            >
+              <Ic name="copy" size={22} />
             </button>
           </div>
 

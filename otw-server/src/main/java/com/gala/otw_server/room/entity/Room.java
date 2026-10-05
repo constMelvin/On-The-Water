@@ -54,6 +54,13 @@ public class Room {
     @Column(name = "schedule_at")
     private OffsetDateTime scheduleAt;
 
+    /** The destination's map pin; null when none was picked (free text or an older gala). */
+    @Column(name = "destination_lat")
+    private Double destinationLat;
+
+    @Column(name = "destination_lng")
+    private Double destinationLng;
+
     @Column(name = "meeting_lat")
     private Double meetingLat;
 
@@ -90,6 +97,14 @@ public class Room {
 
     @Column(name = "location_sharing_enabled", nullable = false)
     private boolean locationSharingEnabled = true;
+
+    /** Shown on the Join a Gala page (still needs the Gala Password to join). */
+    @Column(name = "is_listed", nullable = false)
+    private boolean listed = false;
+
+    /** This gala's Google Drive folder for the Gala Dump (null until it's created). */
+    @Column(name = "drive_folder_id", length = 200)
+    private String driveFolderId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

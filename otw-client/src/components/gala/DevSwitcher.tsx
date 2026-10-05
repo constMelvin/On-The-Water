@@ -8,8 +8,6 @@ import { useState, type ReactNode } from 'react';
 import { Button, Icon, SegmentedControl } from '@/components/otw';
 import { useGala, type Phase, type Role, type ViewState } from '@/lib/otw/gala-store';
 import s from './DevSwitcher.module.css';
-// Registers every mock slice so window.otwMock (dev only) can reach them from the console.
-import '@/lib/otw/mock';
 
 function Group({ label, children }: { label: string; children: ReactNode }) {
   return (

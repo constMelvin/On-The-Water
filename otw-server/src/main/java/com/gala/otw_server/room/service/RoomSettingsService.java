@@ -77,9 +77,22 @@ public class RoomSettingsService {
 
     public RoomDto updateRoom(UUID roomId, UpdateRoomRequest req) {
         Room room = findRoom(roomId);
+        RoomService.validatePin(req.destinationLat(), req.destinationLng());
 
         if (req.title() != null) room.setTitle(requireText(req.title(), "Title"));
-        if (req.destination() != null) room.setDestination(requireText(req.destination(), "Destination"));
+        if (req.destination() != null) {
+            String destination = requireText(req.destination(), "Destination");
+            // New text with no new pin: drop the old pin so it can't point at the previous place.
+            if (!destination.equals(room.getDestination()) && req.destinationLat() == null) {
+                room.setDestinationLat(null);
+                room.setDestinationLng(null);
+            }
+            room.setDestination(destination);
+        }
+        if (req.destinationLat() != null) {
+            room.setDestinationLat(req.destinationLat());
+            room.setDestinationLng(req.destinationLng());
+        }
 
         LocalDate start = req.startDate() != null ? req.startDate() : room.getStartDate();
         LocalDate end = req.endDate() != null ? req.endDate() : room.getEndDate();
@@ -106,6 +119,7 @@ public class RoomSettingsService {
         if (req.membersCanAddPhotos() != null) room.setMembersCanAddPhotos(req.membersCanAddPhotos());
         if (req.membersCanDeleteOwnPhotos() != null) room.setMembersCanDeleteOwnPhotos(req.membersCanDeleteOwnPhotos());
         if (req.locationSharingEnabled() != null) room.setLocationSharingEnabled(req.locationSharingEnabled());
+        if (req.listed() != null) room.setListed(req.listed());
 
         Room saved = roomRepo.save(room);
         RoomDto dto = RoomDto.from(saved, galaClock.phaseOf(saved));

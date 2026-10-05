@@ -8,7 +8,6 @@ import { ST, counts, peso, type AttendanceKey } from '@/lib/otw/data';
 import { countdownTo, galaStart } from '@/lib/otw/gala-registry';
 import { useGala } from '@/lib/otw/gala-store';
 import { burstEl, toast } from '@/lib/otw/feedback';
-import { postSystemLine } from '@/lib/otw/mock/chat';
 import { galaHref } from './nav';
 import { useCopyCode } from './useCopyCode';
 import { Empty, ErrorState, Offline, Skeleton } from './States';
@@ -52,10 +51,8 @@ function Countdown() {
 
 /** "Your status" 3-way control (reference seg3). */
 function StatusSeg() {
-  const { gala, me, myStatus, setMyStatus } = useGala();
+  const { myStatus, setMyStatus } = useGala();
   const pick = (k: AttendanceKey, e: MouseEvent<HTMLButtonElement>) => {
-    postSystemLine(gala.code, `${me} changed their status to ${ST[k].l}.`);
-    // TODO(backend): push the RSVP change to other members over realtime instead of waiting for the 15 s poll.
     setMyStatus(k);
     if (k === 'g') {
       toast("You're marked as G. The chat knows.");
@@ -203,15 +200,12 @@ function RouteStrip() {
 function FeatureGrid() {
   const { gala, members, phase, unread, summary } = useGala();
   const c = counts(members);
-  // Everything below comes from GET /summary; "—" shows until it loads.
+  // Everything below comes from GET /summary ("—" until it loads). Every tab's write refetches
+  // it, and other members' writes arrive over realtime.
   const stopCount = summary ? summary.itineraryStops : '—';
-  // TODO(backend): "What are we bringing?" reads checklist counts from /summary; will reconcile when the checklist CRUD is wired.
   const packed = summary ? summary.checklistDone : '—';
   const itemCount = summary ? summary.checklistTotal : '—';
-  // TODO(backend): dashboard reads budget from /summary; will reconcile when the budget PUT is wired.
-  // Until then the Gastos tab's mock slice edits don't move this card.
   const perPerson = summary ? peso(summary.budgetPerPerson) : '—';
-  // TODO(backend): "Who paid?" reads totalSpent from /summary; will reconcile when the expenses endpoints are wired.
   const spentSoFar = summary ? peso(summary.totalSpent) : '—';
   const photos = summary?.photoCount ?? 0;
 

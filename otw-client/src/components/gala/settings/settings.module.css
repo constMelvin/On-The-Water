@@ -1,0 +1,65 @@
+/* Settings tab. Ported from reference/otw/styles.css (.two-col.set, .set .card, .col, .srow2,
+   .card.danger). .card, .fl, .in, .sw, .mlist and .tag already live in the global styles. */
+
+.cols {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+.cols :global(.card) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.cols :global(.card) > * {
+  width: 100%;
+}
+.cols :global(.card) :global(.btn),
+.cols :global(.card) :global(.lnk) {
+  width: auto;
+}
+.cols h3 {
+  margin: 0;
+}
+
+.srow2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 3px dashed var(--blossom);
+}
+.srow2 > div {
+  display: flex;
+  flex-direction: column;
+}
+.danger {
+  border-color: var(--rosy);
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mlist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mlist li > span {
+  flex: 1;
+}
+
+@media (max-width: 1023px) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+}

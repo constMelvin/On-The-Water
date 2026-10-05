@@ -16,16 +16,17 @@ Back to [[00-Index]]
 ## Endpoints — getting in
 | Method | Path | Role |
 |---|---|---|
-| POST | `/rooms` (title, nickname, startDate, endDate?, startTime?, endTime?, destination, password, type?) | Authenticated, 10/h per client |
+| POST | `/rooms` (title, nickname, startDate, endDate?, startTime?, endTime?, destination, destinationLat?/Lng? (both or neither), password, type?) | Authenticated, 10/h per client |
 | GET | `/rooms/preview?code=` | Authenticated, rate-limited |
-| POST | `/rooms/join` (code with/without `OTW-`, nickname) | Authenticated, rate-limited |
+| POST | `/rooms/join` (code with/without `OTW-`, nickname, **password required**) | Authenticated, rate-limited |
+| GET | `/rooms/directory?q=&cursor=&limit=` (every active **group** gala; couple galas are code-only; password still required to join) | Authenticated |
 | POST | `/rooms/enter` · `/rooms/enter/claim` | Authenticated, rate-limited |
 
 ## Endpoints — inside a gala
 | Method | Path | Role |
 |---|---|---|
 | GET | `/rooms/{roomId}` (+ phase, permissions, myRole, memberCount) · `/summary` | Member |
-| PATCH | `/rooms/{roomId}` details + permissions · PUT `/password` · POST `/code` · POST `/archive` | Host |
+| PATCH | `/rooms/{roomId}` details (changing `destination` without `destinationLat/Lng` clears the pin) + permissions · PUT `/password` · POST `/code` · POST `/archive` | Host |
 | POST | `/rooms/{roomId}/restore` · DELETE `/rooms/{roomId}` | Host ✱ |
 | GET | `/rooms/{roomId}/members` | Member |
 | DELETE | `/rooms/{roomId}/members/{userId}` · POST `/members/{userId}/nudge` | Host |
@@ -45,7 +46,7 @@ Back to [[00-Index]]
 | PUT | `/rooms/{roomId}/chat/read` | Member ✱ |
 | GET · PUT/DELETE | `/rooms/{roomId}/couple/ideas` · `/couple/ideas/{key}` | Member (couple galas only) |
 
-`POST /rooms/{roomId}/photos` registers metadata only — the backend verifies the submitted `driveFileId` via a read-only Google Drive API call: it must be a real, non-trashed image or video in the configured shared folder, or `400 INVALID_PHOTO_REFERENCE`. Binary upload to Drive is the client's job.
+`POST /rooms/{roomId}/photos/uploads` (fileName, mimeType image/* or video/*, size ≤ 300 MB) returns a one-time Drive `uploadUrl` in this gala's own folder (folder created on first use; galas also get one when created); the browser PUTs the bytes straight to Google, no Google sign-in. `POST /rooms/{roomId}/photos` registers metadata only — the backend verifies the submitted `driveFileId` via a read-only Google Drive API call: it must be a real, non-trashed image or video inside that gala's own folder (the shared folder only for a gala without one), or `400 INVALID_PHOTO_REFERENCE`. Binary upload to Drive is the client's job. `/uploads` also requires an allowed extension matching the type (jpg/jpeg/png/gif/webp/heic/heif; mp4/mov/webm/m4v/3gp) or `400 INVALID_REQUEST`. `DELETE /photos/{id}` trashes the Drive file after commit; `DriveOrphanSweeper` trashes gala-folder files with no row (older than 24 h). Transient Drive errors (429/5xx) are retried with backoff.
 
 ## Endpoints — account (`/me`)
 | Method | Path |

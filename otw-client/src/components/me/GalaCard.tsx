@@ -29,6 +29,8 @@ interface GalaCardProps {
 export function GalaCard({ room, group, action }: GalaCardProps) {
   const [label, variant, icon] = STAT[group];
   const leader = room.myRole === 'HOST';
+  // Group galas keep the yellow date chip; Couple Mode galas get a pink one and a "Couple" tag.
+  const couple = room.type === 'COUPLE';
   const chip = dateChip(room.startDate);
   const people = room.memberCount;
   const href = galaRoute(room.roomCode);
@@ -48,7 +50,7 @@ export function GalaCard({ room, group, action }: GalaCardProps) {
 
   return (
     <article className={`card ${styles.gcard}`}>
-      <span className={styles.gdate} aria-hidden="true">
+      <span className={`${styles.gdate}${couple ? ` ${styles.gdateCouple}` : ''}`} aria-hidden="true">
         {chip ? (
           <>
             {chip.day}
@@ -73,6 +75,11 @@ export function GalaCard({ room, group, action }: GalaCardProps) {
           <Tag variant={leader ? 'zest' : 'blossom'} icon={leader ? 'crown' : 'user'}>
             {leader ? 'Leader' : 'Member'}
           </Tag>
+          {couple && (
+            <Tag variant="rosy" icon="heart">
+              Couple
+            </Tag>
+          )}
         </div>
       </div>
       {action === undefined ? defaultAction : action}

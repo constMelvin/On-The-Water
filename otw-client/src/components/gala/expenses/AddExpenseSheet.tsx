@@ -2,30 +2,40 @@
 
 import { useState, type FormEvent } from 'react';
 import { Button, Sheet } from '@/components/otw';
-import { nameOf } from '@/lib/otw/mock';
-import { CATEGORY_LABEL, type NewExpense } from '@/lib/otw/mock/expenses';
-import type { ExpenseCategory } from '@/lib/otw/mock/types';
+import { CATEGORY_LABEL, type NewExpense } from '@/lib/otw/expenses';
+import type { ExpenseCategory } from '@/lib/api/types';
 
 export interface AddExpenseSheetProps {
-  /** Who can have paid (and who the cost splits between). */
+  /** Who the cost splits between (userIds). */
   sharers: string[];
+  /** Who can have paid: every member (userIds). */
+  payers: string[];
+  nameOf: (userId: string) => string;
   /** Pre-selected "Paid by". */
   defaultPaidBy: string;
-  onAdd: (input: NewExpense) => void;
+  onAdd: (input: NewExpense) => void | Promise<void>;
   onClose: () => void;
 }
 
 /** "Add an expense" sheet (reference sheet addExp): what, amount, paid by, category, equal split. */
-export function AddExpenseSheet({ sharers, defaultPaidBy, onAdd, onClose }: AddExpenseSheetProps) {
+export function AddExpenseSheet({ sharers, payers, nameOf, defaultPaidBy, onAdd, onClose }: AddExpenseSheetProps) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState(defaultPaidBy);
   const [category, setCategory] = useState<ExpenseCategory>('FOOD');
 
-  const submit = (e?: FormEvent) => {
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e?: FormEvent) => {
     e?.preventDefault();
-    // The parent shows the "Add an amount first." toast for a missing or zero amount.
-    onAdd({ description, amount: Math.max(0, Number(amount) || 0), paidBy, category });
+    if (busy) return;
+    setBusy(true);
+    try {
+      // The parent shows the "Add an amount first." toast for a missing or zero amount.
+      await onAdd({ description, amount: Math.max(0, Number(amount) || 0), paidBy, category });
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -37,7 +47,9 @@ export function AddExpenseSheet({ sharers, defaultPaidBy, onAdd, onClose }: AddE
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => submit()}>Add expense</Button>
+          <Button onClick={() => void submit()} disabled={busy}>
+            Add expense
+          </Button>
         </>
       }
     >
@@ -68,7 +80,7 @@ export function AddExpenseSheet({ sharers, defaultPaidBy, onAdd, onClose }: AddE
           <label className="fl">
             Paid by
             <select className="in" value={paidBy} onChange={(e) => setPaidBy(e.target.value)}>
-              {sharers.map((id) => (
+              {payers.map((id) => (
                 <option key={id} value={id}>
                   {nameOf(id)}
                 </option>

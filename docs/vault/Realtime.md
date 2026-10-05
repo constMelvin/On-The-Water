@@ -8,6 +8,8 @@ Back to [[00-Index]]
 
 The backend publishes to **Supabase Realtime Broadcast** on private channels named `room:{roomId}`, gated by room membership. Broadcast is used instead of raw Postgres Changes.
 
+How it's gated: every broadcast is sent with `private: true`, and **V16** adds RLS on `realtime.messages` so only active members (`left_at IS NULL`) whose room matches `realtime.topic()` can receive broadcast/presence or track presence. Clients cannot send broadcasts (only the service role can). V16 is a no-op on a non-Supabase Postgres. The frontend subscribes with `{ config: { private: true } }` in `otw-client/src/lib/otw/live.ts`, invalidates the matching React Query keys per event, and polls every 15 s while the channel isn't connected.
+
 ## Events
 | Event | Trigger | Payload |
 |---|---|---|

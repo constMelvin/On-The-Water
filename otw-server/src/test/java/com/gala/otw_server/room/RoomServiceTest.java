@@ -96,7 +96,12 @@ class RoomServiceTest {
                 "Baguio City",
                 "baguio2026",
                 type,
-                null, null, null);
+                null, null, null, null, null);
+    }
+
+    private CreateRoomRequest createRequestAt(Double lat, Double lng) {
+        return new CreateRoomRequest("Baguio Before Graduation", "Merylle", LocalDate.of(2026, 11, 14),
+                null, null, null, "Baguio City", "baguio2026", null, null, null, null, lat, lng);
     }
 
     private Room activeRoom(String code) {
@@ -148,9 +153,29 @@ class RoomServiceTest {
     @DisplayName("createRoom rejects an end date before the start date")
     void createRoom_endBeforeStart() {
         CreateRoomRequest bad = new CreateRoomRequest("Trip", "Me", LocalDate.of(2026, 11, 14),
-                LocalDate.of(2026, 11, 13), null, null, "Baguio", "secret1", null, null, null, null);
+                LocalDate.of(2026, 11, 13), null, null, "Baguio", "secret1", null, null, null, null, null, null);
 
         assertThatThrownBy(() -> roomService.createRoom(callerId, true, bad))
+                .isInstanceOf(InvalidRequestException.class);
+        verify(roomRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createRoom stores and returns the destination pin")
+    void createRoom_destinationPin() {
+        when(roomRepo.existsByRoomCode(anyString())).thenReturn(false);
+        when(roomRepo.save(any(Room.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        RoomDto result = roomService.createRoom(callerId, true, createRequestAt(16.4023, 120.596));
+
+        assertThat(result.destinationLat()).isEqualTo(16.4023);
+        assertThat(result.destinationLng()).isEqualTo(120.596);
+    }
+
+    @Test
+    @DisplayName("createRoom rejects a destination pin with only one coordinate")
+    void createRoom_halfDestinationPin() {
+        assertThatThrownBy(() -> roomService.createRoom(callerId, true, createRequestAt(16.4023, null)))
                 .isInstanceOf(InvalidRequestException.class);
         verify(roomRepo, never()).save(any());
     }
@@ -181,8 +206,8 @@ class RoomServiceTest {
     @Test
     @DisplayName("joinRoom joins room, creates MEMBER, posts a chat line, and publishes events")
     void joinRoom_success() {
-        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Carlos");
-        Room room = activeRoom("ROOM1234");
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Carlos", "baguio2026");
+        Room room = roomWithPassword();
 
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
         when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.empty());
@@ -206,10 +231,21 @@ class RoomServiceTest {
     }
 
     @Test
+    @DisplayName("joinRoom refuses a wrong Gala Password before touching membership")
+    void joinRoom_wrongPassword() {
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Carlos", "not-the-password");
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(roomWithPassword()));
+
+        assertThatThrownBy(() -> roomService.joinRoom(callerId, true, req))
+                .isInstanceOf(InvalidGalaPasswordException.class);
+        verify(memberRepo, never()).saveAndFlush(any());
+    }
+
+    @Test
     @DisplayName("joinRoom reactivates the old row when a member who left joins again")
     void joinRoom_rejoinAfterLeaving() {
-        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Carlos");
-        Room room = activeRoom("ROOM1234");
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Carlos", "baguio2026");
+        Room room = roomWithPassword();
         RoomMember left = new RoomMember();
         left.setId(UUID.randomUUID());
         left.setRoom(room);
@@ -234,8 +270,8 @@ class RoomServiceTest {
     @Test
     @DisplayName("joinRoom throws AlreadyAMemberException when user is active member")
     void joinRoom_alreadyMember() {
-        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Carlos");
-        Room room = activeRoom("ROOM1234");
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Carlos", "baguio2026");
+        Room room = roomWithPassword();
         RoomMember active = new RoomMember();
         active.setUserId(callerId);
 
@@ -249,8 +285,8 @@ class RoomServiceTest {
     @Test
     @DisplayName("joinRoom rejects a third person in a couple gala with RoomFullException")
     void joinRoom_coupleFull() {
-        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Third");
-        Room room = activeRoom("ROOM1234");
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Third", "baguio2026");
+        Room room = roomWithPassword();
         room.setRoomType(RoomType.COUPLE);
 
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
@@ -266,8 +302,8 @@ class RoomServiceTest {
     @Test
     @DisplayName("joinRoom throws DuplicateNicknameException when nickname is taken by an active member")
     void joinRoom_duplicateNickname() {
-        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel");
-        Room room = activeRoom("ROOM1234");
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel", "baguio2026");
+        Room room = roomWithPassword();
 
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
         when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.empty());
@@ -282,8 +318,8 @@ class RoomServiceTest {
     @Test
     @DisplayName("joinRoom maps a raced nickname-index violation to DuplicateNicknameException")
     void joinRoom_duplicateNickname_concurrentRace() {
-        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel");
-        Room room = activeRoom("ROOM1234");
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel", "baguio2026");
+        Room room = roomWithPassword();
 
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
         when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.empty());
@@ -301,8 +337,8 @@ class RoomServiceTest {
     @Test
     @DisplayName("joinRoom does not relabel an unrelated constraint violation as DuplicateNicknameException")
     void joinRoom_otherConstraintViolation_isNotMappedToDuplicateNickname() {
-        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel");
-        Room room = activeRoom("ROOM1234");
+        JoinRoomRequest req = new JoinRoomRequest("ROOM1234", "Miguel", "baguio2026");
+        Room room = roomWithPassword();
 
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
         when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.empty());

@@ -7,6 +7,8 @@ import com.gala.otw_server.common.DomainExceptions.PhotoNotFoundException;
 import com.gala.otw_server.common.DomainExceptions.RoomNotFoundException;
 import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.photo.dto.PhotoDto;
+import com.gala.otw_server.photo.dto.StartUploadRequest;
+import com.gala.otw_server.photo.dto.UploadSessionDto;
 import com.gala.otw_server.photo.dto.RegisterPhotoRequest;
 import com.gala.otw_server.photo.entity.Photo;
 import com.gala.otw_server.photo.repository.PhotoRepository;
@@ -37,19 +39,39 @@ public class PhotoService {
     private final RealtimeEventPublisher realtime;
     private final GoogleDriveFileValidator driveFileValidator;
     private final RoomPermissionService permissions;
+    private final GalaDriveFolderService folders;
+    private final DriveUploadSessionService uploads;
 
     public PhotoService(PhotoRepository photoRepo,
                         RoomRepository roomRepo,
                         RoomMemberRepository memberRepo,
                         RealtimeEventPublisher realtime,
                         GoogleDriveFileValidator driveFileValidator,
-                        RoomPermissionService permissions) {
+                        RoomPermissionService permissions,
+                        GalaDriveFolderService folders,
+                        DriveUploadSessionService uploads) {
         this.photoRepo = photoRepo;
         this.roomRepo = roomRepo;
         this.memberRepo = memberRepo;
         this.realtime = realtime;
         this.driveFileValidator = driveFileValidator;
         this.permissions = permissions;
+        this.folders = folders;
+        this.uploads = uploads;
+    }
+
+    // ── Start an upload: a one-time Drive upload URL in this gala's folder ────
+
+    /**
+     * Opens a Drive upload session in the gala's folder (made on the spot if the gala has none
+     * yet). The browser sends the bytes straight to Google; nobody signs in to Google.
+     */
+    public UploadSessionDto startUpload(UUID roomId, UUID callerId, StartUploadRequest req, String origin) {
+        permissions.require(roomId, callerId, Permission.ADD_PHOTOS);
+        verifyMemberOfRoom(roomId, callerId);
+        String name = UploadFileNames.clean(req.fileName(), req.mimeType());
+        String folderId = folders.ensureFolder(roomId);
+        return new UploadSessionDto(uploads.openSession(folderId, name, req.mimeType(), req.size(), origin));
     }
 
     // ── Register photo metadata ───────────────────────────────────────────────
@@ -57,13 +79,15 @@ public class PhotoService {
     public PhotoDto registerPhoto(UUID roomId, UUID callerId, RegisterPhotoRequest req) {
         Room room = permissions.require(roomId, callerId, Permission.ADD_PHOTOS);
         verifyMemberOfRoom(roomId, callerId);
-        driveFileValidator.validate(req.driveFileId().trim());
+        String mimeType = driveFileValidator.validate(req.driveFileId().trim(), room.getDriveFolderId());
 
         Photo photo = new Photo();
         photo.setRoom(room);
         photo.setDriveFileId(req.driveFileId().trim());
         photo.setUploadedBy(callerId);
         photo.setCaption(req.caption() == null || req.caption().isBlank() ? null : req.caption().trim());
+        folders.makeLinkViewable(req.driveFileId().trim());
+        photo.setMimeType(mimeType);
         photo.setStatus("READY");
 
         Photo saved = photoRepo.save(photo);
@@ -137,6 +161,10 @@ public class PhotoService {
                 "id", photoId,
                 "roomId", roomId
         ));
+        // Trash the Drive file only once the row is gone. If this fails, the file has no row and
+        // DriveOrphanSweeper trashes it later; a row never points at a missing file.
+        String driveFileId = photo.getDriveFileId();
+        if (driveFileId != null) afterCommit(() -> folders.trashFile(driveFileId));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -155,15 +183,19 @@ public class PhotoService {
     }
 
     private void publishAfterCommit(UUID roomId, String event, Object payload) {
+        afterCommit(() -> realtime.publish(roomId, event, payload));
+    }
+
+    private static void afterCommit(Runnable action) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    realtime.publish(roomId, event, payload);
+                    action.run();
                 }
             });
         } else {
-            realtime.publish(roomId, event, payload);
+            action.run();
         }
     }
 }

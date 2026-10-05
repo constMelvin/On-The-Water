@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Card, Icon } from '@/components/otw';
-import type { BudgetCategory } from '@/lib/otw/mock/budget';
-import type { BudgetVM } from '@/lib/otw/mock/types';
+import type { BudgetCategory } from '@/lib/otw/budget';
+import type { BudgetVM } from '@/lib/api/types';
 import { CATS } from './categories';
 import s from './budget.module.css';
 

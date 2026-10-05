@@ -38,7 +38,13 @@ public class GoogleDriveFileValidator {
         this.expectedFolderId = expectedFolderId;
     }
 
-    public void validate(String driveFileId) {
+    /**
+     * Checks the file is a real, non-trashed image or video inside {@code galaFolderId} (the
+     * gala's own folder) and returns its MIME type. A gala without a folder yet falls back to
+     * the shared photos folder.
+     */
+    public String validate(String driveFileId, String galaFolderId) {
+        String folder = galaFolderId != null && !galaFolderId.isBlank() ? galaFolderId : expectedFolderId;
         if (drive == null || expectedFolderId.isBlank()) {
             log.error("Google Drive is not configured (GOOGLE_DRIVE_CREDENTIALS_JSON_BASE64 / " +
                     "GOOGLE_DRIVE_PHOTOS_FOLDER_ID) — rejecting photo registration fail-closed.");
@@ -47,28 +53,29 @@ public class GoogleDriveFileValidator {
 
         File file;
         try {
-            file = drive.files().get(driveFileId)
+            file = DriveRetry.call(() -> drive.files().get(driveFileId)
                     .setFields("id, mimeType, parents, trashed")
                     .setSupportsAllDrives(true)
-                    .execute();
+                    .execute());
         } catch (IOException ex) {
             log.warn("Google Drive lookup failed for file {}: {}", driveFileId, ex.getMessage());
             throw new InvalidPhotoReferenceException();
         }
 
-        if (!isValidMediaFile(file)) {
+        if (!isValidMediaFile(file, folder)) {
             log.warn("Rejected Drive file {}: mimeType={}, parents={}, trashed={}, expectedFolder={}",
-                    driveFileId, file.getMimeType(), file.getParents(), file.getTrashed(), expectedFolderId);
+                    driveFileId, file.getMimeType(), file.getParents(), file.getTrashed(), folder);
             throw new InvalidPhotoReferenceException();
         }
+        return file.getMimeType();
     }
 
-    private boolean isValidMediaFile(File file) {
+    private static boolean isValidMediaFile(File file, String folder) {
         return file != null
                 && !Boolean.TRUE.equals(file.getTrashed())
                 && file.getMimeType() != null
                 && (file.getMimeType().startsWith("image/") || file.getMimeType().startsWith("video/"))
                 && file.getParents() != null
-                && file.getParents().contains(expectedFolderId);
+                && file.getParents().contains(folder);
     }
 }

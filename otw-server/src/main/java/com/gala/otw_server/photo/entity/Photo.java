@@ -38,6 +38,10 @@ public class Photo {
     @Column(name = "caption", length = 140)
     private String caption;
 
+    /** Drive MIME type, e.g. image/jpeg or video/mp4 (null for photos registered before V18). */
+    @Column(name = "mime_type", length = 100)
+    private String mimeType;
+
     @Column(name = "status", nullable = false, length = 20)
     private String status = "READY"; // PENDING, READY, FAILED
 

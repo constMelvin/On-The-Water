@@ -4,8 +4,7 @@ import { Fragment, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Avatar, Icon } from '@/components/otw';
 import type { Member } from '@/lib/otw/data';
-import { nameOf } from '@/lib/otw/mock';
-import type { ChatMessageVM } from '@/lib/otw/mock/types';
+import type { ChatMessageVM } from '@/lib/api/types';
 import { galaHref } from '../nav';
 import s from './chat.module.css';
 
@@ -27,6 +26,7 @@ export interface MessageListProps {
   code: string;
   messages: ChatMessageVM[];
   members: Member[];
+  nameOf: (userId: string | null) => string;
   myUserId: string;
   /** Id of the first unread message (the divider goes above it), or null for no divider. */
   firstUnreadId: string | null;
@@ -35,7 +35,7 @@ export interface MessageListProps {
 }
 
 /** The chat log body: member / own / system / card messages and the "N new" divider (reference views.chat). */
-export function MessageList({ code, messages, members, myUserId, firstUnreadId, unreadCount, onHeart }: MessageListProps) {
+export function MessageList({ code, messages, members, nameOf, myUserId, firstUnreadId, unreadCount, onHeart }: MessageListProps) {
   const row = (m: ChatMessageVM, tm: string): ReactNode => {
     if (m.kind === 'SYSTEM') {
       return (
@@ -53,16 +53,14 @@ export function MessageList({ code, messages, members, myUserId, firstUnreadId, 
       return (
         <div className={s.mcard}>
           <span className="ico sm">
-            <Icon name="route" size={20} />
+            <Icon name={m.refType === 'EXPENSE' ? 'wallet' : 'route'} size={20} />
           </span>
           <div>
             <b>
               {who} {m.body}
             </b>
-            {/* TODO(backend): build this line from refType/refId (ChatMessageDto has no display text). */}
-            {m.cardText && <span>{m.cardText}</span>}
           </div>
-          <Link className="lnk" href={galaHref(code, 'route')}>
+          <Link className="lnk" href={galaHref(code, m.refType === 'EXPENSE' ? 'ambagan' : 'route')}>
             View
           </Link>
         </div>
@@ -70,7 +68,7 @@ export function MessageList({ code, messages, members, myUserId, firstUnreadId, 
     }
 
     const me = m.senderUserId === myUserId;
-    const member = members.find((x) => x.n === who);
+    const member = members.find((x) => x.id === m.senderUserId);
     return (
       <div className={`${s.msg}${me ? ` ${s.me}` : ''}`}>
         {!me && <Avatar name={who} tone={member?.c} size={32} online={member?.on === 1} />}

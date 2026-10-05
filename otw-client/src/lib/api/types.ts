@@ -1,27 +1,10 @@
 /**
- * View-model types for the mock slices. Field names mirror the backend DTOs in
- * otw-server/src/main/java/com/gala/otw_server/<feature>/dto/ so wiring a tab is a swap:
- * replace the slice read with the query, keep the type.
+ * Feature DTOs, mirroring otw-server/src/main/java/com/gala/otw_server/<feature>/dto/.
  *
- * Conventions (same as lib/api/rooms.ts):
- * - UUIDs are strings. In the mock, user ids are mock member ids (see mock/members.ts).
- * - OffsetDateTime is an ISO-8601 string.
+ * Conventions (same as rooms.ts):
+ * - UUIDs are strings; OffsetDateTime is an ISO-8601 string.
  * - BigDecimal is a number (Jackson writes it as a JSON number; scale 2 on the server).
- * Anything not in a backend DTO is marked TODO(backend).
  */
-
-/* ---------------- members (for name lookups) ---------------- */
-
-export type MockTone = 'rosy' | 'teal' | 'zest' | 'blossom';
-
-/** Subset of RoomMemberDto that the tabs need to show a name next to a userId. */
-export interface MockMember {
-  userId: string;
-  nickname: string;
-  role: 'MEMBER' | 'HOST';
-  // TODO(backend): confirm shape. Avatar tone is a frontend choice, not in RoomMemberDto.
-  tone: MockTone;
-}
 
 /* ---------------- itinerary: ItineraryItemDto ---------------- */
 
@@ -30,6 +13,7 @@ export type StopType = 'MEET_UP' | 'ACTIVITY' | 'FOOD';
 export interface ItineraryItemVM {
   id: string;
   roomId: string;
+  /** The place. */
   title: string;
   notes: string | null;
   /** ISO date-time, or null when no time is set. */
@@ -74,11 +58,12 @@ export interface BudgetVM {
   /** estimatedAmount / max(1, participantCount), 2 dp HALF_UP (server-computed). */
   perPerson: number;
   currency: string;
+  /** null until someone saves an estimate (the room has none yet). */
   updatedBy: string | null;
   updatedAt: string;
 }
 
-/* ---------------- expenses: ExpenseDto / ExpenseShareDto / SettlementDto ---------------- */
+/* ---------------- expenses: ExpenseDto / SettlementDto ---------------- */
 
 export type ExpenseCategory = 'FOOD' | 'TRANSPORTATION' | 'STAY' | 'ACTIVITIES' | 'OTHER';
 
@@ -99,7 +84,15 @@ export interface ExpenseVM {
   createdAt: string;
 }
 
-/** SettlementDto. The mock derives it from expenses; the server computes it. */
+export interface SettlementPaymentVM {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  recordedBy: string;
+  createdAt: string;
+}
+
 export interface SettlementVM {
   roomId: string;
   totalExpenses: number;
@@ -111,9 +104,12 @@ export interface SettlementVM {
     paymentsReceived: number;
     netBalance: number;
   }[];
+  /** What is still outstanding after the recorded payments. */
   transfers: { fromUserId: string; toUserId: string; amount: number }[];
-  payments: unknown[]; // TODO(backend): confirm shape (SettlementPaymentDto), not needed until "Mark as paid".
-  me: { share: number; paid: number; remaining: number };
+  /** Recorded "Mark paid" rows. */
+  payments: SettlementPaymentVM[];
+  /** The caller's tiles: remaining > 0 = owed money, < 0 = owes. */
+  me: { share: number; paid: number; remaining: number } | null;
   settled: boolean;
 }
 
@@ -127,28 +123,25 @@ export interface ChatMessageVM {
   /** null for SYSTEM messages. */
   senderUserId: string | null;
   kind: MessageKind;
+  /** Plain text (React escapes it). For a CARD it is the full line, e.g. "added a new itinerary stop: …". */
   body: string;
-  /** For CARD messages: what the card points at, e.g. 'ITINERARY_ITEM'. */
+  /** For CARD messages: 'ITINERARY_ITEM' or 'EXPENSE'. */
   refType: string | null;
   refId: string | null;
   heartCount: number;
   reactedByMe: boolean;
   createdAt: string;
-  // TODO(backend): confirm shape. The CARD's display line ("Session Road lunch · 12:30 PM")
-  // isn't in ChatMessageDto; the real tab should build it from refType/refId.
-  cardText?: string;
 }
 
-export interface ChatVM {
-  messages: ChatMessageVM[];
-  // TODO(backend): confirm shape. Where "new messages" starts; the backend has GET .../chat/unread (UnreadDto).
-  lastReadAt: string | null;
+export interface UnreadVM {
+  count: number;
+  /** Where the "N new" divider goes; null when nothing is unread. */
+  firstUnreadId: string | null;
 }
 
-/* ---------------- location: MemberLocationDto + travel status ---------------- */
+/* ---------------- location: MemberLocationDto ---------------- */
 
 export type ShareMode = 'PIN' | 'LIVE';
-export type TravelStatus = 'STILL_HOME' | 'ON_THE_WAY' | 'ALMOST_THERE' | 'ARRIVED';
 
 export interface MemberLocationVM {
   userId: string;
@@ -159,13 +152,6 @@ export interface MemberLocationVM {
   updatedAt: string;
 }
 
-export interface LocationVM {
-  /** Only members who opted in. Sharing is always opt-in. */
-  locations: MemberLocationVM[];
-  /** RoomMemberDto.travelStatus, keyed by userId (PATCH .../members/me/travel-status). */
-  travel: Record<string, TravelStatus>;
-}
-
 /* ---------------- photos: PhotoDto ---------------- */
 
 export interface PhotoVM {
@@ -174,12 +160,11 @@ export interface PhotoVM {
   driveFileId: string;
   uploadedBy: string;
   caption: string | null;
+  /** Drive MIME type (image/... or video/...); null for photos added before videos were allowed. */
+  mimeType: string | null;
   /** 'PENDING' until the Drive file is verified, then 'READY'. */
   status: string;
   createdAt: string;
-  // TODO(backend): confirm shape. Mock-only placeholders (no real image): tile tone and masonry height.
-  tone?: MockTone;
-  height?: number;
 }
 
 /* ---------------- couple: CoupleIdeaDto ---------------- */

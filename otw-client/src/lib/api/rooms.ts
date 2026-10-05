@@ -21,12 +21,19 @@ export interface RoomDto {
   roomCode: string;
   title: string;
   destination: string;
+  /** The destination's map pin; both null when none was picked. */
+  destinationLat: number | null;
+  destinationLng: number | null;
   /** yyyy-mm-dd */
   startDate: string;
   endDate: string | null;
   /** hh:mm:ss */
   startTime: string | null;
   endTime: string | null;
+  /** Where everyone meets (the map's flag); all null when not set. */
+  meetingLat: number | null;
+  meetingLng: number | null;
+  meetingLabel: string | null;
   hostUserId: string;
   status: string;
   type: RoomType;
@@ -38,6 +45,8 @@ export interface RoomDto {
     membersCanDeleteOwnPhotos: boolean;
     locationSharingEnabled: boolean;
   };
+  /** Shown on the Join a Gala page (joining still needs the Gala Password). */
+  listed: boolean;
   myRole: RoomRole | null;
   memberCount: number | null;
   createdAt: string;
@@ -97,16 +106,44 @@ export interface CreateRoomRequest {
   startTime?: string;
   endTime?: string;
   destination: string;
+  /** The destination's map pin, when a place was picked; send both or neither. */
+  destinationLat?: number;
+  destinationLng?: number;
   password: string;
   type?: RoomType;
+  /** Where everyone meets, as text (the coordinates are set later). */
+  meetingLabel?: string;
 }
 
 export const createRoom = (body: CreateRoomRequest) => api<RoomDto>('/rooms', { method: 'POST', body });
 
 export const previewRoom = (code: string) => api<RoomPreviewDto>(`/rooms/preview?code=${encodeURIComponent(code)}`);
 
-export const joinRoom = (roomCode: string, nickname: string) =>
-  api<RoomMemberDto>('/rooms/join', { method: 'POST', body: { roomCode, nickname } });
+/** Every join needs the Gala Password (401 INVALID_GALA_PASSWORD when it doesn't match). */
+export const joinRoom = (roomCode: string, nickname: string, password: string) =>
+  api<RoomMemberDto>('/rooms/join', { method: 'POST', body: { roomCode, nickname, password } });
+
+/** One listed gala on the Join a Gala page (GET /rooms/directory). */
+export interface DirectoryRoomDto {
+  roomCode: string;
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string | null;
+  type: RoomType;
+  hostNickname: string | null;
+  memberCount: number;
+  full: boolean;
+  alreadyMember: boolean;
+}
+
+/** Listed galas that haven't ended, soonest first; `q` searches title and destination. */
+export const getDirectory = (q: string, cursor?: string | null, limit = 20) =>
+  api<Page<DirectoryRoomDto>>(
+    `/rooms/directory?limit=${limit}${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}${
+      cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''
+    }`
+  );
 
 export const enterRoom = (roomCode: string, password: string) =>
   api<EnterRoomResponse>('/rooms/enter', { method: 'POST', body: { roomCode, password } });

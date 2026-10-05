@@ -1,5 +1,6 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Route } from '@/components/gala/route/Route';
 
+/** The plan (itinerary) tab. The gala layout's GalaProvider supplies the room. */
 export default function RoutePage() {
-  return <ComingSoon title="Okay, what's the plan?" />;
+  return <Route />;
 }

@@ -8,6 +8,22 @@
 > **2026-10-02 — account required everywhere (owner decision):** reverses anonymous-first. Anonymous Supabase sessions are rejected on every route by AccountRequiredFilter (401 ACCOUNT_REQUIRED); login is email + password (OAuth later; Confirm email off); @RequireAccount, AccountRequiredAspect and POST /me/link-account removed; Enter a Gala kept for logged-in users. Spec: docs/superpowers/specs/2026-10-02-real-auth-account-required-design.md.
 >
 > **2026-10-02 (slice 2A):** `GET /me/rooms` items now include `roomCode`; the frontend My Galas and a new History page read the account-wide list instead of the device registry. Spec: docs/superpowers/specs/2026-10-02-my-galas-history-design.md.
+>
+> **2026-10-05 — realtime channels made private (implementation drift fix, no spec change):** §8 always specified private, membership-gated `room:{roomId}` channels, but `RealtimeEventPublisher` sent public broadcasts and no `realtime.messages` policy existed. Broadcasts now set `private: true`, and **V16** adds RLS on `realtime.messages`: active room members may receive broadcast/presence on their room's topic and track presence; nobody but the service role can send broadcasts. On a non-Supabase Postgres V16 is a no-op. The frontend (`otw-client/src/lib/otw/live.ts`) subscribes privately and falls back to polling when the channel isn't connected.
+>
+> **2026-10-05 (later) — gala directory + password on every join (owner decision):** the Join a Gala page now lists galas the Gala Leader opted in with "List this gala" (`rooms.is_listed`, **V17**, default off), via `GET /rooms/directory?q=&cursor=&limit=` (active, listed, not yet ended; soonest first; shows code, title, dates, destination, type, host nickname, member count, full, alreadyMember — no member list). `POST /rooms/join` now **requires** `password` and returns `401 INVALID_GALA_PASSWORD` on a mismatch (a gala with no password can't be joined until the leader sets one). Unlisted galas stay reachable by code only. `PATCH /rooms/{id}` takes `listed`; `RoomDto` returns it.
+>
+> **2026-10-05 (later still) — directory shows every gala (owner decision, supersedes the opt-in above):** `GET /rooms/directory` now returns **every ACTIVE gala** (archived ones excluded), upcoming/ongoing first by start date, finished ones after. Any logged-in account can see every gala's code, title, dates, destination, type, host nickname and member count, and its member nicknames through `GET /rooms/preview`; the Gala Password on `POST /rooms/join` is the only gate. `rooms.is_listed` (V17) and the `listed` field are kept but **no longer used** (migrations are additive); the "List this gala" switch was removed from the frontend.
+>
+> **2026-10-05 (latest) — one Drive folder per gala + videos (owner decision):** the backend's Drive access is no longer read-only: the service account (scopes `drive.metadata.readonly` + `drive.file`) creates a folder per gala, "<title> · OTW-XXXX-XXXX", inside `GOOGLE_DRIVE_PHOTOS_FOLDER_ID`, right after Plan a Gala commits (`GalaCreatedEvent` → `GalaFolderOnCreateListener`), or on first upload via `POST /rooms/{id}/photos/folder` (MEMBER + add-photos permission → `{folderId}`; a race keeps the first folder). **V18** adds `rooms.drive_folder_id` and `photos.mime_type`. `POST /rooms/{id}/photos` now requires the file to be inside that gala's folder (the shared folder only for a gala that has none yet) and stores its MIME type; `PhotoDto` returns `mimeType`. The backend still never handles photo or video bytes.
+>
+> **2026-10-05 (latest, revised) — no Google sign-in for uploaders:** the backend signs in to Drive as the **owner's Google account** (`GOOGLE_DRIVE_OAUTH_CLIENT_ID/_SECRET/_REFRESH_TOKEN`, scope `drive`; files use the owner's storage) or, if those are unset, the service account (works for uploads only in a Shared Drive). `POST /rooms/{id}/photos/uploads {fileName, mimeType image/*|video/*, size ≤ 300 MB}` (MEMBER + add-photos) ensures the gala folder and returns a one-time Drive resumable `uploadUrl` (opened with the browser's allowed `Origin` so Google accepts the browser's PUT); the browser PUTs the bytes straight to Google. `POST /photos` then validates, makes the file viewable by link, and stores it. `POST /photos/folder` was removed.
+>
+> **2026-10-05 (hardening, no new endpoints):** Drive calls that are safe to repeat (`files.get`, the link permission, opening an upload session, trashing, listing) retry 429/5xx/timeouts up to 3 attempts with backoff (`DriveRetry`). Folder creation is not retried. `POST /photos/uploads` now requires the file name's extension to match its type (photos: jpg, jpeg, png, gif, webp, heic, heif; videos: mp4, mov, webm, m4v, 3gp) or returns `400 INVALID_REQUEST`, and cleans the name (no slashes, control characters or leading dots; 200 characters max). Deleting a photo now also moves its Drive file to the trash after the row's delete commits. `DriveOrphanSweeper` (every 6 h, `GOOGLE_DRIVE_ORPHAN_SWEEP_CRON` / `_MIN_AGE`, default 24 h) trashes files in gala folders that have no `photos` row: uploads never registered, and trash calls that failed. Setup guide: docs/GOOGLE_DRIVE_SETUP.md.
+>
+> **2026-10-05 (destination pin, owner decision):** **V19** adds `rooms.destination_lat` / `destination_lng` (`DOUBLE PRECISION`, nullable). `POST /rooms` and `PATCH /rooms/{id}` take optional `destinationLat` (−90..90) / `destinationLng` (−180..180), both or neither (else `400`); a `PATCH` that changes `destination` without them clears the old pin. `RoomDto` returns them. They are separate from `meeting_lat/lng` (the meeting place). "Who's OTW?" draws the pin and shows each sharing member's straight-line distance to it, computed in the browser (no new endpoint, nothing stored). Spec: `docs/superpowers/specs/2026-10-05-gala-destination-pin-design.md`.
+>
+> **2026-10-06 — couple galas hidden from the directory (owner decision, narrows "directory shows every gala"):** `GET /rooms/directory` returns only **GROUP** galas (`room_type <> 'COUPLE'`). A couple gala is reached only with its Gala Code + Gala Password shared by the couple (`GET /rooms/preview?code=` and `POST /rooms/join` are unchanged; the 2-member cap still applies). The couple's own galas stay in My Galas.
 
 This guide takes the OTW Master Project Management Plan and narrows it to everything the backend team needs, from an empty repo to a production-ready API. Frontend/UI/branding work is intentionally out of scope here.
 
@@ -269,6 +285,10 @@ chat_read_markers (room_id FK CASCADE, user_id, last_read_at, PK(room_id, user_i
 -- V15 notification_preferences (user_id PK, 7 BOOLEAN toggles, updated_at)
 notifications (id, user_id, room_id FK CASCADE NULL, type, title, body, dedupe_key, created_at, read_at,
                UNIQUE(user_id, dedupe_key))
+-- V16 RLS on realtime.messages (Supabase only; no-op elsewhere): SELECT broadcast/presence and
+--     INSERT presence for active members whose room matches realtime.topic() = 'room:{roomId}'
+-- V17 rooms += is_listed BOOLEAN NOT NULL DEFAULT false; partial index (start_date) WHERE is_listed AND status='ACTIVE'
+-- V19 rooms += destination_lat, destination_lng DOUBLE PRECISION (nullable; the destination's map pin, both or neither)
 ```
 Every new table has an RLS SELECT policy (members of the room, or `user_id = auth.uid()` for per-user tables). Every column holding a user id inside a room must also be listed in `MemberIdentityRemapper` (see §5.1 "Enter a Gala").
 
@@ -320,7 +340,8 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 |---|---|---|---|
 | POST | `/rooms` | Create standalone room | Authenticated |
 | GET | `/rooms/{roomId}` | Room overview | Member |
-| POST | `/rooms/join` | Join by room code | Authenticated |
+| POST | `/rooms/join` | Join by room code + Gala Password (+ nickname) | Authenticated, rate-limited |
+| GET | `/rooms/directory?q=&cursor=&limit=` | Every active gala for the Join a Gala page (paginated, max 50) | Authenticated |
 | GET | `/rooms/{roomId}/members` | Member list | Member |
 | DELETE | `/rooms/{roomId}/members/{userId}` | Remove member | Host |
 | PATCH | `/rooms/{roomId}/members/me/rsvp` | Update own RSVP | Member |
@@ -338,7 +359,9 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 | PUT | `/rooms/{roomId}/location` | Share pin or start live share | Member (opt-in) |
 | DELETE | `/rooms/{roomId}/location` | Stop sharing | Member |
 | GET | `/rooms/{roomId}/locations` | Current shared locations | Member |
+| POST | `/rooms/{roomId}/photos/uploads` | One-time Drive upload URL in the gala's folder (photo/video, ≤ 300 MB, allowed extension) | Member |
 | POST | `/rooms/{roomId}/photos` | Register uploaded photo metadata | Member |
+| DELETE | `/rooms/{roomId}/photos/{photoId}` | Delete photo row; its Drive file is trashed after commit | Member (host any; own while toggle on) |
 
 **Added 2026-09-29 (artifact alignment).** "HOST ✱" / "Member ✱" = also allowed on an archived gala (`allowArchived`); every other non-GET room endpoint returns `409 ROOM_ARCHIVED` on an archived gala.
 
@@ -348,7 +371,7 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 | POST | `/rooms/enter` | Enter a Gala: `{roomCode, password}` → members for "Which one are you?" | Authenticated, rate-limited |
 | POST | `/rooms/enter/claim` | `{roomCode, password, memberId}` → rebind that unclaimed member to the caller | Authenticated, rate-limited |
 | GET | `/rooms/{roomId}/summary` | Dashboard cards + recap counts | Member |
-| PATCH | `/rooms/{roomId}` | Edit gala details + member permission toggles | Host |
+| PATCH | `/rooms/{roomId}` | Edit gala details (incl. destination pin `destinationLat/Lng`) + member permission toggles | Host |
 | PUT | `/rooms/{roomId}/password` | Change Gala Password | Host |
 | POST | `/rooms/{roomId}/code` | Make a new gala code | Host |
 | POST | `/rooms/{roomId}/archive` · `/restore` | Shelve to "Mga Drawing" · revive | Host · Host ✱ |
@@ -639,7 +662,7 @@ Beyond the master doc's threat list, concrete backend controls:
 | Mass assignment | DTOs are explicit request objects, never bind directly to JPA entities |
 | Unrestricted resource consumption (OWASP API4) | Pagination everywhere, request size limits, rate limiting (e.g. Bucket4j) on write endpoints and especially `location` updates |
 | JWT misuse (expired/forged/wrong audience) | Verify signature, `exp`, `aud`, `iss` on every request; short-lived tokens, refresh handled by Supabase client SDK |
-| Malicious file "uploads" | Backend only stores a Drive file reference, never accepts raw binary — `GoogleDriveFileValidator` (`photo` package) calls Drive's read-only `files.get` to confirm the submitted ID is a real, non-trashed image or video in the configured shared folder before marking `READY`; fails closed (rejects) if Drive isn't configured or the lookup fails. Configured via `GOOGLE_DRIVE_CREDENTIALS_JSON_BASE64` / `GOOGLE_DRIVE_PHOTOS_FOLDER_ID` env vars. |
+| Malicious file "uploads" | Backend only stores a Drive file reference, never accepts raw binary — `GoogleDriveFileValidator` (`photo` package) calls Drive's `files.get` to confirm the submitted ID is a real, non-trashed image or video in that gala's own folder (the shared folder for a gala without one) before marking `READY`; fails closed (rejects) if Drive isn't configured or the lookup fails. The browser PUTs bytes straight to a one-time Drive upload URL whose file name is cleaned and whose extension must match the photo/video type. Files with no `photos` row are trashed by `DriveOrphanSweeper`. Configured via the `GOOGLE_DRIVE_*` env vars (see docs/GOOGLE_DRIVE_SETUP.md). |
 | CSRF | Not applicable in the classic sense for a stateless Bearer-token API, but still restrict CORS to known frontend origins only |
 | Cache data leakage | Every cache key is scoped by `roomId` (and `userId` for membership checks) — never a global "all rooms" cache entry |
 | Location privacy | Explicit opt-in, short TTL, hard delete on stop-share, rate limiting (see §7) |

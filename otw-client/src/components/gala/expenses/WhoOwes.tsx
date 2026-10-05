@@ -2,31 +2,32 @@
 
 import { Avatar, Button, Card, Icon, Tag, blob } from '@/components/otw';
 import { peso, type Member } from '@/lib/otw/data';
-import { nameOf } from '@/lib/otw/mock';
-import type { Debt } from '@/lib/otw/mock/expenses';
+import type { Debt } from '@/lib/otw/expenses';
 import s from './expenses.module.css';
 
 export interface WhoOwesProps {
+  /** Outstanding transfers plus recorded payments (paymentId set). */
   debts: Debt[];
-  paid: Record<string, boolean>;
+  /** Server: there are expenses and nothing is outstanding. */
+  settled: boolean;
   myId: string;
   members: Member[];
-  onPaid: (key: string) => void;
+  nameOf: (userId: string) => string;
+  onPaid: (debt: Debt) => void | Promise<void>;
 }
 
 /** "Who owes whom": the settled block, "With you" and "Everyone else" (reference views.expenses). */
-export function WhoOwes({ debts, paid, myId, members, onPaid }: WhoOwesProps) {
-  const settled = debts.length > 0 && debts.every((d) => paid[d.key]);
+export function WhoOwes({ debts, settled, myId, members, nameOf, onPaid }: WhoOwesProps) {
   const mine = debts.filter((d) => d.to === myId || d.from === myId);
   const others = debts.filter((d) => !(d.to === myId || d.from === myId));
 
   const row = (d: Debt) => {
-    const done = !!paid[d.key];
+    const done = !!d.paymentId;
     const from = nameOf(d.from);
     const to = nameOf(d.to);
     return (
       <li key={d.key} className={`${s.drow}${done ? ` ${s.paid}` : ''}`}>
-        <Avatar name={from} tone={members.find((m) => m.n === from)?.c} size={30} />
+        <Avatar name={from} tone={members.find((m) => m.id === d.from)?.c} size={30} />
         <span className={s.dt}>
           {d.from === myId ? 'You owe' : `${from} owes`} <b>{d.to === myId ? 'you' : to}</b>
         </span>
@@ -36,7 +37,7 @@ export function WhoOwes({ debts, paid, myId, members, onPaid }: WhoOwesProps) {
             Paid
           </Tag>
         ) : (
-          <Button variant="teal" sm onClick={() => onPaid(d.key)}>
+          <Button variant="teal" sm onClick={() => void onPaid(d)}>
             Mark paid
           </Button>
         )}

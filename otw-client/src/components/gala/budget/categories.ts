@@ -1,5 +1,5 @@
 import type { IconName } from '@/lib/otw/icons';
-import type { BudgetCategory } from '@/lib/otw/mock/budget';
+import type { BudgetCategory } from '@/lib/otw/budget';
 import s from './budget.module.css';
 
 /** Reference BC + BCOL: field, label, icon, split-bar / legend color class. Order matters (it is the bar order). */

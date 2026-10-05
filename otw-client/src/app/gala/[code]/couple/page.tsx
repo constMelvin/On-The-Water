@@ -1,5 +1,6 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Couple } from '@/components/gala/couple/Couple';
 
+/** Couple Mode tab. */
 export default function CouplePage() {
-  return <ComingSoon title="Just the two of you?" />;
+  return <Couple />;
 }

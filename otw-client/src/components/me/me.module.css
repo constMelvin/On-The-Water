@@ -93,6 +93,10 @@
   flex: none;
 }
 
+.gdateCouple {
+  background: var(--blossom);
+}
+
 .gdate i {
   font-style: normal;
   font-size: 13px;

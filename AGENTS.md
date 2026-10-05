@@ -10,9 +10,14 @@ STACK:
 - Java 21 + Spring Boot
 - Supabase PostgreSQL / Auth / Realtime
 - Redis (cache-aside, disposable — never the source of truth)
-- Google Drive (photo storage; backend stores metadata/file-id only, never binaries —
+- Google Drive (photo + video storage; backend stores metadata/file-id only, never binaries —
   it verifies a client-supplied driveFileId via a read-only Drive API call before
-  marking a photo READY, see the `photo` package's GoogleDriveFileValidator)
+  marking a photo READY, see the `photo` package's GoogleDriveFileValidator). Since
+  2026-10-05 (owner decision) the backend may also CREATE one folder per gala
+  (`GalaDriveFolderService`), open one-time resumable upload links the browser PUTs bytes
+  to (`DriveUploadSessionService`), and make uploaded files viewable by link. It signs in as
+  the owner's Google account (refresh token) or a service account (Shared Drive only).
+  Uploads must land in that gala's folder.
 - Flyway for migrations
 
 AUTH MODEL (already decided — do not revisit; revised 2026-10-02 by the project owner —

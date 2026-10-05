@@ -1,0 +1,43 @@
+/* Reference .map and its parts (styles.css "itinerary" block). */
+.map {
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+  display: block;
+}
+.bg {
+  fill: var(--blossom);
+}
+.water {
+  fill: var(--teal);
+  opacity: 0.3;
+}
+.blocks rect {
+  fill: var(--cream);
+  opacity: 0.7;
+}
+.roads path {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+.route {
+  fill: none;
+  stroke: var(--teal-dark);
+  stroke-width: 5;
+  stroke-dasharray: 10 8;
+  stroke-linecap: round;
+}
+.flag {
+  fill: var(--rosy);
+  stroke: var(--cream);
+  stroke-width: 4;
+}
+.flagI {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

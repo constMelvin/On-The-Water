@@ -2,9 +2,8 @@
 
 import { Avatar, Button, Card, Icon, Tag } from '@/components/otw';
 import { peso, type Member } from '@/lib/otw/data';
-import { nameOf } from '@/lib/otw/mock';
-import { CATEGORY_LABEL } from '@/lib/otw/mock/expenses';
-import type { ExpenseVM } from '@/lib/otw/mock/types';
+import { CATEGORY_LABEL } from '@/lib/otw/expenses';
+import type { ExpenseVM } from '@/lib/api/types';
 import s from './expenses.module.css';
 
 // Dates read like the reference ("Sep 20"), in Manila time so the server and browser agree.
@@ -22,11 +21,12 @@ const dayLabel = (iso: string): string => {
 export interface ExpenseListProps {
   items: ExpenseVM[];
   members: Member[];
+  nameOf: (userId: string) => string;
   onAdd: () => void;
 }
 
 /** "Expenses" card (reference .elist): payer avatar, name, category tag, split note, amount. */
-export function ExpenseList({ items, members, onAdd }: ExpenseListProps) {
+export function ExpenseList({ items, members, nameOf, onAdd }: ExpenseListProps) {
   return (
     <Card>
       <div className="rh">
@@ -40,7 +40,7 @@ export function ExpenseList({ items, members, onAdd }: ExpenseListProps) {
           const who = nameOf(e.paidBy);
           return (
             <li key={e.id} className={s.erow}>
-              <Avatar name={who} tone={members.find((m) => m.n === who)?.c} size={34} />
+              <Avatar name={who} tone={members.find((m) => m.id === e.paidBy)?.c} size={34} />
               <div className={s.eb}>
                 <b>{e.description}</b>
                 <span>

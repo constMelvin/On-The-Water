@@ -1,5 +1,6 @@
-import { ComingSoon } from '@/components/gala/ComingSoon';
+import { Location } from '@/components/gala/map/Location';
 
+/** "Who's OTW?" (live location) tab. */
 export default function MapPage() {
-  return <ComingSoon title="Who's actually OTW?" />;
+  return <Location />;
 }

@@ -20,6 +20,7 @@ Sharing is opt-in, per user and per room.
 - The host can turn sharing off for the whole gala (`location_sharing_enabled`).
 - Manual **travel status** (`room_members.travel_status`) works with or without GPS: `PUT /rooms/{roomId}/members/me/travel-status`. ETA text is computed on the client.
 - Leaving a gala deletes the member's location row.
+- Destination pin (V19, `rooms.destination_lat/lng`): the map shows it, and each sharing member's straight-line distance to it is computed on the client (nothing stored, no new endpoint).
 
 ## Security
 - Use the same `@RequireRoomRole` guard. Never leak a location to a non-member.

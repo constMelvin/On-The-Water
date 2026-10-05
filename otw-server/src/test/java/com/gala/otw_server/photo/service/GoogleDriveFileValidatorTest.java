@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,7 +35,23 @@ class GoogleDriveFileValidatorTest {
 
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
 
-        assertThatCode(() -> validator.validate(FILE_ID)).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validate(FILE_ID, null)).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("with a gala folder: accepts a file inside it, returns the MIME type, rejects one in the shared folder")
+    void validate_usesTheGalaFolder() throws IOException {
+        Drive drive = mock(Drive.class, RETURNS_DEEP_STUBS);
+        File inGala = new File().setMimeType("video/mp4").setParents(List.of("gala-folder")).setTrashed(false);
+        File inShared = new File().setMimeType("image/jpeg").setParents(List.of(FOLDER_ID)).setTrashed(false);
+        when(drive.files().get(FILE_ID).setFields(anyString()).setSupportsAllDrives(true).execute())
+                .thenReturn(inGala, inShared);
+
+        GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
+
+        assertThat(validator.validate(FILE_ID, "gala-folder")).isEqualTo("video/mp4");
+        assertThatThrownBy(() -> validator.validate(FILE_ID, "gala-folder"))
+                .isInstanceOf(InvalidPhotoReferenceException.class);
     }
 
     @Test
@@ -50,7 +67,7 @@ class GoogleDriveFileValidatorTest {
 
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
 
-        assertThatThrownBy(() -> validator.validate(FILE_ID))
+        assertThatThrownBy(() -> validator.validate(FILE_ID, null))
                 .isInstanceOf(InvalidPhotoReferenceException.class);
     }
 
@@ -67,7 +84,7 @@ class GoogleDriveFileValidatorTest {
 
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
 
-        assertThatCode(() -> validator.validate(FILE_ID)).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validate(FILE_ID, null)).doesNotThrowAnyException();
     }
 
     @Test
@@ -83,7 +100,7 @@ class GoogleDriveFileValidatorTest {
 
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
 
-        assertThatThrownBy(() -> validator.validate(FILE_ID))
+        assertThatThrownBy(() -> validator.validate(FILE_ID, null))
                 .isInstanceOf(InvalidPhotoReferenceException.class);
     }
 
@@ -100,7 +117,7 @@ class GoogleDriveFileValidatorTest {
 
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
 
-        assertThatThrownBy(() -> validator.validate(FILE_ID))
+        assertThatThrownBy(() -> validator.validate(FILE_ID, null))
                 .isInstanceOf(InvalidPhotoReferenceException.class);
     }
 
@@ -113,7 +130,7 @@ class GoogleDriveFileValidatorTest {
 
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, FOLDER_ID);
 
-        assertThatThrownBy(() -> validator.validate(FILE_ID))
+        assertThatThrownBy(() -> validator.validate(FILE_ID, null))
                 .isInstanceOf(InvalidPhotoReferenceException.class);
     }
 
@@ -122,7 +139,7 @@ class GoogleDriveFileValidatorTest {
     void validate_failsClosedWhenDriveClientMissing() {
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(null, FOLDER_ID);
 
-        assertThatThrownBy(() -> validator.validate(FILE_ID))
+        assertThatThrownBy(() -> validator.validate(FILE_ID, null))
                 .isInstanceOf(InvalidPhotoReferenceException.class);
     }
 
@@ -132,7 +149,7 @@ class GoogleDriveFileValidatorTest {
         Drive drive = mock(Drive.class, RETURNS_DEEP_STUBS);
         GoogleDriveFileValidator validator = new GoogleDriveFileValidator(drive, "");
 
-        assertThatThrownBy(() -> validator.validate(FILE_ID))
+        assertThatThrownBy(() -> validator.validate(FILE_ID, null))
                 .isInstanceOf(InvalidPhotoReferenceException.class);
     }
 }

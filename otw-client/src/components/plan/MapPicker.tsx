@@ -1,0 +1,68 @@
+'use client';
+
+/**
+ * Click-to-pin map for "Pick on map" (OpenStreetMap via react-leaflet). Loaded with
+ * next/dynamic (ssr: false): Leaflet needs `window`.
+ */
+import 'leaflet/dist/leaflet.css';
+import { useEffect } from 'react';
+import { CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+
+/** Metro Manila when nothing is picked yet. */
+const DEFAULT_CENTER: [number, number] = [14.5995, 120.9842];
+
+export interface MapPickerProps {
+  pin: { lat: number; lng: number } | null;
+  onPick: (lat: number, lng: number) => void;
+}
+
+function ClickToPick({ onPick }: { onPick: MapPickerProps['onPick'] }) {
+  useMapEvents({ click: (e) => onPick(e.latlng.lat, e.latlng.lng) });
+  return null;
+}
+
+/** The map mounts inside an animating dialog: re-measure once it has its real size. */
+function FixSize() {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 200);
+    return () => clearTimeout(t);
+  }, [map]);
+  return null;
+}
+
+/** Keeps a searched place in view. */
+function Follow({ pin }: { pin: MapPickerProps['pin'] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (pin) map.setView([pin.lat, pin.lng], Math.max(map.getZoom(), 13));
+  }, [map, pin]);
+  return null;
+}
+
+export default function MapPicker({ pin, onPick }: MapPickerProps) {
+  return (
+    <MapContainer
+      center={pin ? [pin.lat, pin.lng] : DEFAULT_CENTER}
+      zoom={pin ? 13 : 6}
+      scrollWheelZoom
+      className="h-[320px] w-full rounded-lg"
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <ClickToPick onPick={onPick} />
+      <FixSize />
+      <Follow pin={pin} />
+      {pin && (
+        <CircleMarker
+          center={[pin.lat, pin.lng]}
+          radius={12}
+          pathOptions={{ color: '#ffffff', weight: 4, fillColor: '#e23a6b', fillOpacity: 1 }}
+        />
+      )}
+    </MapContainer>
+  );
+}
+

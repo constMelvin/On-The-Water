@@ -17,7 +17,9 @@
   margin: 0;
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   background: var(--cream);
-  overflow-x: hidden;
+  /* clip, not hidden: overflow-x: hidden makes this box its own vertical scroller (a 2nd scrollbar
+     next to the page's). */
+  overflow-x: clip;
   color: #5c4655;
   width: 100%;
 }

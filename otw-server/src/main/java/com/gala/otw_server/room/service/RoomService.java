@@ -79,11 +79,14 @@ public class RoomService {
 
     public RoomDto createRoom(UUID callerId, boolean callerHasAccount, CreateRoomRequest req) {
         validateDates(req.startDate(), req.endDate(), req.startTime(), req.endTime());
+        validatePin(req.destinationLat(), req.destinationLng());
 
         Room room = new Room();
         room.setRoomCode(generateUniqueCode());
         room.setTitle(req.title().trim());
         room.setDestination(req.destination().trim());
+        room.setDestinationLat(req.destinationLat());
+        room.setDestinationLng(req.destinationLng());
         room.setStartDate(req.startDate());
         room.setEndDate(req.endDate());
         room.setStartTime(req.startTime());
@@ -105,6 +108,9 @@ public class RoomService {
         host.setRsvpStatus(RsvpStatus.GOING); // the planner is going to their own gala
         host.setHasAccount(callerHasAccount);
         memberRepo.save(host);
+
+        // After commit: the photo package makes this gala's Drive folder (never blocks creation).
+        events.publishEvent(new GalaCreatedEvent(room.getId()));
 
         log.info("Room created: id={}, code={}, type={}, host={}",
                 room.getId(), room.getRoomCode(), room.getRoomType(), callerId);
@@ -138,6 +144,11 @@ public class RoomService {
     public RoomMemberDto joinRoom(UUID callerId, boolean callerHasAccount, JoinRoomRequest req) {
         Room room = roomRepo.findByRoomCodeAndStatus(CodeGenerator.normalize(req.roomCode()), Room.STATUS_ACTIVE)
                 .orElseThrow(InvalidCodeException::new);
+        // Every join needs the Gala Password; a gala without one can't be joined until the
+        // Gala Leader sets it in Settings.
+        if (room.getPasswordHash() == null || !passwordEncoder.matches(req.password(), room.getPasswordHash())) {
+            throw new InvalidGalaPasswordException();
+        }
         UUID roomId = room.getId();
         String nickname = req.nickname().trim();
 
@@ -343,6 +354,13 @@ public class RoomService {
         boolean singleDay = start != null && (end == null || end.equals(start));
         if (singleDay && startTime != null && endTime != null && endTime.isBefore(startTime)) {
             throw new InvalidRequestException("The end time can't be before the start time");
+        }
+    }
+
+    /** A destination pin is both coordinates or neither (range is checked by the request's bean validation). */
+    static void validatePin(Double lat, Double lng) {
+        if ((lat == null) != (lng == null)) {
+            throw new InvalidRequestException("Send both the latitude and the longitude of the destination, or neither");
         }
     }
 
