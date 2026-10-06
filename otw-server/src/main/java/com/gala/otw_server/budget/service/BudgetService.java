@@ -65,8 +65,9 @@ public class BudgetService {
         Room room = permissions.require(roomId, callerId, Permission.EDIT_PLAN);
 
         BudgetEstimate estimate = budgetRepo.findById(roomId).orElseGet(() -> {
+            // Leave roomId null: @MapsId copies it from room on persist. Setting it here makes
+            // save() treat the new row as detached and merge it, which fails ("null identifier").
             BudgetEstimate be = new BudgetEstimate();
-            be.setRoomId(roomId);
             be.setRoom(room);
             return be;
         });

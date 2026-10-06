@@ -16,7 +16,7 @@
   max-width: 480px;
   margin: 0 auto;
   font-family: var(--font-nunito), 'Nunito', sans-serif;
-  color: #5c4655;
+  color: var(--blossom-ink);
 }
 
 .root * {
@@ -297,13 +297,13 @@
 
 .bubblePlanner {
   background: var(--blossom);
-  color: #5c4655;
+  color: var(--blossom-ink);
   border-bottom-left-radius: 6px;
 }
 
 .bubbleFriend {
   background: var(--zest);
-  color: #5a4d10;
+  color: var(--zest-ink);
   border-bottom-right-radius: 6px;
 }
 

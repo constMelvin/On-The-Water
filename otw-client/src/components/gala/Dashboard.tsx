@@ -17,6 +17,9 @@ type Tone = 'blossom' | 'zest' | 'cream' | 'teal' | 'rosy';
 /* ---------------- hero parts ---------------- */
 
 /** Ticks by minute to the gala start. The demo gala uses the fixed demo clock. */
+/** 'day' for exactly 1, otherwise 'days' (0 days, 2 days). */
+const plural = (n: number, word: string) => (n === 1 ? word : `${word}s`);
+
 function Countdown() {
   const { gala } = useGala();
   const [now, setNow] = useState(() => Date.now());
@@ -31,19 +34,19 @@ function Countdown() {
     <div
       className="cdown"
       role="group"
-      aria-label={`Countdown: ${left.d} days, ${left.h} hours, ${left.m} minutes`}
+      aria-label={`Countdown: ${left.d} ${plural(left.d, 'day')}, ${left.h} ${plural(left.h, 'hour')}, ${left.m} ${plural(left.m, 'minute')}`}
     >
       <div>
         <b>{left.d}</b>
-        <span>days</span>
+        <span>{plural(left.d, 'day')}</span>
       </div>
       <div>
         <b>{left.h}</b>
-        <span>hours</span>
+        <span>{plural(left.h, 'hour')}</span>
       </div>
       <div>
         <b>{left.m}</b>
-        <span>mins</span>
+        <span>{plural(left.m, 'min')}</span>
       </div>
     </div>
   );

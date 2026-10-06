@@ -2,7 +2,11 @@ import type { Metadata } from 'next';
 import { LoginScreen } from './LoginScreen';
 import { safeNext } from '@/lib/otw/safe-next';
 
-export const metadata: Metadata = { title: 'Log in · OTW' };
+/** The browser tab names the form that's open (LoginScreen keeps it in sync when switching tabs). */
+export async function generateMetadata({ searchParams }: LoginPageProps): Promise<Metadata> {
+  const { tab } = await searchParams;
+  return { title: tab === 'create' ? 'Create account · OTW' : 'Log in · OTW' };
+}
 
 interface LoginPageProps {
   searchParams: Promise<{ tab?: string; gala?: string; ctx?: string; next?: string }>;

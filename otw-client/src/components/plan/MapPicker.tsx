@@ -59,7 +59,7 @@ export default function MapPicker({ pin, onPick }: MapPickerProps) {
         <CircleMarker
           center={[pin.lat, pin.lng]}
           radius={12}
-          pathOptions={{ color: '#ffffff', weight: 4, fillColor: '#e23a6b', fillOpacity: 1 }}
+          pathOptions={{ color: '#ffffff', weight: 4, fillColor: '#e0417c' /* --rosy; Leaflet can't read CSS vars */, fillOpacity: 1 }}
         />
       )}
     </MapContainer>

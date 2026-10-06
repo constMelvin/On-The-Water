@@ -5,6 +5,9 @@ export interface AuthErrorLike {
   status?: number;
 }
 
+/** Shown when a request can't reach the server at all. */
+export const OFFLINE_MESSAGE = 'Can’t reach OTW right now. Check your internet and try again.';
+
 export function authErrorMessage(err: AuthErrorLike | null | undefined): string {
   const code = err?.code;
   if (code === 'invalid_credentials') return 'That email and password don’t match. Try again.';
@@ -13,8 +16,17 @@ export function authErrorMessage(err: AuthErrorLike | null | undefined): string 
   }
   if (code === 'weak_password') return 'Pick a stronger password (at least 8 characters, not too common).';
   if (code === 'validation_failed' || code === 'email_address_invalid') return 'Enter a valid email address.';
+  if (code === 'email_not_confirmed') {
+    return 'Confirm your email first. Check your inbox (and Spam) for the link from OTW.';
+  }
   if (code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit' || err?.status === 429) {
     return 'Too many tries. Wait a minute and try again.';
   }
-  return 'Something went wrong. Please try again.';
+  // Supabase reports a failed confirmation email as a generic 500; the text is only matched, never shown.
+  if (/sending (confirmation|recovery|magic link)? ?email/i.test(err?.message ?? '')) {
+    return 'We couldn’t send your confirmation email just now. Try again in a few minutes.';
+  }
+  // No HTTP status at all: the request never reached Supabase.
+  if (err && !err.status && /fetch|network/i.test(err.message ?? '')) return OFFLINE_MESSAGE;
+  return 'OTW couldn’t finish that just now. Try again in a moment.';
 }

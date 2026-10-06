@@ -8,6 +8,7 @@ import { burst, toast } from '@/lib/otw/feedback';
 import { galaRoute, isValidCode, normCode, rememberRoom } from '@/lib/otw/gala-registry';
 import type { Tone } from '@/lib/otw/data';
 import { isApiError } from '@/lib/api/client';
+import { OFFLINE_MESSAGE } from '@/lib/auth/errors';
 import { claimMember, enterRoom, type EnterRoomResponse } from '@/lib/api/rooms';
 import './enter-a-gala.css';
 
@@ -44,7 +45,7 @@ export function EnterGala({ initialCode = '' }: { initialCode?: string }) {
     else if (isApiError(e, 'INVALID_GALA_PASSWORD')) setErr('pw');
     else {
       setErr('other');
-      setErrMsg(e instanceof Error ? e.message : 'Something went wrong. Try again.');
+      setErrMsg(e instanceof Error ? e.message : OFFLINE_MESSAGE);
     }
   };
 

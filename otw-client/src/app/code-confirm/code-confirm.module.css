@@ -545,7 +545,7 @@
 .passwordDisplayBox {
   padding: 12px 18px;
   border-radius: 16px;
-  background-color: #f7e7ef;
+  background-color: var(--blossom-tint);
   border: 2px solid var(--blossom);
   color: var(--teal-dark);
   font-family: var(--font-nunito), 'Nunito', sans-serif;

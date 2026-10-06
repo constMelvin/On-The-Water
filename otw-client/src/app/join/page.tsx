@@ -9,6 +9,7 @@ import { lookupGala, joinGala, type GalaEvent } from './joinApi';
 import { GalaDirectory } from './GalaDirectory';
 import { galaRoute, isValidCode, normCode, roomIdFor } from '@/lib/otw/gala-registry';
 import { useAccount } from '@/lib/auth/session';
+import { OFFLINE_MESSAGE } from '@/lib/auth/errors';
 
 // Dashboard route for the gala the member just joined
 const MEMBER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
@@ -212,7 +213,7 @@ export default function JoinPage() {
           result.error === 'ROOM_FULL'
             ? 'This gala is already full.'
             : result.error === 'OTHER'
-              ? (result.message ?? 'Something went wrong. Try again.')
+              ? (result.message ?? 'OTW couldn’t look up that code just now. Try again in a moment.')
               : "Hmm, we can't find that code. Check your group chat and try again."
         );
         return;
@@ -282,7 +283,7 @@ export default function JoinPage() {
         } else if (result.error === 'ROOM_FULL') {
           setNicknameError('This gala is already full.');
         } else if (result.error === 'OTHER') {
-          setNicknameError(result.message ?? 'Something went wrong. Try again.');
+          setNicknameError(result.message ?? 'OTW couldn’t add you just now. Try again in a moment.');
         } else {
           setNicknameError('Add a nickname (at least 2 characters).');
         }
@@ -306,7 +307,7 @@ export default function JoinPage() {
         triggerSparkles();
       }
     } catch {
-      setNicknameError('Something went wrong. Please try again.');
+      setNicknameError(OFFLINE_MESSAGE);
       setNicknameShake(true);
       setTimeout(() => setNicknameShake(false), 400);
       nicknameInputRef.current?.focus();

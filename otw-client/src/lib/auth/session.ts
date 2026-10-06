@@ -51,15 +51,32 @@ export function useAccount(): AccountState {
   return state;
 }
 
-export async function signUp(name: string, email: string, password: string): Promise<void> {
+/** Where the confirm link lands; /login picks up the session from the URL. */
+const confirmRedirect = () => `${window.location.origin}/login`;
+
+/**
+ * Creates the account. 'confirm-email' means Confirm email is on: the account exists but
+ * stays locked until the link in the email is opened.
+ */
+export async function signUp(name: string, email: string, password: string): Promise<'signed-in' | 'confirm-email'> {
   const { data, error } = await supabase().auth.signUp({
     email: email.trim(),
     password,
-    options: { data: { name: name.trim() } },
+    // The confirm link returns here instead of the dashboard's Site URL.
+    options: { data: { name: name.trim() }, emailRedirectTo: confirmRedirect() },
   });
   if (error) throw new Error(authErrorMessage(error));
-  // No session means Confirm email is on: the account exists but must be confirmed first.
-  if (!data.session) throw new Error('Account created. Check your email to confirm it, then log in.');
+  return data.session ? 'signed-in' : 'confirm-email';
+}
+
+/** Sends the sign-up confirmation email again. */
+export async function resendConfirmation(email: string): Promise<void> {
+  const { error } = await supabase().auth.resend({
+    type: 'signup',
+    email: email.trim(),
+    options: { emailRedirectTo: confirmRedirect() },
+  });
+  if (error) throw new Error(authErrorMessage(error));
 }
 
 export async function signIn(email: string, password: string): Promise<void> {

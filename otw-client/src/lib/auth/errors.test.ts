@@ -20,10 +20,20 @@ describe('authErrorMessage', () => {
   it('never leaks the raw provider message for unknown errors', () => {
     const msg = authErrorMessage({ code: 'something_new', message: 'AuthApiError: db constraint users_pkey' });
     expect(msg).not.toMatch(/users_pkey|AuthApiError/);
-    expect(msg).toMatch(/something went wrong/i);
+    expect(msg).toMatch(/couldn’t finish that/i);
   });
   it('handles null and undefined', () => {
-    expect(authErrorMessage(null)).toMatch(/something went wrong/i);
-    expect(authErrorMessage(undefined)).toMatch(/something went wrong/i);
+    expect(authErrorMessage(null)).toMatch(/couldn’t finish that/i);
+    expect(authErrorMessage(undefined)).toMatch(/couldn’t finish that/i);
+  });
+  it('tells an unconfirmed account to check their email', () => {
+    expect(authErrorMessage({ code: 'email_not_confirmed' })).toMatch(/confirm your email first/i);
+  });
+  it('explains a failed confirmation email without leaking the provider text', () => {
+    const msg = authErrorMessage({ code: 'unexpected_failure', status: 500, message: 'Error sending confirmation email' });
+    expect(msg).toMatch(/couldn’t send your confirmation email/i);
+  });
+  it('says when the network is down', () => {
+    expect(authErrorMessage({ message: 'Failed to fetch' })).toMatch(/can’t reach otw/i);
   });
 });

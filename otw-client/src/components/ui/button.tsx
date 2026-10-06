@@ -11,7 +11,7 @@ const buttonVariants = cva(
         default:
           "bg-rosy text-white shadow-squish-rosy active:translate-y-[5px] active:shadow-squish-rosy-active",
         secondary:
-          "bg-zest text-[#5a4d10] shadow-squish-zest active:translate-y-[5px] active:shadow-squish-zest-active",
+          "bg-zest text-[var(--zest-ink)] shadow-squish-zest active:translate-y-[5px] active:shadow-squish-zest-active",
         teal:
           "bg-teal text-white shadow-squish-teal active:translate-y-[4px] active:shadow-squish-teal-active",
         ghost:

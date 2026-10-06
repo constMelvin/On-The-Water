@@ -20,7 +20,7 @@
   /* clip, not hidden: overflow-x: hidden makes this box its own vertical scroller (a 2nd scrollbar
      next to the page's). */
   overflow-x: clip;
-  color: #5c4655;
+  color: var(--blossom-ink);
   width: 100%;
 }
 
@@ -368,7 +368,7 @@
 /* ---- TARA G! NAV BUTTON: Zest Yellow Variant ---- */
 .navCta {
   background: var(--zest);
-  color: #5a4d10;
+  color: var(--zest-ink);
   font-family: inherit;
   font-weight: 700;
   font-size: 14px;
@@ -436,8 +436,22 @@
 }
 
 @media (max-width: 480px) {
+  /* small phones: logo + both buttons on one row, labels never wrap */
+  .nav {
+    padding: 12px 16px;
+  }
+
+  .logoWrap {
+    width: clamp(108px, 30vw, 150px);
+  }
+
   .navActions {
     gap: 8px;
+  }
+
+  .navLogin,
+  .navCta {
+    white-space: nowrap;
   }
 
   .navLogin {
@@ -482,7 +496,7 @@
   align-items: center;
   gap: 6px;
   background: var(--zest);
-  color: #5a4d10;
+  color: var(--zest-ink);
   font-weight: 800;
   font-size: 12.5px;
   padding: 8px 18px;
@@ -546,7 +560,7 @@
 }
 
 .hero p.lead {
-  color: #ffdcea;
+  color: var(--rosy-tint);
   font-size: 18px;
   line-height: 1.6;
   max-width: 470px;
@@ -565,7 +579,7 @@
 .btnPrimary {
   position: relative;
   background: var(--zest);
-  color: #5a4d10;
+  color: var(--zest-ink);
   font-weight: 700;
   font-size: 18px;
   padding: 20px 38px;
@@ -669,7 +683,7 @@
 }
 
 .reenterSoft {
-  color: #cdebf3;
+  color: var(--teal-tint);
   font-weight: 700;
 }
 
@@ -807,11 +821,11 @@
 
 .how h2 {
   font-size: 38px;
-  color: #5a4d10;
+  color: var(--zest-ink);
 }
 
 .howSub {
-  color: #7a6a12;
+  color: var(--zest-ink-soft);
   font-weight: 800;
   font-size: 15px;
   margin: 10px 0 46px;
@@ -829,7 +843,7 @@
   padding: 9px 20px 9px 14px;
   border-radius: 999px;
   margin: 0 0 34px;
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.07);
+  box-shadow: 0 5px 0 var(--zest-dark);
 }
 
 .trackDot {
@@ -994,7 +1008,7 @@
   border-radius: 58% 42% 55% 45% / 45% 55% 45% 55%;
   border: 3px dashed rgba(90, 77, 16, 0.4);
   background: var(--cream);
-  color: #7a6a12;
+  color: var(--zest-ink-soft);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-weight: 700;
   font-size: 21px;
@@ -1063,7 +1077,7 @@
   background: var(--cream);
   border-radius: 30px 30px 34px 34px / 36px 36px 30px 30px;
   padding: 18px 22px;
-  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 0 var(--zest-dark);
   cursor: pointer;
   transition: transform 0.4s var(--bounce), box-shadow 0.3s ease;
 }
@@ -1114,7 +1128,7 @@
 .stopCard p {
   font-size: 14px;
   line-height: 1.5;
-  color: #5c4655;
+  color: var(--blossom-ink);
   margin: 0;
   font-weight: 700;
 }
@@ -1182,7 +1196,7 @@
   position: relative;
   border-radius: 40px 40px 46px 46px / 48px 48px 40px 40px;
   padding: 34px 30px 30px;
-  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 0 var(--accent-dark);
   transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transition: transform 0.45s var(--bounce);
 }
@@ -1240,7 +1254,7 @@
 .forkCard h3 {
   font-size: 26px;
   line-height: 1.15;
-  color: #5a2c46;
+  color: var(--blossom-ink);
   margin: 16px 0 8px;
 }
 
@@ -1251,7 +1265,7 @@
 .forkSub {
   font-size: 14.5px;
   line-height: 1.55;
-  color: #6b4a5e;
+  color: var(--blossom-ink-soft);
   font-weight: 700;
   margin: 0;
 }
@@ -1273,7 +1287,7 @@
   padding: 9px 18px 9px 9px;
   font-size: 14.5px;
   font-weight: 800;
-  color: #5c4655;
+  color: var(--blossom-ink);
   transition: transform 0.3s var(--bounce), background 0.2s ease;
 }
 
@@ -1314,7 +1328,7 @@
   gap: 1px;
   border-radius: 58% 42% 55% 45% / 45% 55% 45% 55%;
   background: var(--zest);
-  color: #5a4d10;
+  color: var(--zest-ink);
   font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -1346,7 +1360,7 @@
 }
 
 .ctaBanner p {
-  color: #6b4a5e;
+  color: var(--blossom-ink-soft);
   font-size: 16px;
   margin: 14px 0 30px;
   font-weight: 800;
@@ -1396,7 +1410,7 @@
 }
 
 .footer p {
-  color: #bfe3ec;
+  color: var(--teal-tint);
   font-size: 12.5px;
   font-weight: 800;
   margin: 0;
@@ -1407,7 +1421,7 @@
   margin-top: 12px;
   font-size: 13px;
   font-weight: 800;
-  color: #ffdcea;
+  color: var(--rosy-tint);
 }
 
 .accountNote a,
@@ -1424,7 +1438,7 @@
   justify-content: center;
   gap: 8px 18px;
   margin-top: 14px;
-  color: #bfe3ec;
+  color: var(--teal-tint);
   font-size: 13px;
 }
 

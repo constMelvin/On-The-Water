@@ -11,6 +11,15 @@
   --teal-dark: #1f6376;
   --cream: #fff8f2;
 
+  /* Readable text tones on brand backgrounds (not new brand colors) */
+  --zest-ink: #5a4d10;      /* text on zest */
+  --zest-ink-soft: #7a6a12; /* secondary text on zest */
+  --blossom-ink: #5c4655;   /* text on blossom / cream */
+  --blossom-ink-soft: #6b4a5e;
+  --blossom-tint: #f7e7ef;  /* pale blossom fill */
+  --rosy-tint: #ffdcea;     /* soft text on rosy */
+  --teal-tint: #bfe3ec;     /* soft text on teal */
+
   --fd: 'Fredoka', 'Nunito', system-ui, sans-serif;
   --fb: 'Nunito', system-ui, -apple-system, sans-serif;
 

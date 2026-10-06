@@ -760,7 +760,7 @@ export default function LandingPage() {
           <div>
             <span className={styles.heroBadge}>
               <svg width="14" height="14" viewBox="0 0 24 24" className={styles.badgeIcon}>
-                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#5a4d10" />
+                <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" style={{ fill: 'var(--zest-ink)' }} />
               </svg>
               FOR PLANS THAT ACTUALLY HAPPEN
             </span>
@@ -817,7 +817,7 @@ export default function LandingPage() {
             </p>
             <p
               className={styles.heroRise}
-              style={{ ...delay(0.6), color: '#ffdcea', fontSize: '12px', marginTop: '14px', fontWeight: 700 }}
+              style={{ ...delay(0.6), color: 'var(--rosy-tint)', fontSize: '12px', marginTop: '14px', fontWeight: 700 }}
             >
               And yes, we can tell if you&apos;re actually OTW.
             </p>
@@ -901,7 +901,7 @@ export default function LandingPage() {
         <p>
           On The Way — planning made for people who decide things last minute
           <svg width="12" height="12" viewBox="0 0 24 24" style={{ verticalAlign: '1px', marginLeft: '2px' }}>
-            <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#bfe3ec" />
+            <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" style={{ fill: 'var(--teal-tint)' }} />
           </svg>
         </p>
         <p className={styles.footerNote}>Kailangan ng account para mag-plan o mag-join. Libre &apos;yan.</p>

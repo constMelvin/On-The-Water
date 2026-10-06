@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Icon } from '@/components/otw';
-import { signIn, signUp, useAccount } from '@/lib/auth/session';
+import { resendConfirmation, signIn, signUp, useAccount } from '@/lib/auth/session';
 import { burstEl, toast } from '@/lib/otw/feedback';
 import styles from './login.module.css';
 
@@ -37,6 +37,8 @@ const PLANNER_ITEMS = [
 ];
 
 const PASSWORD_MIN = 8;
+/** Seconds before "Resend email" works again (Supabase rate-limits confirmation emails). */
+const RESEND_WAIT = 60;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface LoginScreenProps {
@@ -61,7 +63,16 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
   const [error, setError] = useState('');
+  /** Set after sign-up when the account still needs its email confirmed. */
+  const [sentTo, setSentTo] = useState('');
+  const [wait, setWait] = useState(0);
   const create = tab === 'create';
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,21 +85,60 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
     setBusy(true);
     const button = e.currentTarget.querySelector('button[type="submit"]');
     try {
-      if (create) await signUp(name, email, password);
-      else await signIn(email, password);
+      if (create) {
+        if ((await signUp(name, email, password)) === 'confirm-email') {
+          setSentTo(email.trim());
+          setWait(RESEND_WAIT);
+          setBusy(false);
+          burstEl(button);
+          return;
+        }
+      } else {
+        await signIn(email, password);
+      }
       toast(create ? 'Account created. Let’s go.' : 'Welcome back.');
       burstEl(button);
       router.replace(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : 'OTW couldn’t finish that just now. Try again in a moment.');
       setBusy(false);
     }
+  };
+
+  const resend = async () => {
+    if (busy || wait > 0) return;
+    setBusy(true);
+    setError('');
+    try {
+      await resendConfirmation(sentTo);
+      toast('Sent again. Check your inbox.');
+      setWait(RESEND_WAIT);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'OTW couldn’t finish that just now. Try again in a moment.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const backToLogin = () => {
+    setSentTo('');
+    setPassword('');
+    switchTab('login');
   };
 
   const switchTab = (t: Tab) => {
     setTab(t);
     setError('');
   };
+
+  // Keep the browser tab title and ?tab= in step with the open form (switching doesn't navigate).
+  useEffect(() => {
+    document.title = tab === 'create' ? 'Create account · OTW' : 'Log in · OTW';
+    const url = new URL(window.location.href);
+    if (tab === 'create') url.searchParams.set('tab', 'create');
+    else url.searchParams.delete('tab');
+    window.history.replaceState(window.history.state, '', url);
+  }, [tab]);
 
   const bar = ctx ? CTX_BAR[ctx] : gala ? `Saving ${gala} to your account.` : '';
 
@@ -102,19 +152,15 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
 
   return (
     <main className={`bg-blossom ${styles.page}`}>
+      <Link className={`btn sm cream ${styles.back}`} href="/">
+        <Icon name="back" size={18} /> Back to OTW
+      </Link>
       <div className={styles.wrap}>
         <div className={styles.main}>
-          <Link className="btn sm cream" href="/">
-            <Icon name="back" size={18} /> Back to OTW
-          </Link>
-
-          <div className="seg" role="tablist" aria-label="Account">
-            <button type="button" role="tab" aria-selected={!create} aria-pressed={!create} onClick={() => switchTab('login')}>
-              Log in
-            </button>
-            <button type="button" role="tab" aria-selected={create} aria-pressed={create} onClick={() => switchTab('create')}>
-              Create account
-            </button>
+          {/* Shows which form is open; switching is done with the link under the form. */}
+          <div className={styles.tabs} aria-hidden="true">
+            <span data-on={!create}>Log in</span>
+            <span data-on={create}>Create account</span>
           </div>
 
           {bar && (
@@ -124,94 +170,125 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
             </div>
           )}
 
-          <h1 className={styles.heading}>
-            {create ? 'Create an account to save your gala.' : 'Welcome back.'}
-          </h1>
-          <p className={styles.sub}>
-            {create ? CREATE_SUB[ctx] : 'Your galas are right where you left them.'}
-          </p>
+          {sentTo ? (
+            <section className={styles.sent} aria-live="polite">
+              <span className={styles.sentIcon} aria-hidden="true">
+                <Icon name="mail" size={44} />
+              </span>
+              <h1 className={styles.heading}>Check your email!</h1>
+              <p className={styles.sub}>
+                We sent a link to <b className={styles.sentTo}>{sentTo}</b>. Open it to confirm your account, then you’re in.
+              </p>
+              <p className="fine">Not there? Check Spam or Promotions. It can take a minute.</p>
 
-          <form className={styles.form} onSubmit={submit} noValidate>
-            {create && (
-              <label className="fl">
-                Name
-                <input
-                  className="in"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setError('');
-                  }}
-                  placeholder="What should the GC call you?"
-                  autoComplete="name"
-                  maxLength={40}
-                />
-              </label>
-            )}
-            <label className="fl">
-              Email
-              <input
-                className="in"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError('');
-                }}
-                placeholder="you@email.com"
-                autoComplete="email"
-                autoCapitalize="none"
-                spellCheck={false}
-                inputMode="email"
-              />
-            </label>
-            <label className="fl">
-              Password
-              <div className="inwrap">
-                <input
-                  className="in"
-                  type={show ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError('');
-                  }}
-                  autoComplete={create ? 'new-password' : 'current-password'}
-                />
-                <button
-                  type="button"
-                  className="ibtn eye"
-                  onClick={() => setShow((v) => !v)}
-                  aria-label={show ? 'Hide password' : 'Show password'}
-                  aria-pressed={show}
-                >
-                  <Icon name={show ? 'eyeoff' : 'eye'} size={22} />
+              {error && (
+                <p className="ferr" role="alert">
+                  <Icon name="alert" size={18} />
+                  {error}
+                </p>
+              )}
+
+              <div className={styles.actions}>
+                <Button variant="rosy" onClick={resend} disabled={busy || wait > 0}>
+                  <Icon name="refresh" size={20} /> {wait > 0 ? `Resend in ${wait}s` : 'Resend email'}
+                </Button>
+                <button type="button" className="lnk" onClick={backToLogin}>
+                  Already confirmed? Log in
                 </button>
               </div>
+            </section>
+          ) : (
+            <>
+            <h1 className={styles.heading}>
+              {create ? 'Create an account to save your gala.' : 'Welcome back.'}
+            </h1>
+            <p className={styles.sub}>
+              {create ? CREATE_SUB[ctx] : 'Your galas are right where you left them.'}
+            </p>
+
+            <form className={styles.form} onSubmit={submit} noValidate>
               {create && (
-                <span className="fine" style={{ fontWeight: 700 }}>
-                  At least 8 characters.
-                </span>
+                <label className="fl">
+                  Name
+                  <input
+                    className="in"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setError('');
+                    }}
+                    placeholder="What should the GC call you?"
+                    autoComplete="name"
+                    maxLength={40}
+                  />
+                </label>
               )}
-            </label>
+              <label className="fl">
+                Email
+                <input
+                  className="in"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError('');
+                  }}
+                  placeholder="you@email.com"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  inputMode="email"
+                />
+              </label>
+              <label className="fl">
+                Password
+                <div className="inwrap">
+                  <input
+                    className="in"
+                    type={show ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError('');
+                    }}
+                    autoComplete={create ? 'new-password' : 'current-password'}
+                  />
+                  <button
+                    type="button"
+                    className="ibtn eye"
+                    onClick={() => setShow((v) => !v)}
+                    aria-label={show ? 'Hide password' : 'Show password'}
+                    aria-pressed={show}
+                  >
+                    <Icon name={show ? 'eyeoff' : 'eye'} size={22} />
+                  </button>
+                </div>
+                {create && (
+                  <span className="fine" style={{ fontWeight: 700 }}>
+                    At least 8 characters.
+                  </span>
+                )}
+              </label>
 
-            {error && (
-              <p className="ferr" role="alert">
-                <Icon name="alert" size={18} />
-                {error}
-              </p>
-            )}
+              {error && (
+                <p className="ferr" role="alert">
+                  <Icon name="alert" size={18} />
+                  {error}
+                </p>
+              )}
 
-            <div className={styles.actions}>
-              <Button type="submit" variant="rosy" disabled={busy}>
-                {create ? 'Create an Account' : 'Log in'}
-              </Button>
-              <button type="button" className="lnk" onClick={() => switchTab(create ? 'login' : 'create')}>
-                {create ? 'Already have an account? Log in' : 'New here? Create an account'}
-              </button>
-            </div>
-            {create && <p className="fine">Just an email and a password. We won’t ask for your life story.</p>}
-          </form>
+              <div className={styles.actions}>
+                <Button type="submit" variant="rosy" disabled={busy}>
+                  {create ? 'Create an Account' : 'Log in'}
+                </Button>
+                <button type="button" className="lnk" onClick={() => switchTab(create ? 'login' : 'create')}>
+                  {create ? 'Already have an account? Log in' : 'New here? Create an account'}
+                </button>
+              </div>
+              {create && <p className="fine">Just an email and a password. We won’t ask for your life story.</p>}
+            </form>
+            </>
+          )}
         </div>
 
         <aside className={styles.planner} aria-label="What your account keeps for you">

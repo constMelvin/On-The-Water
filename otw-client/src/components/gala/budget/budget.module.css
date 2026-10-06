@@ -4,7 +4,7 @@
 /* ---- layout ---- */
 .cols {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: var(--gap);
   align-items: start;
 }
@@ -28,12 +28,14 @@
 
 .label {
   flex: 1;
+  min-width: 0;
   font-weight: 800;
 }
 
 .peso {
   position: relative;
-  width: 150px;
+  /* shrinks on phones so the label + icon still fit beside it */
+  width: clamp(112px, 42%, 150px);
   flex: none;
 }
 .peso i {
@@ -145,13 +147,26 @@
 /* ---- tablet + mobile: one column (same breakpoint as the shell) ---- */
 @media (max-width: 1023px) {
   .cols {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 639px) {
   .big b {
     font-size: 34px;
+  }
+}
+
+/* small phones: keep "Transportation" on one line beside its input */
+@media (max-width: 420px) {
+  .row {
+    gap: 8px;
+  }
+  .label {
+    font-size: 15px;
+  }
+  .peso {
+    width: 108px;
   }
 }
 

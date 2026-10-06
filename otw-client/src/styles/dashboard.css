@@ -37,7 +37,7 @@
   .cdown span { font-size: 13px; }
 
   .mystat { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-  .sm3 { background: var(--cream); }
+  .seg.sm3 { background: var(--cream); }
 
   /* ---- journey route strip ---- */
   .routewrap {
@@ -193,8 +193,8 @@
   @media (max-width: 639px) {
     .cdown div { min-width: 0; padding: 6px 12px; }
     .cdown b { font-size: 28px; }
-    .sm3 { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; flex-wrap: nowrap; }
-    .sm3 button { padding: 8px 4px; font-size: 13px; text-align: center; justify-content: center; }
+    .seg.sm3 { display: grid; grid-template-columns: 0.85fr 0.9fr 1.25fr; width: 100%; flex-wrap: nowrap; }
+    .seg.sm3 button { padding: 8px 4px; font-size: 13px; white-space: nowrap; text-align: center; justify-content: center; }
     .fcard { min-height: 150px; padding: 14px; border-radius: 24px 24px 24px 12px; }
     .fcard h3 { font-size: 17px; }
   }
