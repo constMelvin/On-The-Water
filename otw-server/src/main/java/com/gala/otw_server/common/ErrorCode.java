@@ -16,6 +16,8 @@ public enum ErrorCode {
     INVALID_GALA_PASSWORD,      // Gala Code found, but the Gala Password doesn't match
 
     // ── Resource not found ──────────────────────────────────────────────────
+    NOT_FOUND,                  // no such URL
+    METHOD_NOT_ALLOWED,         // URL exists, HTTP method doesn't
     ROOM_NOT_FOUND,
     MEMBER_NOT_FOUND,
     ITINERARY_ITEM_NOT_FOUND,

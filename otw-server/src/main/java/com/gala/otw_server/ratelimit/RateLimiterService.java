@@ -130,6 +130,24 @@ public class RateLimiterService {
         return counter.count.get() <= maxRequests;
     }
 
+    /**
+     * True when {@code key} has already used up {@code maxRequests} in its current window
+     * (as counted by {@link #tryAcquireCount}). Only reads; never counts a request.
+     */
+    public boolean isOverCount(String key, int maxRequests) {
+        if (redis != null) {
+            try {
+                String v = redis.opsForValue().get(key);
+                return v != null && Long.parseLong(v) >= maxRequests;
+            } catch (Exception ex) {
+                log.warn("Redis count read failed for '{}': {} — falling back to local memory", key, ex.getMessage());
+            }
+        }
+        WindowCounter counter = localCounters.get(key);
+        return counter != null && System.currentTimeMillis() <= counter.expiresAt
+                && counter.count.get() >= maxRequests;
+    }
+
     private static class WindowCounter {
         final AtomicInteger count;
         final long expiresAt;

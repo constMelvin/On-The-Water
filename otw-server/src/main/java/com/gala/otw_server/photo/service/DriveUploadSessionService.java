@@ -1,6 +1,6 @@
 package com.gala.otw_server.photo.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.gala.otw_server.common.DomainExceptions.InvalidRequestException;
 import com.google.auth.oauth2.GoogleCredentials;
 import org.slf4j.Logger;

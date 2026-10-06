@@ -1,6 +1,6 @@
 package com.gala.otw_server.ratelimit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.gala.otw_server.common.ErrorCode;
 import com.gala.otw_server.common.ErrorResponse;
 import jakarta.servlet.FilterChain;
@@ -127,11 +127,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return "user:" + auth.getName();
         }
 
-        // Fallback to client IP
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return "ip:" + forwarded.split(",")[0].trim();
-        }
+        // Fallback to client IP. Never read X-Forwarded-For here (anyone can send it): with
+        // server.forward-headers-strategy=native, getRemoteAddr() is already the real client
+        // when the request came through a trusted proxy.
         return "ip:" + request.getRemoteAddr();
     }
 }

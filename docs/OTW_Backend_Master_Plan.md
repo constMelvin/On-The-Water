@@ -24,6 +24,8 @@
 > **2026-10-05 (destination pin, owner decision):** **V19** adds `rooms.destination_lat` / `destination_lng` (`DOUBLE PRECISION`, nullable). `POST /rooms` and `PATCH /rooms/{id}` take optional `destinationLat` (−90..90) / `destinationLng` (−180..180), both or neither (else `400`); a `PATCH` that changes `destination` without them clears the old pin. `RoomDto` returns them. They are separate from `meeting_lat/lng` (the meeting place). "Who's OTW?" draws the pin and shows each sharing member's straight-line distance to it, computed in the browser (no new endpoint, nothing stored). Spec: `docs/superpowers/specs/2026-10-05-gala-destination-pin-design.md`.
 >
 > **2026-10-06 — couple galas hidden from the directory (owner decision, narrows "directory shows every gala"):** `GET /rooms/directory` returns only **GROUP** galas (`room_type <> 'COUPLE'`). A couple gala is reached only with its Gala Code + Gala Password shared by the couple (`GET /rooms/preview?code=` and `POST /rooms/join` are unchanged; the 2-member cap still applies). The couple's own galas stay in My Galas.
+>
+> **2026-10-07 — deployment + security hardening (owner decision):** production backend moves from **Render to Railway** (frontend stays on Vercel; setup in `docs/DEPLOYMENT.md`). Spring Boot **3.3.4 → 4.1.1** (3.3–3.5 are past OSS support; Jackson 3, Spring Security 7, `spring-boot-starter-flyway`). **V20** revokes all `anon`/`authenticated` privileges on `public` tables, sequences and functions (the browser never reads tables directly; everything goes through the API) and moves the V16 realtime membership check into `otw_private.is_room_channel_member()` (SECURITY DEFINER). Gala Password attempts are also limited **per gala**: 20 wrong passwords in 15 min → `429 TOO_MANY_REQUESTS` for that gala (`GalaPasswordGuard`). Swagger/OpenAPI off unless `API_DOCS_ENABLED=true`; rate limiting no longer trusts a raw `X-Forwarded-For` (`server.forward-headers-strategy=native`); unknown URLs → 404, wrong method → 405 (were 500). Frontend CSP is per request with a script nonce (`otw-client/src/proxy.ts`).
 
 This guide takes the OTW Master Project Management Plan and narrows it to everything the backend team needs, from an empty repo to a production-ready API. Frontend/UI/branding work is intentionally out of scope here.
 
@@ -666,7 +668,7 @@ Beyond the master doc's threat list, concrete backend controls:
 | CSRF | Not applicable in the classic sense for a stateless Bearer-token API, but still restrict CORS to known frontend origins only |
 | Cache data leakage | Every cache key is scoped by `roomId` (and `userId` for membership checks) — never a global "all rooms" cache entry |
 | Location privacy | Explicit opt-in, short TTL, hard delete on stop-share, rate limiting (see §7) |
-| Secrets in repo | `.env`/`application-local.yml` gitignored; production secrets via Render environment variables, never committed |
+| Secrets in repo | `.env`/`application-local.yml` gitignored; production secrets via Railway environment variables, never committed |
 
 Recommended additions not explicitly in the master doc but worth building in from the start:
 - **Security headers** via a simple filter: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`.
@@ -693,7 +695,7 @@ Suggested acceptance targets to start from (refine after real load tests): P95 <
 
 ## 11. Deployment & Environment
 
-- **Environments**: local (docker-compose: Postgres via Supabase CLI or plain Postgres, Redis), staging, production (Render for Spring Boot, Supabase managed for DB/Auth/Realtime).
+- **Environments**: local (docker-compose: Postgres via Supabase CLI or plain Postgres, Redis), staging, production (Railway for Spring Boot, Vercel for the Next.js frontend, Supabase managed for DB/Auth/Realtime; see docs/DEPLOYMENT.md).
 - **Env vars** (never committed): `SUPABASE_URL`, `SUPABASE_JWT_AUD`, `SUPABASE_JWKS_URL`, `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`, `REDIS_URL`, `GOOGLE_DRIVE_*` credentials.
 - **CORS**: allow-list only the deployed Vercel frontend URL(s) + localhost for dev.
 - **CI**: on every PR — run unit + integration tests, run Flyway migrations against a throwaway Testcontainers DB, fail the build on any migration error.

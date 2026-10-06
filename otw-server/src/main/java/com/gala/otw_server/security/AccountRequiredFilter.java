@@ -1,6 +1,6 @@
 package com.gala.otw_server.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.gala.otw_server.common.ErrorCode;
 import com.gala.otw_server.common.ErrorResponse;
 import jakarta.servlet.FilterChain;

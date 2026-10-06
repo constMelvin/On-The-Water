@@ -1,7 +1,7 @@
 package com.gala.otw_server.location.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.gala.otw_server.cache.CacheKeys;
 import com.gala.otw_server.cache.CacheService;
 import com.gala.otw_server.common.DomainExceptions.MemberNotFoundException;
@@ -167,7 +167,7 @@ public class LocationService {
         try {
             String json = objectMapper.writeValueAsString(dto);
             cacheService.putHash(CacheKeys.roomLocations(roomId), userId.toString(), json);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn("Failed to serialize location DTO to JSON: {}", e.getMessage());
         }
     }

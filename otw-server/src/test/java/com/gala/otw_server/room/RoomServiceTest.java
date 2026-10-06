@@ -15,6 +15,8 @@ import com.gala.otw_server.room.repository.RoomMemberRepository;
 import com.gala.otw_server.room.repository.RoomRepository;
 import com.gala.otw_server.room.service.GalaClock;
 import com.gala.otw_server.room.service.MemberIdentityRemapper;
+import com.gala.otw_server.ratelimit.RateLimiterService;
+import com.gala.otw_server.room.service.GalaPasswordGuard;
 import com.gala.otw_server.room.service.RoomService;
 import com.gala.otw_server.room.entity.RsvpStatus;
 import com.gala.otw_server.security.auth.RoomRole;
@@ -82,7 +84,8 @@ class RoomServiceTest {
     @BeforeEach
     void setUp() {
         roomService = new RoomService(roomRepo, memberRepo, realtime, cacheService,
-                passwordEncoder, galaClock, remapper, chatSystem, events);
+                passwordEncoder, new GalaPasswordGuard(passwordEncoder, new RateLimiterService(null)),
+                galaClock, remapper, chatSystem, events);
     }
 
     private CreateRoomRequest createRequest(RoomType type) {
@@ -402,6 +405,19 @@ class RoomServiceTest {
 
         assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ROOM1234", "nope")))
                 .isInstanceOf(InvalidGalaPasswordException.class);
+    }
+
+    @Test
+    @DisplayName("enterRoom locks the gala after 20 wrong passwords, even for the right one")
+    void enterRoom_locksAfterTooManyWrongPasswords() {
+        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(roomWithPassword()));
+
+        for (int i = 0; i < 20; i++) {
+            assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ROOM1234", "nope")))
+                    .isInstanceOf(InvalidGalaPasswordException.class);
+        }
+        assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ROOM1234", "baguio2026")))
+                .isInstanceOf(TooManyRequestsException.class);
     }
 
     @Test

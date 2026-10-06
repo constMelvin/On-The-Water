@@ -50,6 +50,7 @@ public class RoomService {
     private final RealtimeEventPublisher realtime;
     private final CacheService cacheService;
     private final PasswordEncoder passwordEncoder;
+    private final GalaPasswordGuard passwordGuard;
     private final GalaClock galaClock;
     private final MemberIdentityRemapper remapper;
     private final ChatSystemMessageService chatSystem;
@@ -60,6 +61,7 @@ public class RoomService {
                        RealtimeEventPublisher realtime,
                        CacheService cacheService,
                        PasswordEncoder passwordEncoder,
+                       GalaPasswordGuard passwordGuard,
                        GalaClock galaClock,
                        MemberIdentityRemapper remapper,
                        ChatSystemMessageService chatSystem,
@@ -69,6 +71,7 @@ public class RoomService {
         this.realtime = realtime;
         this.cacheService = cacheService;
         this.passwordEncoder = passwordEncoder;
+        this.passwordGuard = passwordGuard;
         this.galaClock = galaClock;
         this.remapper = remapper;
         this.chatSystem = chatSystem;
@@ -146,9 +149,7 @@ public class RoomService {
                 .orElseThrow(InvalidCodeException::new);
         // Every join needs the Gala Password; a gala without one can't be joined until the
         // Gala Leader sets it in Settings.
-        if (room.getPasswordHash() == null || !passwordEncoder.matches(req.password(), room.getPasswordHash())) {
-            throw new InvalidGalaPasswordException();
-        }
+        passwordGuard.verify(room, req.password());
         UUID roomId = room.getId();
         String nickname = req.nickname().trim();
 
@@ -337,13 +338,14 @@ public class RoomService {
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    /** Wrong code → 404 INVALID_CODE; right code, wrong (or never set) password → 401 INVALID_GALA_PASSWORD. */
+    /**
+     * Wrong code → 404 INVALID_CODE; right code, wrong (or never set) password → 401
+     * INVALID_GALA_PASSWORD; too many wrong passwords for this gala → 429.
+     */
     private Room verifyGalaCredentials(String rawCode, String password) {
         Room room = roomRepo.findByRoomCode(CodeGenerator.normalize(rawCode))
                 .orElseThrow(InvalidCodeException::new);
-        if (room.getPasswordHash() == null || !passwordEncoder.matches(password, room.getPasswordHash())) {
-            throw new InvalidGalaPasswordException();
-        }
+        passwordGuard.verify(room, password);
         return room;
     }
 

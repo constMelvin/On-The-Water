@@ -1,6 +1,6 @@
 package com.gala.otw_server.location;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.gala.otw_server.cache.CacheService;
 import com.gala.otw_server.common.DomainExceptions.PermissionDisabledException;
 import com.gala.otw_server.location.dto.MemberLocationDto;
@@ -74,7 +74,7 @@ class LocationServiceTest {
                 cacheService,
                 rateLimiter,
                 realtime,
-                new ObjectMapper().findAndRegisterModules(),
+                new ObjectMapper(),
                 permissions,
                 galaClock
         );
