@@ -910,6 +910,7 @@ export default function LandingPage() {
           <Link href="/join">Join a Gala</Link>
           <Link href="/enter">Enter a Gala</Link>
           <Link href="/login">Log in</Link>
+          <Link href="/privacy">Privacy</Link>
         </nav>
       </footer>
     </div>
