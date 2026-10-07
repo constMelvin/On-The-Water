@@ -24,7 +24,7 @@ How it's gated: every broadcast is sent with `private: true`, and **V16** adds R
 | `settlement.payment.recorded` / `.deleted` | Mark paid / undo | payment DTO / `{id}` |
 | `location.updated` | location write/stop | `{userId, lat, lng, mode}` / `{userId, deleted}` |
 | `photo.added` / `photo.deleted` | photo write | photo DTO / `{id}` |
-| `chat.message.created` / `chat.reaction.changed` | send, system/card line, heart | message DTO / `{messageId, userId, hearted, heartCount}` |
+| `chat.message.created` / `chat.reaction.changed` | send (incl. photo), system/card line, reaction | message DTO / `{messageId, userId, reaction, reactions, hearted, heartCount}` |
 | `couple.idea.changed` | save/unsave idea | `{key, saved}` |
 
 All events go to room members only. Notifications are **not** realtime — the frontend polls `/me/notifications`. "Online now" is Supabase presence on the room channel (client-only).

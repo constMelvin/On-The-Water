@@ -1,5 +1,6 @@
 /* "Who's OTW?" (location) tab. Ported from reference/otw/styles.css (.lbar, .live, .locgrid,
-   .locside, .mapcard, .mapstat, .callout, .eta, .clickrow, .mini) plus the Leaflet pin styles. */
+   .locside, .mapcard, .mapstat, .callout, .eta, .mini) plus the Leaflet pin styles and the
+   tappable member rows (.row/.find) that fly the map to someone. */
 
 .lbar {
   display: flex;
@@ -64,6 +65,9 @@
   padding: 10px;
   position: relative;
 }
+.mapwrap {
+  position: relative;
+}
 .leaflet {
   width: 100%;
   height: 420px;
@@ -78,9 +82,9 @@
 }
 .callout {
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 64px;
+  left: 8px;
+  right: 8px;
+  bottom: 12px;
   background: var(--cream);
   border: 3px solid var(--rosy);
   border-radius: 22px;
@@ -101,18 +105,76 @@
   font-weight: 600;
 }
 
-.list li {
+.list {
+  gap: 6px;
+}
+/* One member: avatar, name + live line, status tag (+ a locate badge when sharing). */
+.row {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 8px 10px;
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
-.list li > span {
+.who {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
-.clickrow {
+.who b {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.find {
   cursor: pointer;
+  background: var(--cream);
+  border-color: var(--blossom);
+  box-shadow: 0 4px 0 var(--blossom);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.find:hover {
+  background: var(--blossom);
+}
+.find:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--blossom);
+}
+.find:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+.picked {
+  border-color: var(--rosy);
+  box-shadow: 0 4px 0 var(--rosy);
+}
+.picked:active {
+  box-shadow: 0 1px 0 var(--rosy);
+}
+.go {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--teal);
+  color: var(--cream);
+}
+.picked .go {
+  background: var(--rosy);
+}
+.jump {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 6px 0;
 }
 .eta {
   font-style: normal;

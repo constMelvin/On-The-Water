@@ -27,6 +27,15 @@ export interface LiveMapProps {
   destination: { lat: number; lng: number; label: string } | null;
   selected: string | null;
   onSelect: (userId: string) => void;
+  /** Where to move the view; bump `n` to move there again (e.g. a second tap on the same row). */
+  focus: MapFocus | null;
+}
+
+export interface MapFocus {
+  lat: number;
+  lng: number;
+  zoom: number;
+  n: number;
 }
 
 /** Metro Manila, when nobody is sharing and there's no meeting point. */
@@ -74,7 +83,19 @@ function FitOnce({ points }: { points: [number, number][] }) {
   return null;
 }
 
-export default function LiveMap({ pins, meeting, destination, selected, onSelect }: LiveMapProps) {
+/** Glides to `focus` each time it changes (jumps instead when the user prefers reduced motion). */
+function FlyTo({ focus }: { focus: MapFocus | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!focus) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) map.setView([focus.lat, focus.lng], focus.zoom);
+    else map.flyTo([focus.lat, focus.lng], focus.zoom, { duration: 0.8 });
+  }, [map, focus]);
+  return null;
+}
+
+export default function LiveMap({ pins, meeting, destination, selected, onSelect, focus }: LiveMapProps) {
   const points = useMemo<[number, number][]>(
     () => [
       ...pins.map((p) => [p.lat, p.lng] as [number, number]),
@@ -90,6 +111,7 @@ export default function LiveMap({ pins, meeting, destination, selected, onSelect
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitOnce points={points} />
+      <FlyTo focus={focus} />
       {destination && (
         <Marker position={[destination.lat, destination.lng]} icon={destinationIcon} title={destination.label} zIndexOffset={-100} />
       )}

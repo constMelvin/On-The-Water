@@ -1,5 +1,5 @@
 /* Chismis tab. Ported from reference/otw/styles.css "chat" block (.chatwrap, .chatcol, .pinned,
-   .chatlog, .msys, .mnew, .mcard, .msg, .mb, .mn, .react, .quick, .composer, .chatside, .mini). */
+   .chatlog, .msys, .mnew, .mcard, .msg, .mb, .mn, .react, .composer, .chatside, .mini). */
 
 /*
  * The reference gives the shell's <main> a `chatmain` class (no padding, no gap, no scroll) so
@@ -140,7 +140,6 @@
   position: relative;
   min-width: 0;
   margin-bottom: 8px;
-  cursor: pointer;
 }
 .msg.me .mb {
   background: var(--rosy);
@@ -165,46 +164,167 @@
   overflow-wrap: anywhere;
 }
 
+.mphoto {
+  display: block;
+  margin: 6px 0 4px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid var(--cream);
+  background: var(--cream);
+}
+.mphoto img {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  max-height: 340px;
+  object-fit: cover;
+}
+.mphoto:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+.mgone {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* ---- reactions: the pill under a bubble + the picker it opens ---- */
+/* Not positioned itself, so the pill and the picker both place themselves against the bubble (.mb). */
+.reactwrap {
+  display: contents;
+}
 .react {
   position: absolute;
   right: -8px;
-  bottom: -12px;
+  bottom: -14px;
   display: inline-flex;
-  gap: 3px;
+  gap: 2px;
   align-items: center;
   background: var(--cream);
   color: var(--teal-dark);
   border: 3px solid var(--blossom);
   border-radius: 99px;
-  padding: 0 8px;
-  height: 26px;
+  padding: 0 6px;
+  height: 28px;
   font-size: 12px;
   font-weight: 800;
-  opacity: 0.75;
+  cursor: pointer;
+}
+.msg.me .react {
+  right: auto;
+  left: -8px;
+}
+.react b {
+  padding: 0 2px;
 }
 .react:hover,
 .react.on {
-  opacity: 1;
-  color: var(--rosy);
   border-color: var(--rosy);
 }
-
-/* ---- quick replies + composer ---- */
-.quick {
+.react:focus-visible,
+.pick:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+.rdot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+/* Sits just above the bubble, lined up with its outer edge (left for others, right for mine)
+   and opening toward the middle of the chat, so it never runs under the sidebar or off screen. */
+.picker {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
   display: flex;
-  gap: 8px;
-  padding: 6px var(--pad);
-  overflow-x: auto;
+  gap: 4px;
+  padding: 6px;
+  background: var(--cream);
+  border: 3px solid var(--blossom);
+  border-radius: 99px;
+  box-shadow: 0 4px 0 var(--blossom);
+  z-index: 5;
+  animation: pickerPop 0.16s ease-out;
 }
-.quick :global(.chip) {
-  flex: none;
+.msg.me .picker {
+  left: auto;
+  right: 0;
+}
+.pick {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.pick:hover {
+  transform: translateY(-4px) scale(1.12);
+}
+.pick.on {
+  box-shadow: 0 0 0 3px var(--teal-dark);
+}
+/* Reaction tones: brand colors only. */
+.r-heart { background: var(--rosy); color: var(--cream); }
+.r-haha { background: var(--zest); color: var(--teal-dark); }
+.r-wow { background: var(--zest); color: var(--rosy-dark); }
+.r-sad { background: var(--teal); color: var(--cream); }
+.r-angry { background: var(--rosy-dark); color: var(--cream); }
+.r-like { background: var(--teal-dark); color: var(--cream); }
+@keyframes pickerPop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
 }
 
+/* ---- composer (+ the photo about to be sent) ---- */
+.composerwrap {
+  padding: 8px var(--pad) 14px;
+}
+.attach {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: var(--blossom);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.attach img {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 3px solid var(--cream);
+}
+.attach span {
+  flex: 1;
+}
 .composer {
   display: flex;
   gap: 10px;
   align-items: center;
-  padding: 8px var(--pad) 14px;
+}
+.attachbtn {
+  flex: none;
+  color: var(--teal-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker {
+    animation: none;
+  }
+  .pick {
+    transition: none;
+  }
 }
 
 /* ---- right panel (desktop only) ---- */
@@ -251,11 +371,8 @@
   .chatlog {
     padding: 12px 14px;
   }
-  .quick {
-    padding: 6px 14px;
-  }
   /* Sits above the fixed bottom nav (reference: 96px). */
-  .composer {
+  .composerwrap {
     padding: 6px 14px calc(96px + env(safe-area-inset-bottom, 0px));
   }
 }

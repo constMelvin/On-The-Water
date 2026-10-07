@@ -1,6 +1,7 @@
 package com.gala.otw_server.chat.service;
 
 import com.gala.otw_server.chat.dto.ChatMessageDto;
+import com.gala.otw_server.chat.dto.ChatMessageDto.ChatPhotoDto;
 import com.gala.otw_server.chat.dto.SendMessageRequest;
 import com.gala.otw_server.chat.dto.UnreadDto;
 import com.gala.otw_server.chat.entity.*;
@@ -8,7 +9,11 @@ import com.gala.otw_server.chat.repository.ChatMessageRepository;
 import com.gala.otw_server.chat.repository.ChatReactionRepository;
 import com.gala.otw_server.chat.repository.ChatReadMarkerRepository;
 import com.gala.otw_server.common.DomainExceptions.ChatMessageNotFoundException;
+import com.gala.otw_server.common.DomainExceptions.InvalidPhotoReferenceException;
+import com.gala.otw_server.common.DomainExceptions.InvalidRequestException;
 import com.gala.otw_server.common.PageResponse;
+import com.gala.otw_server.photo.entity.Photo;
+import com.gala.otw_server.photo.repository.PhotoRepository;
 import com.gala.otw_server.ratelimit.RateLimiterService;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -30,22 +35,28 @@ public class ChatService {
     /** Spam guard on top of the global write limit: 20 messages per minute per member. */
     private static final int MAX_MESSAGES_PER_MINUTE = 20;
 
+    /** {@code ref_type} of a message that carries a Gala Dump photo. */
+    public static final String REF_PHOTO = "PHOTO";
+
     private final ChatMessageRepository messageRepo;
     private final ChatReactionRepository reactionRepo;
     private final ChatReadMarkerRepository markerRepo;
     private final RateLimiterService rateLimiter;
     private final RealtimeEventPublisher realtime;
+    private final PhotoRepository photoRepo;
 
     public ChatService(ChatMessageRepository messageRepo,
                        ChatReactionRepository reactionRepo,
                        ChatReadMarkerRepository markerRepo,
                        RateLimiterService rateLimiter,
-                       RealtimeEventPublisher realtime) {
+                       RealtimeEventPublisher realtime,
+                       PhotoRepository photoRepo) {
         this.messageRepo = messageRepo;
         this.reactionRepo = reactionRepo;
         this.markerRepo = markerRepo;
         this.rateLimiter = rateLimiter;
         this.realtime = realtime;
+        this.photoRepo = photoRepo;
     }
 
     // ── List messages (newest first) ──────────────────────────────────────────
@@ -67,17 +78,22 @@ public class ChatService {
         List<ChatMessage> page = rows.stream().limit(limit).toList();
 
         List<UUID> ids = page.stream().map(ChatMessage::getId).toList();
-        Map<UUID, Long> hearts = new HashMap<>();
-        Set<UUID> mine = new HashSet<>();
+        Map<UUID, Map<ReactionType, Long>> counts = new HashMap<>();
+        Map<UUID, ReactionType> mine = new HashMap<>();
         if (!ids.isEmpty()) {
             for (Object[] row : reactionRepo.countByMessageIds(ids)) {
-                hearts.put((UUID) row[0], (Long) row[1]);
+                counts.computeIfAbsent((UUID) row[0], k -> new EnumMap<>(ReactionType.class))
+                        .put((ReactionType) row[1], (Long) row[2]);
             }
-            mine.addAll(reactionRepo.findReactedMessageIds(ids, callerId));
+            for (Object[] row : reactionRepo.findMyReactions(ids, callerId)) {
+                mine.put((UUID) row[0], (ReactionType) row[1]);
+            }
         }
 
+        Map<UUID, ChatPhotoDto> photos = photosFor(roomId, page);
         List<ChatMessageDto> dtos = page.stream()
-                .map(m -> ChatMessageDto.from(m, hearts.getOrDefault(m.getId(), 0L), mine.contains(m.getId())))
+                .map(m -> ChatMessageDto.from(m, photoOf(m, photos),
+                        counts.getOrDefault(m.getId(), Map.of()), mine.get(m.getId())))
                 .toList();
 
         String nextCursor = (hasMore && !page.isEmpty()) ? page.get(page.size() - 1).getId().toString() : null;
@@ -89,41 +105,104 @@ public class ChatService {
     public ChatMessageDto send(UUID roomId, UUID callerId, SendMessageRequest req) {
         rateLimiter.checkRateLimit("ratelimit:chat:" + callerId, MAX_MESSAGES_PER_MINUTE, Duration.ofMinutes(1));
 
+        String body = req.body() == null ? "" : req.body().strip();
+        ChatPhotoDto photo = null;
+        if (req.photoId() != null) {
+            photo = requireOwnPhoto(roomId, callerId, req.photoId());
+        } else if (body.isEmpty()) {
+            throw new InvalidRequestException("Message can't be empty");
+        }
+
         ChatMessage m = new ChatMessage();
         m.setRoomId(roomId);
         m.setSenderUserId(callerId);
         m.setKind(MessageKind.TEXT);
-        m.setBody(req.body().strip());
+        m.setBody(body);
+        if (photo != null) {
+            m.setRefType(REF_PHOTO);
+            m.setRefId(req.photoId());
+        }
         ChatMessage saved = messageRepo.save(m);
 
         // Sending implies I've read everything up to my own message.
         upsertMarker(roomId, callerId, saved.getCreatedAt());
 
-        ChatMessageDto dto = ChatMessageDto.from(saved, 0, false);
+        ChatMessageDto dto = ChatMessageDto.from(saved, photo, Map.of(), null);
         publishAfterCommit(roomId, "chat.message.created", dto);
         return dto;
     }
 
-    // ── Heart reaction (idempotent on/off) ────────────────────────────────────
+    /**
+     * The photo must be one the caller put in this gala's Dump (so nobody can repost someone
+     * else's photo, or one from another gala, as their own) and finished uploading.
+     */
+    private ChatPhotoDto requireOwnPhoto(UUID roomId, UUID callerId, UUID photoId) {
+        Photo p = photoRepo.findByIdAndRoom_Id(photoId, roomId)
+                .filter(x -> callerId.equals(x.getUploadedBy()) && "READY".equals(x.getStatus()))
+                .orElseThrow(InvalidPhotoReferenceException::new);
+        return new ChatPhotoDto(p.getDriveFileId(), p.getMimeType());
+    }
 
-    public ChatMessageDto setHeart(UUID roomId, UUID messageId, UUID callerId, boolean on) {
+    /** Photos (by id) that the PHOTO messages on this page point at and that still exist. */
+    private Map<UUID, ChatPhotoDto> photosFor(UUID roomId, List<ChatMessage> page) {
+        Set<UUID> ids = new HashSet<>();
+        for (ChatMessage m : page) {
+            if (REF_PHOTO.equals(m.getRefType()) && m.getRefId() != null) ids.add(m.getRefId());
+        }
+        Map<UUID, ChatPhotoDto> out = new HashMap<>();
+        if (ids.isEmpty()) return out;
+        for (Photo p : photoRepo.findByRoom_IdAndIdIn(roomId, ids)) {
+            out.put(p.getId(), new ChatPhotoDto(p.getDriveFileId(), p.getMimeType()));
+        }
+        return out;
+    }
+
+    private static ChatPhotoDto photoOf(ChatMessage m, Map<UUID, ChatPhotoDto> photos) {
+        return REF_PHOTO.equals(m.getRefType()) ? photos.get(m.getRefId()) : null;
+    }
+
+    // ── Reactions (one per member per message; idempotent) ──────────────────
+
+    /**
+     * Sets the caller's reaction on a message ({@code null} removes it); picking a different one
+     * replaces the old one. Broadcasts the new counts so every open chat updates.
+     */
+    public ChatMessageDto setReaction(UUID roomId, UUID messageId, UUID callerId, ReactionType reaction) {
         ChatMessage m = messageRepo.findByIdAndRoomId(messageId, roomId)
                 .orElseThrow(ChatMessageNotFoundException::new);
 
         ChatReactionId id = new ChatReactionId(messageId, callerId);
-        boolean exists = reactionRepo.existsById(id);
-        if (on && !exists) {
-            reactionRepo.save(new ChatReaction(id));
-        } else if (!on && exists) {
-            reactionRepo.deleteById(id);
+        Optional<ChatReaction> existing = reactionRepo.findById(id);
+        if (reaction == null) {
+            existing.ifPresent(reactionRepo::delete);
+        } else if (existing.isPresent()) {
+            existing.get().setReaction(reaction);
+        } else {
+            reactionRepo.save(new ChatReaction(id, reaction));
         }
         reactionRepo.flush();
 
-        long count = reactionRepo.countByIdMessageId(messageId);
-        ChatMessageDto dto = ChatMessageDto.from(m, count, on);
-        publishAfterCommit(roomId, "chat.reaction.changed",
-                Map.of("messageId", messageId, "userId", callerId, "hearted", on, "heartCount", count));
+        Map<ReactionType, Long> counts = new EnumMap<>(ReactionType.class);
+        for (Object[] row : reactionRepo.countByMessageIds(List.of(messageId))) {
+            counts.put((ReactionType) row[1], (Long) row[2]);
+        }
+        ChatMessageDto dto = ChatMessageDto.from(m, null, counts, reaction);
+
+        // HashMap, not Map.of: "reaction" is null when it was removed.
+        Map<String, Object> event = new HashMap<>();
+        event.put("messageId", messageId);
+        event.put("userId", callerId);
+        event.put("reaction", reaction);
+        event.put("reactions", dto.reactions());
+        event.put("hearted", reaction == ReactionType.HEART);
+        event.put("heartCount", dto.heartCount());
+        publishAfterCommit(roomId, "chat.reaction.changed", event);
         return dto;
+    }
+
+    /** The original heart toggle: a heart on, or the caller's reaction (whatever it is) off. */
+    public ChatMessageDto setHeart(UUID roomId, UUID messageId, UUID callerId, boolean on) {
+        return setReaction(roomId, messageId, callerId, on ? ReactionType.HEART : null);
     }
 
     // ── Read state ────────────────────────────────────────────────────────────

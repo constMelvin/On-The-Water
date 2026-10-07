@@ -7,7 +7,7 @@
  *   shows everyone sharing from GET /rooms/{id}/locations, kept fresh by realtime location.*.
  */
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Avatar, Button, Card, Icon, PageHead, SegmentedControl, Sheet, Tag, type TagVariant } from '@/components/otw';
 import { toast } from '@/lib/otw/feedback';
@@ -19,7 +19,7 @@ import { updateTravelStatus } from '@/lib/api/gala';
 import { distanceKm, formatDistance } from '@/lib/otw/distance';
 import type { TravelStatus } from '@/lib/api/rooms';
 import { ErrorState, Skeleton } from '../States';
-import type { MapPin } from './LiveMap';
+import type { MapFocus, MapPin } from './LiveMap';
 import s from './map.module.css';
 
 const LiveMap = dynamic(() => import('./LiveMap'), {
@@ -51,6 +51,8 @@ export function Location() {
   const [asking, setAsking] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [statusOverride, setStatusOverride] = useState<TravelStatus | null>(null);
+  const [focus, setFocus] = useState<MapFocus | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
 
   if (state === 'loading' || !roomId) return <Skeleton label="Loading the map" />;
   if (state === 'error') {
@@ -102,6 +104,18 @@ export function Location() {
     (a, b) => ORDER.indexOf(statusOf(a.userId, a.travelStatus)) - ORDER.indexOf(statusOf(b.userId, b.travelStatus))
   );
   const sel = selected ? memberRows.find((m) => m.userId === selected) : null;
+
+  /** Moves the map to a spot and brings the map on screen (it sits above the list on phones). */
+  const flyTo = (lat: number, lng: number, zoom: number) => {
+    setFocus((f) => ({ lat, lng, zoom, n: (f?.n ?? 0) + 1 }));
+    mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+  const findMember = (userId: string) => {
+    const loc = byUser.get(userId);
+    if (!loc) return;
+    setSelected(userId);
+    flyTo(loc.lat, loc.lng, 16);
+  };
 
   const setStatus = (st: TravelStatus) => {
     setStatusOverride(st);
@@ -207,7 +221,49 @@ export function Location() {
       {banner}
       <div className={s.grid}>
         <Card className={s.mapcard}>
-          <LiveMap pins={pins} meeting={meeting} destination={destination} selected={selected} onSelect={setSelected} />
+          <div ref={mapRef} className={s.mapwrap}>
+            <LiveMap
+              pins={pins}
+              meeting={meeting}
+              destination={destination}
+              selected={selected}
+              onSelect={setSelected}
+              focus={focus}
+            />
+            {sel && (
+              <div className={s.callout}>
+                <Avatar name={sel.nickname} tone={toneOf(sel.userId)} size={36} />
+                <div>
+                  <b>
+                    {sel.nickname}
+                    {sel.userId === myUserId ? ' (you)' : ''}
+                  </b>
+                  <span>
+                    {TRAVEL[statusOf(sel.userId, sel.travelStatus)].l}
+                    {byUser.get(sel.userId) ? ` · updated ${ago(byUser.get(sel.userId)!.updatedAt)}` : ''}
+                    {away(sel.userId) ? ` · ${away(sel.userId)}` : ''}
+                  </span>
+                </div>
+                <button type="button" className="ibtn" onClick={() => setSelected(null)} aria-label="Close">
+                  <Icon name="x" size={18} />
+                </button>
+              </div>
+            )}
+          </div>
+          {(destination || meeting) && (
+            <div className={s.jump}>
+              {destination && (
+                <Button sm variant="zest" onClick={() => flyTo(destination.lat, destination.lng, 16)}>
+                  <Icon name="pin" size={18} /> Find the gala
+                </Button>
+              )}
+              {meeting && (
+                <Button sm variant="cream" onClick={() => flyTo(meeting.lat, meeting.lng, 16)}>
+                  <Icon name="flag" size={18} /> Meeting point
+                </Button>
+              )}
+            </div>
+          )}
           <p className={s.place}>
             <Icon name="pin" size={18} />
             {destination ? (
@@ -227,25 +283,6 @@ export function Location() {
             <Tag variant="l-almost" icon="nav">{`${count('ALMOST_THERE')} almost there`}</Tag>
             <Tag variant="l-otw" icon="clock">{`${count('ON_THE_WAY')} on the way`}</Tag>
           </div>
-          {sel && (
-            <div className={s.callout}>
-              <Avatar name={sel.nickname} tone={toneOf(sel.userId)} size={36} />
-              <div>
-                <b>
-                  {sel.nickname}
-                  {sel.userId === myUserId ? ' (you)' : ''}
-                </b>
-                <span>
-                  {TRAVEL[statusOf(sel.userId, sel.travelStatus)].l}
-                  {byUser.get(sel.userId) ? ` · updated ${ago(byUser.get(sel.userId)!.updatedAt)}` : ''}
-                  {away(sel.userId) ? ` · ${away(sel.userId)}` : ''}
-                </span>
-              </div>
-              <button type="button" className="ibtn" onClick={() => setSelected(null)} aria-label="Close">
-                <Icon name="x" size={18} />
-              </button>
-            </div>
-          )}
         </Card>
 
         <div className={s.side}>
@@ -262,25 +299,46 @@ export function Location() {
           </Card>
           <Card>
             <h3>Everyone</h3>
+            {pins.length > 0 && <p className="fine">Tap someone who&apos;s sharing to find them on the map.</p>}
             <ul className={`mlist ${s.list}`}>
               {list.map((m) => {
                 const loc = byUser.get(m.userId);
                 const st = statusOf(m.userId, m.travelStatus);
                 const online = members.find((x) => x.id === m.userId)?.on === 1;
-                return (
-                  <li
-                    key={m.userId}
-                    className={loc ? s.clickrow : undefined}
-                    onClick={loc ? () => setSelected(m.userId) : undefined}
-                  >
-                    <Avatar name={m.nickname} tone={toneOf(m.userId)} size={32} online={online} />
-                    <span>
-                      {m.nickname}
-                      {m.userId === myUserId ? ' (you)' : ''}
-                      <i className={s.eta}>{loc ? `Sharing live · ${ago(loc.updatedAt)}` : 'Not sharing'}</i>
-                      {away(m.userId) && <i className={s.eta}>{away(m.userId)}</i>}
+                const body = (
+                  <>
+                    <Avatar name={m.nickname} tone={toneOf(m.userId)} size={36} online={online} />
+                    <span className={s.who}>
+                      <b>
+                        {m.nickname}
+                        {m.userId === myUserId ? ' (you)' : ''}
+                      </b>
+                      <i className={s.eta}>
+                        {loc ? `Sharing live · ${ago(loc.updatedAt)}` : 'Not sharing'}
+                        {away(m.userId) ? ` · ${away(m.userId)}` : ''}
+                      </i>
                     </span>
                     <Tag variant={TRAVEL[st].tag}>{TRAVEL[st].l}</Tag>
+                  </>
+                );
+                return (
+                  <li key={m.userId}>
+                    {loc ? (
+                      <button
+                        type="button"
+                        className={`${s.row} ${s.find}${selected === m.userId ? ` ${s.picked}` : ''}`}
+                        onClick={() => findMember(m.userId)}
+                        aria-pressed={selected === m.userId}
+                        aria-label={`Find ${m.nickname} on the map`}
+                      >
+                        {body}
+                        <span className={s.go}>
+                          <Icon name="nav" size={16} />
+                        </span>
+                      </button>
+                    ) : (
+                      <div className={s.row}>{body}</div>
+                    )}
                   </li>
                 );
               })}

@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
-/** A heart on a chat message — one per member per message. */
+/** A reaction on a chat message — one per member per message (picking another replaces it). */
 @Entity
 @Table(name = "chat_reactions")
 @Getter
@@ -18,11 +18,16 @@ public class ChatReaction {
     @EmbeddedId
     private ChatReactionId id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reaction", nullable = false, length = 10)
+    private ReactionType reaction = ReactionType.HEART;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    public ChatReaction(ChatReactionId id) {
+    public ChatReaction(ChatReactionId id, ReactionType reaction) {
         this.id = id;
+        this.reaction = reaction;
     }
 
     @PrePersist

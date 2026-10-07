@@ -19,6 +19,9 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
 
     Optional<Photo> findByIdAndRoom_Id(UUID id, UUID roomId);
 
+    /** This gala's photos among {@code ids} (chat loads the photos its messages point at). */
+    List<Photo> findByRoom_IdAndIdIn(UUID roomId, Collection<UUID> ids);
+
     /** Which of these Drive file ids still have a photo row (used by the orphan sweep). */
     @Query("SELECT p.driveFileId FROM Photo p WHERE p.driveFileId IN :ids")
     Set<String> findExistingDriveFileIds(@Param("ids") Collection<String> ids);

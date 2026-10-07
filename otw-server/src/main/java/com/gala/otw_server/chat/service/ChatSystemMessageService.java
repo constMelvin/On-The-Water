@@ -56,7 +56,7 @@ public class ChatSystemMessageService {
         m.setRefId(refId);
         ChatMessage saved = messageRepo.save(m);
 
-        ChatMessageDto dto = ChatMessageDto.from(saved, 0, false);
+        ChatMessageDto dto = ChatMessageDto.from(saved);
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
