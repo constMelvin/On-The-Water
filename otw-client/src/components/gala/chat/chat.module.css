@@ -52,8 +52,38 @@
 .pinned span {
   font-weight: 600;
 }
+/* a long address stays at two lines (the full plan is one tap away in View plan) */
+.pinned > div > span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
 .pinned :global(.ico) {
   background: var(--cream);
+}
+.pinned > div {
+  min-width: 0;
+}
+.pinToggle {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin: -4px -6px -4px 0;
+  color: var(--teal-dark);
+}
+.pinToggle:hover {
+  background: var(--cream);
+}
+/* hidden: one slim line, so the messages get the space back */
+.pinnedMin {
+  padding: 4px 8px 4px 16px;
+}
+.pinnedMin b {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---- log ---- */

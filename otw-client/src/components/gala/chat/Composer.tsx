@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Button, Icon } from '@/components/otw';
 import { toast } from '@/lib/otw/feedback';
+import { CameraCapture } from './CameraCapture';
 import s from './chat.module.css';
 
 export interface ComposerProps {
@@ -23,6 +24,7 @@ export function Composer({ onSend, onSendPhoto, canAddPhotos, inputRef }: Compos
   const photo = picked?.file ?? null;
   const [sending, setSending] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [camera, setCamera] = useState(false);
 
   useEffect(() => {
     if (!picked) return;
@@ -92,6 +94,15 @@ export function Composer({ onSend, onSendPhoto, canAddPhotos, inputRef }: Compos
             >
               <Icon name="image" size={22} />
             </button>
+            <button
+              type="button"
+              className={`ibtn ${s.attachbtn}`}
+              aria-label="Take a photo"
+              disabled={sending}
+              onClick={() => setCamera(true)}
+            >
+              <Icon name="camera" size={22} />
+            </button>
           </>
         )}
         <input
@@ -125,6 +136,15 @@ export function Composer({ onSend, onSendPhoto, canAddPhotos, inputRef }: Compos
           <span className="hide-m">{sending ? 'Sending…' : 'Send'}</span>
         </Button>
       </div>
+      {camera && (
+        <CameraCapture
+          onSend={onSendPhoto}
+          onClose={() => {
+            setCamera(false);
+            inputRef.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }

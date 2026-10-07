@@ -21,7 +21,11 @@
     flex-wrap: wrap;
   }
   .dhero.done { flex-direction: column; align-items: flex-start; }
-  .gt { font-family: var(--fd); font-weight: 600; font-size: 24px; margin: 10px 0 4px; }
+  /* Never wider than the card: a long title or address wraps instead of spilling out. */
+  .dhero > div:first-child { min-width: 0; max-width: 100%; }
+  .dhero .pmeta .tag { white-space: normal; max-width: 100%; overflow-wrap: anywhere; }
+  .dhero .pmeta .tag svg { flex: none; }
+  .gt { font-family: var(--fd); font-weight: 600; font-size: 24px; margin: 10px 0 4px; overflow-wrap: anywhere; }
   .dright { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
 
   .cdown { display: flex; gap: 10px; }

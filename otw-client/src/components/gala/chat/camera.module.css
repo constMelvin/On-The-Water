@@ -1,0 +1,219 @@
+/* Full-screen chat camera (CameraCapture): live view -> shutter -> preview -> Send / Retake.
+   Dark like every messaging-app camera so the photo is the only bright thing on screen. */
+
+.cam {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: var(--teal-dark);
+  color: var(--cream);
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+}
+
+.top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 14px 28px;
+  /* fade so the title and buttons stay readable over a bright photo */
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--teal-dark) 85%, transparent), transparent);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 20px;
+}
+
+/* live view + preview share the same frame */
+.media {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.mirror {
+  transform: scaleX(-1);
+}
+
+.starting {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+/* round icon buttons (close, back, flip) */
+.round {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--teal-dark) 70%, transparent);
+  color: var(--cream);
+  cursor: pointer;
+}
+.round:disabled {
+  opacity: 0.4;
+}
+
+/* shutter row */
+.controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+.spacer {
+  width: 48px;
+}
+.shutter {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 6px solid var(--cream);
+  background: var(--rosy);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+  cursor: pointer;
+  transition: transform 0.09s, box-shadow 0.09s;
+}
+.shutter:active {
+  transform: translateY(4px) scale(0.94);
+  box-shadow: 0 2px 0 var(--rosy-dark);
+}
+.shutter:disabled {
+  opacity: 0.5;
+}
+.shutter:focus-visible,
+.round:focus-visible {
+  outline: 3px solid var(--zest);
+  outline-offset: 3px;
+}
+
+/* preview: caption + Retake / Send */
+.bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 18px;
+  background: var(--teal-dark);
+}
+.caption {
+  width: 100%;
+}
+.row {
+  display: flex;
+  gap: 10px;
+}
+.ghost,
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font: inherit;
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 17px;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: transform 0.09s, box-shadow 0.09s;
+}
+.ghost {
+  flex: 1;
+  border: 3px solid var(--cream);
+  background: transparent;
+  color: var(--cream);
+}
+.send {
+  flex: 1.4;
+  border: 0;
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+}
+.send:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--rosy-dark);
+}
+.ghost:disabled,
+.send:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.note {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* can't open the camera in the page: hand off to the phone's camera app */
+.fallback {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+  text-align: center;
+}
+.fbIcon {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 50% 50% 40% 60% / 60% 40% 60% 40%;
+  background: var(--cream);
+  color: var(--rosy);
+}
+.fbText {
+  max-width: 340px;
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.fallback .send {
+  flex: none;
+}
+
+/* wide screens: keep the preview controls a sensible width */
+@media (min-width: 640px) {
+  .bottom {
+    align-items: center;
+  }
+  .caption,
+  .row {
+    max-width: 520px;
+  }
+  .row {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shutter,
+  .send {
+    transition: none;
+  }
+}
