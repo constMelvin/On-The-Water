@@ -117,6 +117,9 @@ export interface SettlementVM {
 
 export type MessageKind = 'TEXT' | 'SYSTEM' | 'CARD';
 
+/** One reaction per member per message; picking another replaces it. */
+export type ReactionType = 'HEART' | 'HAHA' | 'WOW' | 'SAD' | 'ANGRY' | 'LIKE';
+
 export interface ChatMessageVM {
   id: string;
   roomId: string;
@@ -125,9 +128,16 @@ export interface ChatMessageVM {
   kind: MessageKind;
   /** Plain text (React escapes it). For a CARD it is the full line, e.g. "added a new itinerary stop: …". */
   body: string;
-  /** For CARD messages: 'ITINERARY_ITEM' or 'EXPENSE'. */
+  /** For CARD messages: 'ITINERARY_ITEM' or 'EXPENSE'; 'PHOTO' for a TEXT message with a Gala Dump photo. */
   refType: string | null;
   refId: string | null;
+  /** The attached photo (refType 'PHOTO'); null when there is none or it was deleted from the Dump. */
+  photo: { driveFileId: string; mimeType: string | null } | null;
+  /** Count per reaction (only reactions someone used). */
+  reactions: Partial<Record<ReactionType, number>>;
+  /** My reaction on this message, or null. */
+  myReaction: ReactionType | null;
+  /** Heart-only view, kept for older code paths. */
   heartCount: number;
   reactedByMe: boolean;
   createdAt: string;

@@ -2,6 +2,7 @@ package com.gala.otw_server.chat.controller;
 
 import com.gala.otw_server.chat.dto.ChatMessageDto;
 import com.gala.otw_server.chat.dto.SendMessageRequest;
+import com.gala.otw_server.chat.dto.SetReactionRequest;
 import com.gala.otw_server.chat.dto.UnreadDto;
 import com.gala.otw_server.chat.service.ChatService;
 import com.gala.otw_server.common.PageResponse;
@@ -48,7 +49,24 @@ public class ChatController {
         return chatService.send(roomId, currentUser.getUserId(), req);
     }
 
-    // ── PUT / DELETE /rooms/{roomId}/chat/messages/{messageId}/heart ──────────
+    // ── PUT / DELETE /rooms/{roomId}/chat/messages/{messageId}/reaction ───────
+
+    @PutMapping("/messages/{messageId}/reaction")
+    @RequireRoomRole(RoomRole.MEMBER)
+    public ChatMessageDto react(
+            @PathVariable UUID roomId,
+            @PathVariable UUID messageId,
+            @Valid @RequestBody SetReactionRequest req) {
+        return chatService.setReaction(roomId, messageId, currentUser.getUserId(), req.reaction());
+    }
+
+    @DeleteMapping("/messages/{messageId}/reaction")
+    @RequireRoomRole(RoomRole.MEMBER)
+    public ChatMessageDto unreact(@PathVariable UUID roomId, @PathVariable UUID messageId) {
+        return chatService.setReaction(roomId, messageId, currentUser.getUserId(), null);
+    }
+
+    // ── PUT / DELETE /rooms/{roomId}/chat/messages/{messageId}/heart (kept for older clients) ──────────
 
     @PutMapping("/messages/{messageId}/heart")
     @RequireRoomRole(RoomRole.MEMBER)

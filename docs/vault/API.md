@@ -41,7 +41,7 @@ Back to [[00-Index]]
 | POST / DELETE | `/rooms/{roomId}/expenses/settlement/payments[/{paymentId}]` | Member (involved / recorder / host) |
 | PUT / DELETE | `/rooms/{roomId}/location` · GET `/locations` | Member (opt-in) |
 | GET / POST | `/rooms/{roomId}/photos` (`?mine=`) · DELETE `/{photoId}` | Member (permission toggles) |
-| GET / POST | `/rooms/{roomId}/chat/messages` · PUT/DELETE `/messages/{id}/heart` · GET `/chat/unread` | Member |
+| GET / POST | `/rooms/{roomId}/chat/messages` (send `{body, photoId?}`; photoId = caller's own Gala Dump photo, else `400 INVALID_PHOTO_REFERENCE`) · PUT/DELETE `/messages/{id}/reaction` (`{reaction}` HEART/HAHA/WOW/SAD/ANGRY/LIKE; `/heart` kept as alias) · GET `/chat/unread` | Member |
 | PUT | `/rooms/{roomId}/chat/read` | Member ✱ |
 | GET · PUT/DELETE | `/rooms/{roomId}/couple/ideas` · `/couple/ideas/{key}` | Member (couple galas only) |
 

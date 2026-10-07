@@ -30,6 +30,8 @@
 > **2026-10-06 — couple galas hidden from the directory (owner decision, narrows "directory shows every gala"):** `GET /rooms/directory` returns only **GROUP** galas (`room_type <> 'COUPLE'`). A couple gala is reached only with its Gala Code + Gala Password shared by the couple (`GET /rooms/preview?code=` and `POST /rooms/join` are unchanged; the 2-member cap still applies). The couple's own galas stay in My Galas.
 >
 > **2026-10-07 — deployment + security hardening (owner decision):** production backend moves from **Render to Railway** (frontend stays on Vercel; setup in `docs/DEPLOYMENT.md`). Spring Boot **3.3.4 → 4.1.1** (3.3–3.5 are past OSS support; Jackson 3, Spring Security 7, `spring-boot-starter-flyway`). **V20** revokes all `anon`/`authenticated` privileges on `public` tables, sequences and functions (the browser never reads tables directly; everything goes through the API) and moves the V16 realtime membership check into `otw_private.is_room_channel_member()` (SECURITY DEFINER). Gala Password attempts are also limited **per gala**: 20 wrong passwords in 15 min → `429 TOO_MANY_REQUESTS` for that gala (`GalaPasswordGuard`). Swagger/OpenAPI off unless `API_DOCS_ENABLED=true`; rate limiting no longer trusts a raw `X-Forwarded-For` (`server.forward-headers-strategy=native`); unknown URLs → 404, wrong method → 405 (were 500). Frontend CSP is per request with a script nonce (`otw-client/src/proxy.ts`).
+>
+> **2026-10-07 (later) — chat photos + reaction picker (owner decision):** a chat message can carry a photo: the browser uploads it through the Gala Dump flow (`POST /photos/uploads` → Drive → `POST /photos`), so it **is** a Gala Dump photo, then sends `POST /chat/messages {body, photoId}`. The photo must be the caller's own, `READY`, in the same gala, or `400 INVALID_PHOTO_REFERENCE`; `body` becomes an optional caption (still required without a photo, `400 INVALID_REQUEST`). Stored as a TEXT message with `ref_type = 'PHOTO'`, `ref_id = photoId` (no schema change); `ChatMessageDto.photo {driveFileId, mimeType}` is null when the photo was deleted from the Dump. Reactions: **V21** adds `chat_reactions.reaction` (`HEART|HAHA|WOW|SAD|ANGRY|LIKE`, default `HEART`); still one per member per message, a new pick replaces the old. `PUT /chat/messages/{id}/reaction {reaction}` / `DELETE …/reaction`; the `/heart` endpoints stay as aliases. `ChatMessageDto` adds `reactions` (count per type) and `myReaction`; `heartCount`/`reactedByMe` now mean hearts only. `chat.reaction.changed` adds `reaction` (null when removed) and `reactions`. The frontend's quick-reply chips were removed.
 
 This guide takes the OTW Master Project Management Plan and narrows it to everything the backend team needs, from an empty repo to a production-ready API. Frontend/UI/branding work is intentionally out of scope here.
 
@@ -106,7 +108,7 @@ otw-backend/
 │   │   ├── entity/
 │   │   ├── repository/
 │   │   └── service/
-│   ├── chat/                    # Chismis: messages, heart reactions, read markers, system/card lines (same five folders)
+│   ├── chat/                    # Chismis: messages (+ Gala Dump photos), reactions, read markers, system/card lines (same five folders)
 │   ├── couple/                  # Couple Mode saved date ideas (same five folders)
 │   ├── notification/            # preferences, in-app feed, after-commit fan-out, reminder scheduler (same five folders)
 │   ├── realtime/                # RealtimeEventPublisher (Supabase Broadcast client) — cross-cutting, no controller
@@ -285,7 +287,7 @@ settlement_payments (id, room_id FK CASCADE, from_user_id, to_user_id, amount NU
 -- V13 chat
 chat_messages (id, room_id FK CASCADE, sender_user_id NULL, kind TEXT|SYSTEM|CARD, body VARCHAR(1000),
                ref_type, ref_id, created_at)
-chat_reactions (message_id FK CASCADE, user_id, created_at, PK(message_id, user_id))   -- heart only
+chat_reactions (message_id FK CASCADE, user_id, created_at, PK(message_id, user_id))   -- one per member (V21: + reaction)
 chat_read_markers (room_id FK CASCADE, user_id, last_read_at, PK(room_id, user_id))
 -- V14 couple_saved_ideas (room_id FK CASCADE, idea_key, saved_by, created_at, PK(room_id, idea_key))
 -- V15 notification_preferences (user_id PK, 7 BOOLEAN toggles, updated_at)
@@ -295,6 +297,8 @@ notifications (id, user_id, room_id FK CASCADE NULL, type, title, body, dedupe_k
 --     INSERT presence for active members whose room matches realtime.topic() = 'room:{roomId}'
 -- V17 rooms += is_listed BOOLEAN NOT NULL DEFAULT false; partial index (start_date) WHERE is_listed AND status='ACTIVE'
 -- V19 rooms += destination_lat, destination_lng DOUBLE PRECISION (nullable; the destination's map pin, both or neither)
+-- V20 revoke anon/authenticated on public tables/sequences/functions; otw_private.is_room_channel_member()
+-- V21 chat_reactions += reaction VARCHAR(10) NOT NULL DEFAULT 'HEART' CHECK IN (HEART, HAHA, WOW, SAD, ANGRY, LIKE)
 -- V22 user_profiles (user_id PK, nickname VARCHAR(20), status VARCHAR(40), color NULL CHECK in 4 tones, photo TEXT NULL <=65000 data URL, updated_at)
 ```
 Every new table has an RLS SELECT policy (members of the room, or `user_id = auth.uid()` for per-user tables). Every column holding a user id inside a room should be listed in the RLS policies above.
@@ -390,8 +394,9 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 | GET | `/rooms/{roomId}/checklist?mine=true` / `/photos?mine=true` | "Mine" filters | Member |
 | POST | `/rooms/{roomId}/expenses/settlement/payments` | "Mark paid" (from/to/host only; ≤ outstanding) | Member |
 | DELETE | `/rooms/{roomId}/expenses/settlement/payments/{paymentId}` | Undo (recorder or host) | Member |
-| GET / POST | `/rooms/{roomId}/chat/messages` | Newest-first page · send (20/min/member) | Member |
-| PUT / DELETE | `/rooms/{roomId}/chat/messages/{messageId}/heart` | Heart reaction on/off | Member |
+| GET / POST | `/rooms/{roomId}/chat/messages` | Newest-first page · send `{body, photoId?}` (20/min/member; photoId = caller's own Gala Dump photo) | Member |
+| PUT / DELETE | `/rooms/{roomId}/chat/messages/{messageId}/reaction` | Set `{reaction}` (replaces mine) / remove | Member |
+| PUT / DELETE | `/rooms/{roomId}/chat/messages/{messageId}/heart` | Alias: HEART on / my reaction off | Member |
 | PUT | `/rooms/{roomId}/chat/read` · GET `/chat/unread` | Mark read · unread count + first unread id | Member ✱ · Member |
 | GET | `/rooms/{roomId}/couple/ideas` | Date idea catalog + saved flags (couple galas only) | Member |
 | PUT / DELETE | `/rooms/{roomId}/couple/ideas/{key}` | Save / unsave an idea | Member |
@@ -570,7 +575,7 @@ This layered guard is the single most important control against "guessing/manipu
 | Add photo | ✅ | ✅ while "Add photos" is on | ❌ |
 | Delete photo | ✅ any | own only, while "Delete only their own photos" is on | ❌ |
 | Share location | ✅ | ✅ (opt-in) while "Share live location" is on; closes 3 h after the gala ends | ❌ |
-| Chat, hearts, couple ideas | ✅ | ✅ | ❌ |
+| Chat, reactions, couple ideas | ✅ | ✅ | ❌ |
 | View another room's data | ❌ | ❌ | ❌ |
 
 "Unauthenticated" means no valid token at all; an anonymous Supabase session is rejected with 401 ACCOUNT_REQUIRED. Member permission toggles never restrict the host.
@@ -643,7 +648,7 @@ Event catalog (subset most relevant to backend implementation):
 | `budget.updated` | budget write | budget DTO | room members |
 | `expense.deleted`, `settlement.payment.recorded` / `.deleted` | expense delete, Mark paid, undo | `{id}` / payment DTO | room members |
 | `photo.added` / `photo.deleted` | photo write | photo DTO / `{id}` | room members |
-| `chat.message.created` / `chat.reaction.changed` | chat send, system/card line, heart | message DTO / `{messageId, userId, hearted, heartCount}` | room members |
+| `chat.message.created` / `chat.reaction.changed` | chat send (incl. photo), system/card line, reaction | message DTO / `{messageId, userId, reaction, reactions, hearted, heartCount}` | room members |
 | `couple.idea.changed` | save/unsave idea | `{key, saved}` | room members |
 
 Notifications are not realtime: the frontend polls `/me/notifications` (no per-user channel, so this section's channel model is unchanged). "Online now" uses Supabase Realtime **presence** on the same room channel, entirely client-side.

@@ -34,6 +34,15 @@ export interface LiveMapProps {
   destination: { lat: number; lng: number; label: string } | null;
   selected: string | null;
   onSelect: (userId: string) => void;
+  /** Where to move the view (gala / meeting point); bump `n` to move there again. */
+  focus: MapFocus | null;
+}
+
+export interface MapFocus {
+  lat: number;
+  lng: number;
+  zoom: number;
+  n: number;
 }
 
 /** Metro Manila, when nobody is sharing and there's no meeting point. */
@@ -124,7 +133,18 @@ function PanToSelected({ pins, selected, calm }: { pins: MapPin[]; selected: str
   return null;
 }
 
-export default function LiveMap({ pins, meeting, destination, selected, onSelect }: LiveMapProps) {
+/** Glides to `focus` each time it changes (jumps instead when the user prefers reduced motion). */
+function FlyTo({ focus, calm }: { focus: MapFocus | null; calm: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!focus) return;
+    if (calm) map.setView([focus.lat, focus.lng], focus.zoom, { animate: false });
+    else map.flyTo([focus.lat, focus.lng], focus.zoom, { duration: 0.8 });
+  }, [map, focus, calm]);
+  return null;
+}
+
+export default function LiveMap({ pins, meeting, destination, selected, onSelect, focus }: LiveMapProps) {
   const calm = useSyncExternalStore(subscribeMotion, prefersCalm, () => false);
   const points = useMemo<[number, number][]>(
     () => [
@@ -150,6 +170,7 @@ export default function LiveMap({ pins, meeting, destination, selected, onSelect
       />
       <FitOnce points={points} />
       <PanToSelected pins={pins} selected={selected} calm={calm} />
+      <FlyTo focus={focus} calm={calm} />
       {destination && (
         <Marker position={[destination.lat, destination.lng]} icon={destinationIcon} title={destination.label} zIndexOffset={-100} />
       )}

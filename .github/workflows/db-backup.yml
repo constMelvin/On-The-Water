@@ -1,0 +1,73 @@
+name: OTW Database Backup
+
+# Weekly encrypted pg_dump of the production Supabase database, kept as a workflow artifact.
+# Setup, restore steps and required secrets: docs/DEPLOYMENT.md §12.
+
+on:
+  schedule:
+    - cron: '0 18 * * 0' # Sundays 18:00 UTC = Mondays 02:00 Asia/Manila
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PGHOST: ${{ secrets.BACKUP_PGHOST }}
+      PGPORT: '5432'
+      PGDATABASE: postgres
+      PGUSER: ${{ secrets.BACKUP_PGUSER }}
+      PGPASSWORD: ${{ secrets.BACKUP_PGPASSWORD }}
+      PGSSLMODE: require
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+
+    steps:
+      - name: Check secrets are set
+        run: |
+          for name in PGHOST PGUSER PGPASSWORD BACKUP_PASSPHRASE; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing secret for $name — see docs/DEPLOYMENT.md §12"
+              exit 1
+            fi
+          done
+
+      - name: Dump database
+        run: |
+          mkdir -p out
+          stamp=$(date -u +%Y%m%d-%H%M)
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+          # postgres:17 client works against Supabase's Postgres 15 or 17 (pg_dump must be >= server).
+          # Privileges are kept on purpose: V20 revokes anon/authenticated access to the app tables.
+          dump() {
+            docker run --rm --network host \
+              -e PGHOST -e PGPORT -e PGDATABASE -e PGUSER -e PGPASSWORD -e PGSSLMODE \
+              -v "$PWD/out:/out" postgres:17-alpine pg_dump --no-owner "$@"
+          }
+          dump --format=custom --schema=public --file="/out/otw-public-$stamp.dump"
+          dump --format=custom --schema=auth --data-only --file="/out/otw-auth-data-$stamp.dump"
+          ls -lh out
+
+      - name: Encrypt dumps
+        run: |
+          cd out
+          for f in *.dump; do
+            printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
+              --passphrase-fd 0 --symmetric --cipher-algo AES256 --output "$f.gpg" "$f"
+            rm "$f"
+          done
+          ls -lh
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: otw-db-backup-${{ env.STAMP }}
+          path: out/*.gpg
+          retention-days: 30
+          if-no-files-found: error

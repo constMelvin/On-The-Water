@@ -72,6 +72,13 @@ export const IC = {
   stopMeet: '<path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z"/><circle cx="9.8" cy="8.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.2" cy="8.2" r="1.3" fill="currentColor" stroke="none"/><path d="M9.4 11.6c1.5 1.2 3.7 1.2 5.2 0"/>',
   // Custom type: a compass.
   stopCustom: '<circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z"/><circle cx="12" cy="12" r=".9" fill="currentColor" stroke="none"/>',
+  /* Chat reactions (hand-drawn faces; no emoji in OTW UI). */
+  haha: '<circle cx="12" cy="12" r="9"/><path d="M7.5 10q1.5-1.6 3 0M13.5 10q1.5-1.6 3 0"/><path d="M7.5 13.5h9a4.5 4.5 0 0 1-9 0z" fill="currentColor"/>',
+  wow: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="1.2" fill="currentColor" stroke="none"/><ellipse cx="12" cy="15.5" rx="2" ry="2.6"/>',
+  sad: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1.2" fill="currentColor" stroke="none"/><path d="M8.5 16.5q3.5-3 7 0"/><path d="M16.5 12q1.2 1.8 0 3q-1.2-1.2 0-3z" fill="currentColor"/>',
+  angry: '<circle cx="12" cy="12" r="9"/><path d="M7.5 8.5l3 1.5M16.5 8.5l-3 1.5"/><circle cx="9.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M9 17q3-2 6 0"/>',
+  like: '<path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3z"/><path d="M7 11l4-8a2.5 2.5 0 0 1 2.5 2.5V9h5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.3 20H7"/>',
+  react: '<path d="M20.5 11.5a8.5 8.5 0 1 1-8-8.5"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><path d="M8.5 14.5q3 2.5 6 0"/><path d="M19 2v5M16.5 4.5h5"/>',
 } as const;
 
 export type IconName = keyof typeof IC;

@@ -8,7 +8,7 @@
  * Every travel status looks the same everywhere here (colour + icon): see ./travel.ts.
  */
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Avatar, Button, Card, Icon, PageHead, Sheet, Tag } from '@/components/otw';
 import { toast } from '@/lib/otw/feedback';
@@ -20,7 +20,7 @@ import { updateTravelStatus } from '@/lib/api/gala';
 import { distanceKm, formatDistance } from '@/lib/otw/distance';
 import type { TravelStatus } from '@/lib/api/rooms';
 import { ErrorState, Skeleton } from '../States';
-import type { MapPin } from './LiveMap';
+import type { MapFocus, MapPin } from './LiveMap';
 import { CHOICES, ORDER, TRAVEL } from './travel';
 import s from './map.module.css';
 
@@ -46,6 +46,8 @@ export function Location() {
   const [asking, setAsking] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [statusOverride, setStatusOverride] = useState<TravelStatus | null>(null);
+  const [focus, setFocus] = useState<MapFocus | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
 
   if (state === 'loading' || !roomId) return <Skeleton label="Loading the map" />;
   if (state === 'error') {
@@ -111,6 +113,12 @@ export function Location() {
     (a, b) => ORDER.indexOf(statusOf(a.userId, a.travelStatus)) - ORDER.indexOf(statusOf(b.userId, b.travelStatus))
   );
   const sel = selected ? memberRows.find((m) => m.userId === selected) : null;
+
+  /** Moves the map to a spot and brings the map on screen (it sits above the list on phones). */
+  const flyTo = (lat: number, lng: number, zoom: number) => {
+    setFocus((f) => ({ lat, lng, zoom, n: (f?.n ?? 0) + 1 }));
+    mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
 
   const setStatus = (st: TravelStatus) => {
     setStatusOverride(st);
@@ -218,7 +226,30 @@ export function Location() {
       {banner}
       <div className={s.grid}>
         <Card className={s.mapcard}>
-          <LiveMap pins={pins} meeting={meeting} destination={destination} selected={selected} onSelect={setSelected} />
+          <div ref={mapRef}>
+            <LiveMap
+              pins={pins}
+              meeting={meeting}
+              destination={destination}
+              selected={selected}
+              onSelect={setSelected}
+              focus={focus}
+            />
+          </div>
+          {(destination || meeting) && (
+            <div className={s.jump}>
+              {destination && (
+                <Button sm variant="zest" onClick={() => flyTo(destination.lat, destination.lng, 16)}>
+                  <Icon name="pin" size={18} /> Find the gala
+                </Button>
+              )}
+              {meeting && (
+                <Button sm variant="cream" onClick={() => flyTo(meeting.lat, meeting.lng, 16)}>
+                  <Icon name="flag" size={18} /> Meeting point
+                </Button>
+              )}
+            </div>
+          )}
           <p className={s.place}>
             <span className={s.pbadge}>
               <Icon name="pin" size={16} />

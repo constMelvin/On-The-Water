@@ -14,20 +14,19 @@ import java.util.UUID;
 @Repository
 public interface ChatReactionRepository extends JpaRepository<ChatReaction, ChatReactionId> {
 
-    /** Rows of [messageId, count] for one page of messages. */
+    /** Rows of [messageId, reaction, count] for one page of messages. */
     @Query("""
-            SELECT r.id.messageId, COUNT(r) FROM ChatReaction r
+            SELECT r.id.messageId, r.reaction, COUNT(r) FROM ChatReaction r
             WHERE r.id.messageId IN :messageIds
-            GROUP BY r.id.messageId
+            GROUP BY r.id.messageId, r.reaction
             """)
     List<Object[]> countByMessageIds(@Param("messageIds") Collection<UUID> messageIds);
 
+    /** Rows of [messageId, reaction] for the caller's own reactions on one page of messages. */
     @Query("""
-            SELECT r.id.messageId FROM ChatReaction r
+            SELECT r.id.messageId, r.reaction FROM ChatReaction r
             WHERE r.id.messageId IN :messageIds AND r.id.userId = :userId
             """)
-    List<UUID> findReactedMessageIds(@Param("messageIds") Collection<UUID> messageIds,
-                                     @Param("userId") UUID userId);
-
-    long countByIdMessageId(UUID messageId);
+    List<Object[]> findMyReactions(@Param("messageIds") Collection<UUID> messageIds,
+                                   @Param("userId") UUID userId);
 }

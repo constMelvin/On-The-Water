@@ -13,7 +13,9 @@ public class TestcontainersConfiguration {
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer postgresContainer() {
-		return new PostgreSQLContainer(DockerImageName.parse("postgres:latest"));
+		PostgreSQLContainer container = new PostgreSQLContainer(DockerImageName.parse("postgres:latest"));
+		container.withInitScript("supabase-stubs.sql");
+		return container;
 	}
 
 	@Bean

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './code-confirm.module.css';
@@ -15,6 +15,15 @@ interface SparkleParticle {
   ty: string;
   left: string;
   top: string;
+}
+
+const emptySubscribe = () => () => {};
+function readSavedPassword() {
+  try {
+    return sessionStorage.getItem('otw:gala-password') ?? '';
+  } catch {
+    return '';
+  }
 }
 
 function CodeConfirmContent() {
@@ -33,7 +42,8 @@ function CodeConfirmContent() {
   const [shareFeedback, setShareFeedback] = useState('');
   const [passwordCopied, setPasswordCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [savedPassword, setSavedPassword] = useState('');
+  // Saved password from sessionStorage ('' on the server and when none is stored)
+  const savedPassword = useSyncExternalStore(emptySubscribe, readSavedPassword, () => '');
   const [srAnnouncement, setSrAnnouncement] = useState('');
   const [sparkles, setSparkles] = useState<SparkleParticle[]>([]);
 
@@ -43,16 +53,6 @@ function CodeConfirmContent() {
       router.replace('/plan');
     }
   }, [code, router]);
-
-  // Read saved password from sessionStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('otw:gala-password');
-      if (stored) {
-        setSavedPassword(stored);
-      }
-    }
-  }, []);
 
   // Focus the <h1> on mount
   useEffect(() => {

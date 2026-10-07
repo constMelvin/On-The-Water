@@ -18,6 +18,7 @@ import type {
   ItineraryItemVM,
   MemberLocationVM,
   PhotoVM,
+  ReactionType,
   RoomPermissionsVM,
   SettlementPaymentVM,
   SettlementVM,
@@ -144,11 +145,16 @@ export const getChatPage = (roomId: string, cursor?: string | null, limit = 30) 
     `${room(roomId)}/chat/messages?limit=${limit}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`
   );
 
-export const sendChat = (roomId: string, body: string) =>
-  api<ChatMessageVM>(`${room(roomId)}/chat/messages`, { method: 'POST', body: { body } });
+/** Sends a message; `photoId` attaches a photo I already put in the Gala Dump (the body is then a caption). */
+export const sendChat = (roomId: string, body: string, photoId?: string) =>
+  api<ChatMessageVM>(`${room(roomId)}/chat/messages`, { method: 'POST', body: { body, photoId } });
 
-export const setHeart = (roomId: string, messageId: string, hearted: boolean) =>
-  api<ChatMessageVM>(`${room(roomId)}/chat/messages/${messageId}/heart`, { method: hearted ? 'PUT' : 'DELETE' });
+/** Sets my reaction on a message; null removes it. */
+export const setReaction = (roomId: string, messageId: string, reaction: ReactionType | null) =>
+  api<ChatMessageVM>(
+    `${room(roomId)}/chat/messages/${messageId}/reaction`,
+    reaction ? { method: 'PUT', body: { reaction } } : { method: 'DELETE' }
+  );
 
 export const markChatRead = (roomId: string) => api<void>(`${room(roomId)}/chat/read`, { method: 'PUT' });
 

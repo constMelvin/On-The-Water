@@ -28,8 +28,8 @@ All `id` columns are `UUID DEFAULT gen_random_uuid()`. All timestamps are `TIMES
 | `settlement_payments` | room_id FK CASCADE, from_user_id, to_user_id, amount > 0, recorded_by, created_at | "Mark paid"; insert/delete only |
 | `member_locations` | PK(room_id, user_id), lat, lng, share_mode (PIN/LIVE), expires_at, updated_at | Current row only, no history. See [[Location]] |
 | `photos` | room_id FK CASCADE, drive_file_id(200), uploaded_by, caption(140), status (PENDING/READY/FAILED), created_at | Metadata only; binaries stay in Google Drive |
-| `chat_messages` | room_id FK CASCADE, sender_user_id (NULL for SYSTEM), kind (TEXT/SYSTEM/CARD), body(1000), ref_type, ref_id, created_at | Insert-only |
-| `chat_reactions` | PK(message_id, user_id), created_at | Heart only |
+| `chat_messages` | room_id FK CASCADE, sender_user_id (NULL for SYSTEM), kind (TEXT/SYSTEM/CARD), body(1000), ref_type (ITINERARY_ITEM/EXPENSE for CARD; PHOTO for a TEXT message with a Dump photo), ref_id, created_at | Insert-only |
+| `chat_reactions` | PK(message_id, user_id), reaction (V21: HEART/HAHA/WOW/SAD/ANGRY/LIKE, default HEART), created_at | One per member; a new pick replaces it |
 | `chat_read_markers` | PK(room_id, user_id), last_read_at | Unread badge + "new" divider |
 | `couple_saved_ideas` | PK(room_id, idea_key), saved_by, created_at | Catalog is the `CoupleIdea` enum |
 | `notification_preferences` | user_id PK, 7 BOOLEAN toggles, updated_at | Missing row = defaults |

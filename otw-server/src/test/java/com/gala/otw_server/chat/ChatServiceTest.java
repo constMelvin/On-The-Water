@@ -8,8 +8,12 @@ import com.gala.otw_server.chat.repository.ChatMessageRepository;
 import com.gala.otw_server.chat.repository.ChatReactionRepository;
 import com.gala.otw_server.chat.repository.ChatReadMarkerRepository;
 import com.gala.otw_server.common.DomainExceptions.ChatMessageNotFoundException;
+import com.gala.otw_server.common.DomainExceptions.InvalidPhotoReferenceException;
+import com.gala.otw_server.common.DomainExceptions.InvalidRequestException;
 import com.gala.otw_server.common.DomainExceptions.TooManyRequestsException;
 import com.gala.otw_server.common.PageResponse;
+import com.gala.otw_server.photo.entity.Photo;
+import com.gala.otw_server.photo.repository.PhotoRepository;
 import com.gala.otw_server.chat.service.ChatService;
 import com.gala.otw_server.ratelimit.RateLimiterService;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
@@ -39,6 +43,7 @@ class ChatServiceTest {
     @Mock private ChatReadMarkerRepository markerRepo;
     @Mock private RateLimiterService rateLimiter;
     @Mock private RealtimeEventPublisher realtime;
+    @Mock private PhotoRepository photoRepo;
 
     private ChatService chatService;
 
@@ -47,7 +52,7 @@ class ChatServiceTest {
 
     @BeforeEach
     void setUp() {
-        chatService = new ChatService(messageRepo, reactionRepo, markerRepo, rateLimiter, realtime);
+        chatService = new ChatService(messageRepo, reactionRepo, markerRepo, rateLimiter, realtime, photoRepo);
     }
 
     private ChatMessage message(UUID sender, String body, OffsetDateTime at) {
@@ -102,16 +107,22 @@ class ChatServiceTest {
         ChatMessage oldest = message(null, "Alex joined the gala.", now.minusMinutes(2));
         when(messageRepo.findPage(eq(roomId), eq(com.gala.otw_server.common.CursorBounds.NEWEST), isNull(), any())).thenReturn(List.of(newest, older, oldest));
         when(reactionRepo.countByMessageIds(List.of(newest.getId(), older.getId())))
-                .thenReturn(List.<Object[]>of(new Object[]{newest.getId(), 2L}));
-        when(reactionRepo.findReactedMessageIds(List.of(newest.getId(), older.getId()), me))
-                .thenReturn(List.of(newest.getId()));
+                .thenReturn(List.<Object[]>of(
+                        new Object[]{newest.getId(), ReactionType.HEART, 2L},
+                        new Object[]{newest.getId(), ReactionType.HAHA, 1L}));
+        when(reactionRepo.findMyReactions(List.of(newest.getId(), older.getId()), me))
+                .thenReturn(List.<Object[]>of(new Object[]{newest.getId(), ReactionType.HEART}));
 
         PageResponse<ChatMessageDto> page = chatService.getMessages(roomId, me, null, 2);
 
         assertThat(page.items()).extracting(ChatMessageDto::body).containsExactly("Check the Gastos tab.", "Magkano ba?");
         assertThat(page.items().get(0).heartCount()).isEqualTo(2);
         assertThat(page.items().get(0).reactedByMe()).isTrue();
+        assertThat(page.items().get(0).reactions())
+                .containsEntry(ReactionType.HEART, 2L).containsEntry(ReactionType.HAHA, 1L);
+        assertThat(page.items().get(0).myReaction()).isEqualTo(ReactionType.HEART);
         assertThat(page.items().get(1).heartCount()).isZero();
+        assertThat(page.items().get(1).myReaction()).isNull();
         assertThat(page.nextCursor()).isEqualTo(older.getId().toString());
     }
 
@@ -120,8 +131,9 @@ class ChatServiceTest {
     void heart() {
         ChatMessage m = message(UUID.randomUUID(), "hi", OffsetDateTime.now());
         when(messageRepo.findByIdAndRoomId(m.getId(), roomId)).thenReturn(Optional.of(m));
-        when(reactionRepo.existsById(any())).thenReturn(false);
-        when(reactionRepo.countByIdMessageId(m.getId())).thenReturn(1L);
+        when(reactionRepo.findById(any())).thenReturn(Optional.empty());
+        when(reactionRepo.countByMessageIds(List.of(m.getId())))
+                .thenReturn(List.<Object[]>of(new Object[]{m.getId(), ReactionType.HEART, 1L}));
 
         ChatMessageDto dto = chatService.setHeart(roomId, m.getId(), me, true);
 
@@ -129,6 +141,44 @@ class ChatServiceTest {
         assertThat(dto.reactedByMe()).isTrue();
         verify(reactionRepo).save(any(ChatReaction.class));
         verify(realtime).publish(eq(roomId), eq("chat.reaction.changed"), any());
+    }
+
+    @Test
+    @DisplayName("setReaction replaces my existing reaction instead of adding a second one")
+    void reactionReplaces() {
+        ChatMessage m = message(UUID.randomUUID(), "hi", OffsetDateTime.now());
+        when(messageRepo.findByIdAndRoomId(m.getId(), roomId)).thenReturn(Optional.of(m));
+        ChatReaction mine = new ChatReaction(new ChatReactionId(m.getId(), me), ReactionType.HEART);
+        when(reactionRepo.findById(any())).thenReturn(Optional.of(mine));
+        when(reactionRepo.countByMessageIds(List.of(m.getId())))
+                .thenReturn(List.<Object[]>of(new Object[]{m.getId(), ReactionType.HAHA, 1L}));
+
+        ChatMessageDto dto = chatService.setReaction(roomId, m.getId(), me, ReactionType.HAHA);
+
+        assertThat(mine.getReaction()).isEqualTo(ReactionType.HAHA);
+        assertThat(dto.myReaction()).isEqualTo(ReactionType.HAHA);
+        assertThat(dto.reactions()).containsOnlyKeys(ReactionType.HAHA);
+        assertThat(dto.reactedByMe()).isFalse();
+        verify(reactionRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("setReaction(null) removes my reaction and broadcasts a null reaction")
+    void reactionRemoved() {
+        ChatMessage m = message(UUID.randomUUID(), "hi", OffsetDateTime.now());
+        when(messageRepo.findByIdAndRoomId(m.getId(), roomId)).thenReturn(Optional.of(m));
+        ChatReaction mine = new ChatReaction(new ChatReactionId(m.getId(), me), ReactionType.WOW);
+        when(reactionRepo.findById(any())).thenReturn(Optional.of(mine));
+        when(reactionRepo.countByMessageIds(List.of(m.getId()))).thenReturn(List.of());
+
+        ChatMessageDto dto = chatService.setReaction(roomId, m.getId(), me, null);
+
+        verify(reactionRepo).delete(mine);
+        assertThat(dto.myReaction()).isNull();
+        assertThat(dto.reactions()).isEmpty();
+        verify(realtime).publish(eq(roomId), eq("chat.reaction.changed"),
+                argThat(p -> p instanceof java.util.Map<?, ?> map
+                        && map.containsKey("reaction") && map.get("reaction") == null));
     }
 
     @Test
@@ -170,5 +220,96 @@ class ChatServiceTest {
         assertThat(dto.count()).isZero();
         assertThat(dto.firstUnreadId()).isNull();
         verify(messageRepo, never()).findFirstUnread(any(), any(), any(), any());
+    }
+
+    // ── Photo messages ────────────────────────────────────────────────────────
+
+    private Photo photo(UUID uploadedBy, String status) {
+        Photo p = mock(Photo.class);
+        lenient().when(p.getUploadedBy()).thenReturn(uploadedBy);
+        lenient().when(p.getStatus()).thenReturn(status);
+        lenient().when(p.getDriveFileId()).thenReturn("drive-1");
+        lenient().when(p.getMimeType()).thenReturn("image/jpeg");
+        return p;
+    }
+
+    private void saveEchoes() {
+        when(messageRepo.save(any(ChatMessage.class))).thenAnswer(inv -> {
+            ChatMessage m = inv.getArgument(0);
+            m.setId(UUID.randomUUID());
+            m.setCreatedAt(OffsetDateTime.now());
+            return m;
+        });
+        when(markerRepo.findById(any())).thenReturn(Optional.empty());
+    }
+
+    @Test
+    @DisplayName("send with my own Dump photo stores a PHOTO ref, allows an empty caption and returns the photo")
+    void sendPhoto() {
+        UUID photoId = UUID.randomUUID();
+        Photo p = photo(me, "READY");
+        when(photoRepo.findByIdAndRoom_Id(photoId, roomId)).thenReturn(Optional.of(p));
+        saveEchoes();
+
+        ChatMessageDto dto = chatService.send(roomId, me, new SendMessageRequest("   ", photoId));
+
+        assertThat(dto.body()).isEmpty();
+        assertThat(dto.refType()).isEqualTo("PHOTO");
+        assertThat(dto.refId()).isEqualTo(photoId);
+        assertThat(dto.photo()).isEqualTo(new ChatMessageDto.ChatPhotoDto("drive-1", "image/jpeg"));
+        verify(realtime).publish(eq(roomId), eq("chat.message.created"), any());
+    }
+
+    @Test
+    @DisplayName("send rejects a photo that someone else uploaded")
+    void sendPhotoNotMine() {
+        UUID photoId = UUID.randomUUID();
+        Photo p = photo(UUID.randomUUID(), "READY");
+        when(photoRepo.findByIdAndRoom_Id(photoId, roomId)).thenReturn(Optional.of(p));
+
+        assertThatThrownBy(() -> chatService.send(roomId, me, new SendMessageRequest("look", photoId)))
+                .isInstanceOf(InvalidPhotoReferenceException.class);
+        verify(messageRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("send rejects a photo from another gala")
+    void sendPhotoOtherRoom() {
+        UUID photoId = UUID.randomUUID();
+        when(photoRepo.findByIdAndRoom_Id(photoId, roomId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> chatService.send(roomId, me, new SendMessageRequest(null, photoId)))
+                .isInstanceOf(InvalidPhotoReferenceException.class);
+        verify(messageRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("send without a photo still needs text")
+    void sendEmpty() {
+        assertThatThrownBy(() -> chatService.send(roomId, me, new SendMessageRequest("   ")))
+                .isInstanceOf(InvalidRequestException.class);
+        verify(messageRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("getMessages attaches existing photos and leaves deleted ones null")
+    void getMessagesWithPhotos() {
+        UUID kept = UUID.randomUUID();
+        UUID gone = UUID.randomUUID();
+        ChatMessage a = message(me, "", OffsetDateTime.now());
+        a.setRefType("PHOTO");
+        a.setRefId(kept);
+        ChatMessage b = message(me, "", OffsetDateTime.now().minusMinutes(1));
+        b.setRefType("PHOTO");
+        b.setRefId(gone);
+        when(messageRepo.findPage(eq(roomId), any(), any(), any())).thenReturn(List.of(a, b));
+        Photo p = photo(me, "READY");
+        when(p.getId()).thenReturn(kept);
+        when(photoRepo.findByRoom_IdAndIdIn(eq(roomId), anyCollection())).thenReturn(List.of(p));
+
+        PageResponse<ChatMessageDto> page = chatService.getMessages(roomId, me, null, 50);
+
+        assertThat(page.items().get(0).photo()).isNotNull();
+        assertThat(page.items().get(1).photo()).isNull();
     }
 }

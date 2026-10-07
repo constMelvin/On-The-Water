@@ -112,6 +112,12 @@
   background: var(--rosy);
   color: var(--cream);
 }
+.jump {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 6px 0;
+}
 .mapstat {
   display: flex;
   gap: 8px;

@@ -3,7 +3,7 @@
 /**
  * Chismis (group chat) tab. Reference: src/proto2.js views.chat, chat-*.png.
  * Data is GET /rooms/{roomId}/chat/messages (newest first, 30 a page; "Load earlier" pages back).
- * Sending, hearts and system / card lines (written by the server, e.g. "Sam changed their status
+ * Sending (text, or a photo that also lands in the Gala Dump), reactions and system / card lines (written by the server, e.g. "Sam changed their status
  * to I'm G.") arrive for everyone over realtime chat.* on room:{roomId}.
  *
  * Unread: GET .../chat/unread when the tab opens freezes where the "N new" divider goes for this
@@ -17,9 +17,10 @@ import { useGala } from '@/lib/otw/gala-store';
 import { toast } from '@/lib/otw/feedback';
 import { featureKey } from '@/lib/otw/live';
 import { useTabState } from '@/lib/otw/gala-queries';
-import { getChatPage, getChatUnread, markChatRead, sendChat, setHeart } from '@/lib/api/gala';
+import { getChatPage, getChatUnread, markChatRead, registerPhoto, sendChat, setReaction, startPhotoUpload } from '@/lib/api/gala';
 import type { Page } from '@/lib/api/rooms';
-import type { ChatMessageVM, UnreadVM } from '@/lib/api/types';
+import type { ChatMessageVM, ReactionType, UnreadVM } from '@/lib/api/types';
+import { uploadToDrive } from '@/lib/otw/drive';
 import { StateGate } from '../States';
 import { PinnedPlan } from './PinnedPlan';
 import { MessageList } from './MessageList';
@@ -43,7 +44,8 @@ const patchMessage = (data: ChatPages | undefined, id: string, fn: (m: ChatMessa
 const CHAT_POLL_MS = 3_000;
 
 export function Chat({ code }: { code: string }) {
-  const { members, nameOf, roomId, myUserId, live, summary, setViewState } = useGala();
+  const { members, nameOf, roomId, myUserId, live, summary, setViewState, room, role } = useGala();
+  const canAddPhotos = role === 'leader' || !!room?.permissions.membersCanAddPhotos;
   const qc = useQueryClient();
   const key = featureKey(roomId, 'chat');
 
@@ -118,44 +120,62 @@ export function Chat({ code }: { code: string }) {
     forceScroll.current = false;
   }, [newestId, state]);
 
+  /** Puts a message I just sent at the bottom (realtime may have delivered it already). */
+  const addMine = useCallback(
+    (msg: ChatMessageVM) =>
+      qc.setQueryData<ChatPages>(key, (data) => {
+        if (!data?.pages.length || data.pages.some((p) => p.items.some((m) => m.id === msg.id))) return data;
+        const [first, ...rest] = data.pages;
+        return { ...data, pages: [{ ...first, items: [msg, ...first.items] }, ...rest] };
+      }),
+    // key is derived from roomId.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [roomId, qc]
+  );
+  const sendFailed = (e: unknown, fallback: string) =>
+    toast(e instanceof Error && e.message ? e.message : fallback, 'err');
+
   const onSend = useCallback(
     (text: string) => {
       const body = text.trim();
       if (!body || !roomId) return false;
       forceScroll.current = true;
       sendChat(roomId, body)
-        .then((msg) => {
-          qc.setQueryData<ChatPages>(key, (data) => {
-            if (!data?.pages.length || data.pages.some((p) => p.items.some((m) => m.id === msg.id))) return data;
-            const [first, ...rest] = data.pages;
-            return { ...data, pages: [{ ...first, items: [msg, ...first.items] }, ...rest] };
-          });
-        })
-        .catch((e: unknown) =>
-          toast(e instanceof Error && e.message ? e.message : "Your message didn't send. Try again.", 'err')
-        );
+        .then(addMine)
+        .catch((e: unknown) => sendFailed(e, "Your message didn't send. Try again."));
       return true;
     },
-    // key is derived from roomId.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [roomId, qc]
+    [roomId, addMine]
   );
 
-  const onHeart = (id: string) => {
+  /** Photo: upload to the gala's Drive folder, register it in the Dump, then post it in the chat. */
+  const onSendPhoto = async (file: File, caption: string) => {
+    if (!roomId) return false;
+    try {
+      const driveFileId = await uploadToDrive(file, (f) => startPhotoUpload(roomId, f).then((r) => r.uploadUrl));
+      const photo = await registerPhoto(roomId, driveFileId, caption.trim() || null);
+      forceScroll.current = true;
+      addMine(await sendChat(roomId, caption.trim(), photo.id));
+      return true;
+    } catch (e) {
+      sendFailed(e, "Your photo didn't send. Try again.");
+      return false;
+    }
+  };
+
+  /** Sets my reaction (null removes it). Instant locally; the server's counts replace it. */
+  const onReact = (id: string, reaction: ReactionType | null) => {
     if (!roomId) return;
-    const m = messages.find((x) => x.id === id);
-    if (!m) return;
-    const hearted = !m.reactedByMe;
-    // Instant locally; the server's count replaces it.
     qc.setQueryData<ChatPages>(key, (data) =>
-      patchMessage(data, id, (x) => ({
-        ...x,
-        reactedByMe: hearted,
-        heartCount: Math.max(0, x.heartCount + (hearted ? 1 : -1)),
-      }))
+      patchMessage(data, id, (x) => {
+        const reactions = { ...x.reactions };
+        if (x.myReaction) reactions[x.myReaction] = Math.max(0, (reactions[x.myReaction] ?? 1) - 1);
+        if (reaction) reactions[reaction] = (reactions[reaction] ?? 0) + 1;
+        return { ...x, reactions, myReaction: reaction };
+      })
     );
-    setHeart(roomId, id, hearted)
-      .then((saved) => qc.setQueryData<ChatPages>(key, (data) => patchMessage(data, id, () => saved)))
+    setReaction(roomId, id, reaction)
+      .then((saved) => qc.setQueryData<ChatPages>(key, (data) => patchMessage(data, id, (x) => ({ ...saved, photo: x.photo }))))
       .catch(() => {
         toast("Couldn't react to that message.", 'err');
         void qc.invalidateQueries({ queryKey: key });
@@ -210,10 +230,10 @@ export function Chat({ code }: { code: string }) {
               myUserId={myUserId ?? ''}
               firstUnreadId={divider?.count ? divider.firstUnreadId : null}
               unreadCount={divider?.count ?? 0}
-              onHeart={onHeart}
+              onReact={onReact}
             />
           </div>
-          <Composer onSend={onSend} inputRef={inputRef} />
+          <Composer onSend={onSend} onSendPhoto={onSendPhoto} canAddPhotos={canAddPhotos} inputRef={inputRef} />
         </div>
         <ChatSide stops={stops} />
       </div>

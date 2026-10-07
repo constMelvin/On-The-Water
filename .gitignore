@@ -114,6 +114,9 @@ $RECYCLE.BIN/
 .superpowers/
 .claude/worktrees/
 .claude/*.local
+.claude/skills/
+.agents/skills/
+skills-lock.json
 
 # ==============================================================================
 # Obsidian & Documentation Vault
