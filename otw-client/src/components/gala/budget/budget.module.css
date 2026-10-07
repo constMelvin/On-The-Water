@@ -35,7 +35,7 @@
 .peso {
   position: relative;
   /* shrinks on phones so the label + icon still fit beside it */
-  width: clamp(112px, 42%, 150px);
+  width: clamp(124px, 42%, 150px);
   flex: none;
 }
 .peso i {
@@ -49,7 +49,23 @@
   pointer-events: none;
 }
 .peso :global(.in) {
-  padding-left: 30px;
+  /* tight sides so a full amount (e.g. 12500.50) stays readable in the narrow phone field */
+  padding-left: 28px;
+  padding-right: 10px;
+}
+/* no spinner arrows: Chrome reserves their width even when hidden, which clips the amount */
+.peso :global(.in) {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.peso :global(.in)::-webkit-inner-spin-button,
+.peso :global(.in)::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.label {
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 /* ---- chunky borders: solid 3px + a flat offset shadow in the card's own tone (the global ones are pale) ---- */

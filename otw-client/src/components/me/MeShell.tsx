@@ -30,31 +30,35 @@ export function MeShell({ active, children }: { active: Page; children: ReactNod
             <b>OTW</b>
           </Link>
           <div className={styles.topActions}>
-            <ThemeToggle />
-            {signedIn && (
-              <Link
-                href="/me/profile"
-                className={profile.me}
-                aria-label="Your profile"
-                aria-current={active === 'profile' ? 'page' : undefined}
-              >
-                <Avatar name={name} tone={tone ?? 'rosy'} size={32} userId={id} />
-                <span className={profile.meName}>Hi, {name}</span>
+            <div className={styles.topMe}>
+              <ThemeToggle />
+              {signedIn && (
+                <Link
+                  href="/me/profile"
+                  className={profile.me}
+                  aria-label="Your profile"
+                  aria-current={active === 'profile' ? 'page' : undefined}
+                >
+                  <Avatar name={name} tone={tone ?? 'rosy'} size={32} userId={id} />
+                  <span className={profile.meName}>Hi, {name}</span>
+                </Link>
+              )}
+            </div>
+            <nav className={styles.topNav} aria-label="Account pages">
+              {PAGES.filter((p) => p.page !== active).map((p) => (
+                <Link key={p.page} className={`btn sm ghost ${styles.navLink}`} href={p.href}>
+                  {p.label}
+                </Link>
+              ))}
+              <Link className="btn sm ghost" href="/">
+                Back to OTW
               </Link>
-            )}
-            {PAGES.filter((p) => p.page !== active).map((p) => (
-              <Link key={p.page} className={`btn sm ghost ${styles.navLink}`} href={p.href}>
-                {p.label}
-              </Link>
-            ))}
-            <Link className="btn sm ghost" href="/">
-              Back to OTW
-            </Link>
-            {signedIn && (
-              <Button sm variant="cream" onClick={logOut}>
-                <Icon name="back" size={16} /> Log out
-              </Button>
-            )}
+              {signedIn && (
+                <Button sm variant="cream" onClick={logOut}>
+                  <Icon name="back" size={16} /> Log out
+                </Button>
+              )}
+            </nav>
           </div>
         </header>
         {children}

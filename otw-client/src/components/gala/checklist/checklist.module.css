@@ -103,3 +103,19 @@
     min-height: 64px;
   }
 }
+
+/* very small phones (~320px): tighter row so the label isn't squeezed to a few letters per line */
+@media (max-width: 380px) {
+  .crow {
+    gap: 8px;
+    padding: 10px;
+  }
+  .ct {
+    font-size: 16px;
+    overflow-wrap: break-word;
+  }
+  .crow > :global(.ibtn) {
+    width: 32px;
+    flex: none;
+  }
+}

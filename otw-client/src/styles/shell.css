@@ -126,6 +126,9 @@
   }
   .tb-l,
   .tb-r { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  /* A long gala title ellipsizes; the right-side buttons never get pushed off-screen. */
+  .tb-l { flex: 1 1 auto; }
+  .tb-r { flex: none; }
   .tb-t {
     font-family: var(--fd);
     font-weight: 600;

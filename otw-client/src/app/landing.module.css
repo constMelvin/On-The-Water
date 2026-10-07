@@ -1169,6 +1169,36 @@
   }
 }
 
+/* small phones (~320-400px): give the stop text room instead of a 4-word-per-line column */
+@media (max-width: 400px) {
+  .how {
+    padding-inline: 16px;
+  }
+
+  .stop {
+    column-gap: 8px;
+  }
+
+  .stopLeft .stopCard,
+  .stopRight .stopCard {
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .stopIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stopCard h3 {
+    font-size: 17px;
+  }
+
+  .stopCard p {
+    font-size: 13px;
+  }
+}
+
 /* ---- FEATURES : full teal bleed, blossom blob cards ---- */
 .features {
   background: var(--teal);

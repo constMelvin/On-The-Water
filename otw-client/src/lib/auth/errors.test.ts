@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { authErrorMessage } from './errors';
+import { EXISTING_ACCOUNT_MESSAGE, authErrorMessage, isExistingAccountSignUp } from './errors';
 
 describe('authErrorMessage', () => {
   it('maps wrong credentials without revealing which field was wrong', () => {
     expect(authErrorMessage({ code: 'invalid_credentials' })).toBe('That email and password don’t match. Try again.');
   });
   it('maps an existing account', () => {
-    expect(authErrorMessage({ code: 'user_already_exists' })).toMatch(/already has an account/i);
-    expect(authErrorMessage({ code: 'email_exists' })).toMatch(/already has an account/i);
+    expect(authErrorMessage({ code: 'user_already_exists' })).toMatch(/may account na/i);
+    expect(authErrorMessage({ code: 'email_exists' })).toMatch(/may account na/i);
   });
   it('maps weak passwords and rate limits', () => {
     expect(authErrorMessage({ code: 'weak_password' })).toMatch(/stronger password/i);
@@ -35,5 +35,19 @@ describe('authErrorMessage', () => {
   });
   it('says when the network is down', () => {
     expect(authErrorMessage({ message: 'Failed to fetch' })).toMatch(/can’t reach otw/i);
+  });
+});
+
+describe('isExistingAccountSignUp', () => {
+  it('flags the placeholder user Supabase returns for a taken email', () => {
+    expect(isExistingAccountSignUp({ identities: [] })).toBe(true);
+  });
+  it('lets a real new sign-up through', () => {
+    expect(isExistingAccountSignUp({ identities: [{ provider: 'email' }] })).toBe(false);
+    expect(isExistingAccountSignUp(null)).toBe(false);
+    expect(isExistingAccountSignUp({})).toBe(false);
+  });
+  it('uses the existing-account copy', () => {
+    expect(EXISTING_ACCOUNT_MESSAGE).toMatch(/may account na/i);
   });
 });

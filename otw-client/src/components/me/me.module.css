@@ -37,6 +37,31 @@
   gap: 10px;
 }
 
+.topMe,
+.topNav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Phones: logo + theme + me on one row, the page links on their own row underneath. */
+@media (max-width: 639px) {
+  .top {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+
+  .topActions {
+    display: contents;
+  }
+
+  .topNav {
+    flex: 1 1 100%;
+    gap: 8px;
+  }
+}
+
 .who {
   font-weight: 800;
   max-width: 200px;

@@ -22,7 +22,9 @@
   align-items: flex-start;
   min-width: 0;
 }
-.cols :global(.card) > * {
+.cols :global(.card) > *,
+/* the details form is display: contents, so its fields are the card's flex items too */
+.cols :global(.card) > form > * {
   width: 100%;
 }
 .cols :global(.card) :global(.btn),

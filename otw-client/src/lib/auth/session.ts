@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/api/supabase';
 import { getQueryClient } from '@/providers';
-import { authErrorMessage } from './errors';
+import { EXISTING_ACCOUNT_MESSAGE, authErrorMessage, isExistingAccountSignUp } from './errors';
 
 export interface AccountState {
   /** undefined while the session is being read (server render + hydration), then true / false. */
@@ -66,6 +66,7 @@ export async function signUp(name: string, email: string, password: string): Pro
     options: { data: { name: name.trim() }, emailRedirectTo: confirmRedirect() },
   });
   if (error) throw new Error(authErrorMessage(error));
+  if (isExistingAccountSignUp(data.user)) throw new Error(EXISTING_ACCOUNT_MESSAGE);
   return data.session ? 'signed-in' : 'confirm-email';
 }
 

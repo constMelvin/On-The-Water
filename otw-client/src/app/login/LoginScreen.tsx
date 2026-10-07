@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Icon } from '@/components/otw';
+import { EXISTING_ACCOUNT_MESSAGE } from '@/lib/auth/errors';
 import { resendConfirmation, signIn, signUp, useAccount } from '@/lib/auth/session';
 import { burstEl, toast } from '@/lib/otw/feedback';
 import styles from './login.module.css';
@@ -273,7 +274,24 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
               {error && (
                 <p className="ferr" role="alert">
                   <Icon name="alert" size={18} />
-                  {error}
+                  <span>
+                    {error}
+                    {create && error === EXISTING_ACCOUNT_MESSAGE && (
+                      <>
+                        {' '}
+                        <button
+                          type="button"
+                          className="lnk"
+                          onClick={() => {
+                            setPassword('');
+                            switchTab('login');
+                          }}
+                        >
+                          Log in
+                        </button>
+                      </>
+                    )}
+                  </span>
                 </p>
               )}
 
