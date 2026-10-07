@@ -35,7 +35,7 @@ export function Avatar({ name, tone, size = 36, online, className, photo, userId
       title={name}
     >
       {img ? (
-        // eslint-disable-next-line @next/next/no-img-element -- a tiny data URL, nothing to optimise
+        // Plain <img>: a tiny data URL, nothing for next/image to optimise.
         <img
           src={img}
           alt=""

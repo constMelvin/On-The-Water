@@ -134,7 +134,7 @@ export function searchPlaces(q: string, signal?: AbortSignal): Promise<Place[]> 
 /** The place name at a map point (for "Pick on map"). */
 export async function placeAt(lat: number, lng: number): Promise<Place> {
   const url = `${BASE}/reverse?format=jsonv2&addressdetails=1&zoom=14&accept-language=en&lat=${lat}&lon=${lng}`;
-  let r: (NominatimResult & { error?: string }) | null = null;
+  let r: (NominatimResult & { error?: string }) | null;
   try {
     r = await fetchJson<NominatimResult & { error?: string }>(url);
   } catch {
