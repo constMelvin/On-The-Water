@@ -22,8 +22,8 @@
   gap: 12px;
 }
 .row :global(.ico) {
-  background: var(--blossom);
-  color: var(--teal-dark);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .label {
@@ -52,17 +52,119 @@
   padding-left: 30px;
 }
 
+/* ---- chunky borders: solid 3px + a flat offset shadow in the card's own tone (the global ones are pale) ---- */
+.cTeal {
+  border-color: var(--teal);
+  box-shadow: 0 6px 0 var(--teal-dark);
+}
+.cZest {
+  border-color: var(--zest);
+  box-shadow: 0 6px 0 var(--zest-dark);
+}
+.cRosy {
+  border-color: var(--rosy);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+}
+.rows :global(.in) {
+  box-shadow: 0 4px 0 var(--teal-dark);
+}
+.rows :global(.in:focus) {
+  border-color: var(--rosy);
+  box-shadow: 0 4px 0 var(--rosy-dark);
+}
+
+/* ---- custom categories (kept on this device) ---- */
+.acts {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+.acts :global(.ibtn) {
+  width: 32px;
+  height: 32px;
+}
+.addrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border: 3px dashed var(--teal);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+}
+.addrow:hover {
+  background: var(--surface-2);
+}
+.addform {
+  align-items: flex-start;
+}
+.addform :global(.ico) {
+  margin-top: 6px;
+}
+.cform {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ipick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ipb {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 3px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.ipOn {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: var(--cream);
+  box-shadow: 0 3px 0 var(--teal-dark);
+}
+.ipb:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.cbtns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cerr {
+  margin: 0;
+  color: var(--rosy-ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
 .people {
   margin-top: 8px;
   padding-top: 12px;
-  border-top: 3px dashed var(--blossom);
+  border-top: 3px dashed var(--line);
 }
 
 .stepper {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--blossom);
+  background: var(--surface-2);
   border-radius: 99px;
   padding: 2px;
   flex: none;
@@ -100,7 +202,7 @@
   height: 22px;
   border-radius: 99px;
   overflow: hidden;
-  background: var(--blossom);
+  background: var(--surface-2);
 }
 .split i {
   display: block;
@@ -131,6 +233,12 @@
 .legend b {
   margin-left: auto;
 }
+.lname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Category colors (reference BCOL), shared by the bar segments and the legend dots. */
 .teal { background: var(--teal); }
@@ -138,6 +246,22 @@
 .zest { background: var(--zest); }
 .blossom { background: var(--blossom); box-shadow: inset 0 0 0 2px var(--teal-dark); }
 .tealDark { background: var(--teal-dark); }
+
+/* Custom categories: two unused brand colours first, then the five again with a cream stripe (see categories.ts). */
+.rosyDark { background: var(--rosy-dark); }
+.zestDark { background: var(--zest-dark); }
+.sTeal,
+.sRosy,
+.sZest,
+.sBlossom,
+.sTealDark {
+  --stripes: repeating-linear-gradient(45deg, rgba(255, 248, 242, 0.55) 0 3px, transparent 3px 6px);
+}
+.sTeal { background: var(--stripes), var(--teal); }
+.sRosy { background: var(--stripes), var(--rosy); }
+.sZest { background: var(--stripes), var(--zest); }
+.sBlossom { background: var(--stripes), var(--blossom); box-shadow: inset 0 0 0 2px var(--teal-dark); }
+.sTealDark { background: var(--stripes), var(--teal-dark); }
 
 .ambagan {
   align-self: center;

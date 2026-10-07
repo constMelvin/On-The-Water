@@ -20,7 +20,7 @@ Back to [[00-Index]] · Full `SecurityConfig` code: master plan §5.1.1
 ### Account required everywhere (2026-10-02; reverses the 2026-09-29 anonymous-first rule)
 - Supabase anonymous sessions are **rejected**. `AccountRequiredFilter` returns `401 {"code":"ACCOUNT_REQUIRED"}` for any token that is anonymous (`is_anonymous` claim) or has no `email` claim (fail-closed), on every route except public/health/docs paths. No per-endpoint annotation; new endpoints are protected by default.
 - Login is email + password via Supabase (OAuth planned; Confirm email off). "Allow anonymous sign-ins" must stay OFF in the Supabase dashboard. `@RequireAccount`, `AccountRequiredAspect` and `POST /me/link-account` are removed.
-- **Enter a Gala** (logged-in users only): `POST /rooms/enter` (Gala Code + BCrypt Gala Password) lists members; `POST /rooms/enter/claim` rebinds an unclaimed member row (legacy anonymous rows or members added before an account existed) to the caller and `MemberIdentityRemapper` moves all room-scoped user-id columns in the same transaction. `has_account` members can't be claimed (`409 MEMBER_HAS_ACCOUNT`). Rate-limited per client.
+- **Enter a Gala removed (2026-10-07):** `/rooms/enter`, `/rooms/enter/claim`, `MemberIdentityRemapper` and `MEMBER_HAS_ACCOUNT` are gone. Join a Gala is the only way in; a device that lost its room id reopens a gala from My Galas (`/me/galas`).
 
 ## Authorization: one tier (§5.2)
 **Room-scoped endpoints**, cheapest check first:
@@ -54,4 +54,4 @@ Implementation:
 | View another room's data | ❌ | ❌ |
 
 ## RLS (§5.4)
-RLS policies on **every** table must independently enforce room membership as defense in depth, in case anything ever queries Supabase directly. Per-user tables (`chat_read_markers`, `notification_preferences`, `notifications`) use `user_id = auth.uid()`.
+RLS policies on **every** table must independently enforce room membership as defense in depth, in case anything ever queries Supabase directly. Per-user tables (`chat_read_markers`, `notification_preferences`, `notifications`, `user_profiles`) use `user_id = auth.uid()`.

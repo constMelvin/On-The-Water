@@ -3,7 +3,7 @@
 /**
  * Gala state for everything inside /gala/[code], loaded from the OTW backend:
  * GET /rooms/{id}, /rooms/{id}/members and /rooms/{id}/summary. The room id comes from
- * this device's code -> roomId map (written by Plan / Join / Enter a Gala); "me" is the
+ * this device's code -> roomId map (written by Plan / Join / My Galas); "me" is the
  * member row whose userId is this device's Supabase user.
  * Data refreshes live over the room:{roomId} realtime channel (lib/otw/live.ts), and falls
  * back to polling every 15 s (plus on window focus) while that channel is down.
@@ -59,7 +59,7 @@ export type SheetKey = 'more' | 'share' | 'account';
 export type ViewState = 'default' | 'loading' | 'empty' | 'error' | 'offline';
 /**
  * loading = talking to the backend; missing = unknown code; guest = this device isn't a
- * member (goes to Enter a Gala); error = backend unreachable or failed; ready = in.
+ * member (goes to My Galas); error = backend unreachable or failed; ready = in.
  */
 export type LoadStatus = 'loading' | 'missing' | 'guest' | 'error' | 'ready';
 
@@ -183,8 +183,8 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const summaryQ = useQuery({ queryKey: featureKey(roomId ?? null, 'summary'), queryFn: () => getSummary(roomId!), ...opts });
   const userQ = useQuery({ queryKey: ['me'], queryFn: currentUserId, enabled, staleTime: Infinity });
 
-  // The backend says this device isn't in the gala (removed, left, or someone reclaimed
-  // the member): forget the stale room id so the gate sends me to Enter a Gala.
+  // The backend says this device isn't in the gala (removed or left): forget the stale
+  // room id so the gate sends me to My Galas.
   const notMember = isApiError(roomQ.error) && (roomQ.error.status === 403 || roomQ.error.code === 'NOT_A_ROOM_MEMBER');
   useEffect(() => {
     if (notMember) forgetRoom(code);

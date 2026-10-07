@@ -70,20 +70,6 @@ public class RoomController {
         return roomService.joinRoom(currentUser.getUserId(), !currentUser.isAnonymous(), req);
     }
 
-    // ── POST /rooms/enter — Enter a Gala: code + password ─────────────────────
-
-    @PostMapping("/api/v1/rooms/enter")
-    public EnterRoomResponse enterRoom(@Valid @RequestBody EnterRoomRequest req) {
-        return roomService.enterRoom(currentUser.getUserId(), req);
-    }
-
-    // ── POST /rooms/enter/claim — "Which one are you?" ────────────────────────
-
-    @PostMapping("/api/v1/rooms/enter/claim")
-    public RoomMemberDto claimMember(@Valid @RequestBody ClaimMemberRequest req) {
-        return roomService.claimMember(currentUser.getUserId(), !currentUser.isAnonymous(), req);
-    }
-
     // ── GET /rooms/{roomId} — room overview ───────────────────────────────────
 
     @GetMapping("/api/v1/rooms/{roomId}")

@@ -19,8 +19,6 @@ public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
     /** Active or left — UNIQUE(room_id, user_id) means there is at most one row. */
     Optional<RoomMember> findByRoom_IdAndUserId(UUID roomId, UUID userId);
 
-    Optional<RoomMember> findByIdAndRoom_Id(UUID id, UUID roomId);
-
     boolean existsByRoom_IdAndUserIdAndLeftAtIsNull(UUID roomId, UUID userId);
 
     boolean existsByRoom_IdAndNicknameIgnoreCaseAndLeftAtIsNull(UUID roomId, String nickname);
@@ -33,9 +31,6 @@ public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
 
     /** Join preview nicknames. */
     List<RoomMember> findTop12ByRoom_IdAndLeftAtIsNullOrderByJoinedAtAsc(UUID roomId);
-
-    /** "Which one are you?" picker — bounded; galas are small. */
-    List<RoomMember> findTop100ByRoom_IdAndLeftAtIsNullOrderByJoinedAtAsc(UUID roomId);
 
     /** Paginated member list for a room. */
     @Query("""

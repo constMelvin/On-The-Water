@@ -14,6 +14,12 @@ const DEFAULT_CENTER: [number, number] = [14.5995, 120.9842];
 export interface MapPickerProps {
   pin: { lat: number; lng: number } | null;
   onPick: (lat: number, lng: number) => void;
+  /** Classes for the map box (default: the 320px-tall Plan a Gala dialog map). */
+  className?: string;
+  /** Wheel zoom; turn off when the map sits inside something that scrolls. Default on. */
+  scrollWheelZoom?: boolean;
+  /** No pan / zoom animation (prefers-reduced-motion). Default off. */
+  calm?: boolean;
 }
 
 function ClickToPick({ onPick }: { onPick: MapPickerProps['onPick'] }) {
@@ -32,21 +38,30 @@ function FixSize() {
 }
 
 /** Keeps a searched place in view. */
-function Follow({ pin }: { pin: MapPickerProps['pin'] }) {
+function Follow({ pin, calm }: { pin: MapPickerProps['pin']; calm: boolean }) {
   const map = useMap();
   useEffect(() => {
-    if (pin) map.setView([pin.lat, pin.lng], Math.max(map.getZoom(), 13));
-  }, [map, pin]);
+    if (pin) map.setView([pin.lat, pin.lng], Math.max(map.getZoom(), 13), { animate: !calm });
+  }, [map, pin, calm]);
   return null;
 }
 
-export default function MapPicker({ pin, onPick }: MapPickerProps) {
+export default function MapPicker({
+  pin,
+  onPick,
+  className = 'h-[320px] w-full rounded-lg',
+  scrollWheelZoom = true,
+  calm = false,
+}: MapPickerProps) {
   return (
     <MapContainer
       center={pin ? [pin.lat, pin.lng] : DEFAULT_CENTER}
       zoom={pin ? 13 : 6}
-      scrollWheelZoom
-      className="h-[320px] w-full rounded-lg"
+      scrollWheelZoom={scrollWheelZoom}
+      zoomAnimation={!calm}
+      fadeAnimation={!calm}
+      markerZoomAnimation={!calm}
+      className={className}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -54,7 +69,7 @@ export default function MapPicker({ pin, onPick }: MapPickerProps) {
       />
       <ClickToPick onPick={onPick} />
       <FixSize />
-      <Follow pin={pin} />
+      <Follow pin={pin} calm={calm} />
       {pin && (
         <CircleMarker
           center={[pin.lat, pin.lng]}

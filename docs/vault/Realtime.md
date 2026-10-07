@@ -15,7 +15,7 @@ How it's gated: every broadcast is sent with `private: true`, and **V16** adds R
 |---|---|---|
 | `member.joined` / `member.left` | join (incl. rejoin), remove, leave | `{userId, nickname}` / `{userId}` |
 | `member.rsvp.changed` | RSVP patch | `{userId, status}` |
-| `member.reclaimed` / `member.updated` / `member.travel.changed` / `member.nudged` | Enter a Gala claim, nickname, travel status, nudge | `{memberId, userId}` / member DTO / `{userId, status}` / `{userId}` |
+| `member.updated` / `member.travel.changed` / `member.nudged` | nickname, travel status, nudge | member DTO / `{userId, status}` / `{userId}` |
 | `room.updated` / `room.code.changed` / `room.archived` / `room.restored` / `room.deleted` | gala settings | room DTO or `{roomId, …}` |
 | `itinerary.created` / `.updated` / `.deleted` / `.reordered` | itinerary write | full item DTO / `{id}` / `[{id, position, version}]` |
 | `checklist.updated` | checklist write (incl. claim, delete with `deleted: true`) | full item DTO |

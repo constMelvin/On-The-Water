@@ -60,6 +60,18 @@ export const IC = {
   home2: '<path d="M3 12l9-8 9 8"/>',
   camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
+  /* ---- additions (not in the reference) ---- */
+  // Dark mode toggle.
+  moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
+  // One character icon per itinerary stop type.
+  // Food: a steaming bowl.
+  stopFood: '<path d="M5 12h14a7 7 0 0 1-14 0z"/><path d="M9.5 21.5h5"/><path d="M9 4c-1.2 1.4 1.2 2.4 0 4M15 4c-1.2 1.4 1.2 2.4 0 4"/>',
+  // Activity: a waving pennant with a spark.
+  stopActivity: '<path d="M6 21V3"/><path d="M6 4.5c3-2 5.5 2 9 0 1.4-.8 2.6-.8 3.5-.3v7c-.9-.5-2.1-.5-3.5.3-3.5 2-6-2-9 0"/><path d="M17.5 15.5v4M15.5 17.5h4"/>',
+  // Meet-up: a pin with two friendly faces.
+  stopMeet: '<path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z"/><circle cx="9.8" cy="8.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.2" cy="8.2" r="1.3" fill="currentColor" stroke="none"/><path d="M9.4 11.6c1.5 1.2 3.7 1.2 5.2 0"/>',
+  // Custom type: a compass.
+  stopCustom: '<circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z"/><circle cx="12" cy="12" r=".9" fill="currentColor" stroke="none"/>',
 } as const;
 
 export type IconName = keyof typeof IC;

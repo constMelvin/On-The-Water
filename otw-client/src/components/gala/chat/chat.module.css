@@ -72,7 +72,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  background: var(--blossom);
+  background: var(--surface-2);
   border-radius: 99px;
   padding: 4px 14px;
   font-size: 13px;
@@ -91,7 +91,7 @@
   gap: 10px;
   font-size: 13px;
   font-weight: 800;
-  color: var(--rosy-dark);
+  color: var(--rosy-ink);
 }
 .mnew::before,
 .mnew::after {
@@ -105,7 +105,7 @@
   align-items: center;
   gap: 10px;
   align-self: flex-start;
-  background: var(--cream);
+  background: var(--surface);
   border: 3px dashed var(--teal);
   border-radius: 22px;
   padding: 8px 14px;
@@ -116,7 +116,7 @@
   flex-direction: column;
 }
 .mcard :global(.ico) {
-  background: var(--blossom);
+  background: var(--surface-2);
 }
 .mcard span {
   font-weight: 600;
@@ -134,7 +134,7 @@
 }
 
 .mb {
-  background: var(--blossom);
+  background: var(--surface-2);
   border-radius: 24px 24px 24px 8px;
   padding: 8px 14px;
   position: relative;
@@ -172,9 +172,9 @@
   display: inline-flex;
   gap: 3px;
   align-items: center;
-  background: var(--cream);
-  color: var(--teal-dark);
-  border: 3px solid var(--blossom);
+  background: var(--surface);
+  color: var(--text);
+  border: 3px solid var(--line);
   border-radius: 99px;
   padding: 0 8px;
   height: 26px;
@@ -209,7 +209,7 @@
 
 /* ---- right panel (desktop only) ---- */
 .chatside {
-  border-left: 3px solid var(--blossom);
+  border-left: 3px solid var(--line);
   padding: 16px;
   display: flex;
   flex-direction: column;

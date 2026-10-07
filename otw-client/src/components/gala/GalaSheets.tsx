@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Button, Icon, Sheet, blob } from '@/components/otw';
+import { Avatar, Button, Icon, Sheet, blob } from '@/components/otw';
+import { useMyIdentity } from '@/components/me/useMyIdentity';
 import { useGala } from '@/lib/otw/gala-store';
 import { toast } from '@/lib/otw/feedback';
 import { MORE, galaHref } from './nav';
@@ -13,6 +14,7 @@ export function GalaSheets() {
   const { sheet, closeSheet, gala } = useGala();
   const copyCode = useCopyCode();
   const logOut = useLogOut();
+  const me = useMyIdentity();
 
   if (sheet === 'more') {
     return (
@@ -32,6 +34,12 @@ export function GalaSheets() {
             </span>
             My Galas
           </Link>
+          <Link href="/me/profile" className="mo" onClick={closeSheet}>
+            <span className="ico" style={{ ...blob(MORE.length + 1), background: 'transparent' }}>
+              <Avatar name={me.name} tone={me.tone ?? 'rosy'} size={40} userId={me.id} />
+            </span>
+            Profile
+          </Link>
           <button
             type="button"
             className="mo"
@@ -40,7 +48,7 @@ export function GalaSheets() {
               logOut();
             }}
           >
-            <span className="ico" style={blob(MORE.length + 1)}>
+            <span className="ico" style={blob(MORE.length + 2)}>
               <Icon name="back" size={24} />
             </span>
             Log out

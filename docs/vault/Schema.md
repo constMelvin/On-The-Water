@@ -33,11 +33,12 @@ All `id` columns are `UUID DEFAULT gen_random_uuid()`. All timestamps are `TIMES
 | `chat_read_markers` | PK(room_id, user_id), last_read_at | Unread badge + "new" divider |
 | `couple_saved_ideas` | PK(room_id, idea_key), saved_by, created_at | Catalog is the `CoupleIdea` enum |
 | `notification_preferences` | user_id PK, 7 BOOLEAN toggles, updated_at | Missing row = defaults |
+| `user_profiles` | user_id PK, nickname(20), status(40), color NULL (rosy/teal/zest/blossom), photo TEXT NULL (data URL ≤65k), updated_at | V22 (2026-10-07). Keyed by JWT `sub`, no FK to `auth.users`; missing row = empty profile. Only table holding image bytes (capped) |
 | `notifications` | user_id, room_id FK CASCADE NULL, type, title(120), body(300), dedupe_key, created_at, read_at | UNIQUE(user_id, dedupe_key) makes the scheduler idempotent |
 
-There is no `users` table. Identity comes from Supabase `auth.users`, and `user_id` is taken from the JWT `sub` claim.
+There is no `users` table (the account-level `user_profiles` and `notification_preferences` are keyed by the same `sub`, not an identity table). Identity comes from Supabase `auth.users`, and `user_id` is taken from the JWT `sub` claim.
 
-**Every room-scoped user-id column must be listed in `MemberIdentityRemapper`** (Enter a Gala claim). See [[Auth]].
+(`MemberIdentityRemapper` was removed with Enter a Gala on 2026-10-07.) See [[Auth]].
 
 ## Indexes (§3.2)
 - `rooms(room_code)`: unique; used by join

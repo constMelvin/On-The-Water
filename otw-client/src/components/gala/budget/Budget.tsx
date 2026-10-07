@@ -19,7 +19,9 @@ import { toast } from '@/lib/otw/feedback';
 import { useGala } from '@/lib/otw/gala-store';
 import { featureKey } from '@/lib/otw/live';
 import { useBudget, useTabState } from '@/lib/otw/gala-queries';
-import { MAX_PEOPLE, MIN_PEOPLE, toCents, withTotals, type BudgetCategory } from '@/lib/otw/budget';
+import { MAX_PEOPLE, MIN_PEOPLE, toCents, totalWithCustom, withTotals, type BudgetCategory } from '@/lib/otw/budget';
+import { addCategory, removeCategory, updateCategory, useCustomCategories } from '@/lib/otw/budget-custom';
+import type { IconName } from '@/lib/otw/icons';
 import { saveBudget } from '@/lib/api/gala';
 import { isApiError } from '@/lib/api/client';
 import type { BudgetVM } from '@/lib/api/types';
@@ -27,6 +29,7 @@ import { Empty, ErrorState, Offline } from '../States';
 import { BudgetSkeleton } from './BudgetSkeleton';
 import { CostInputs } from './CostInputs';
 import { BudgetResults } from './BudgetResults';
+import { CATS, customColor, type BudgetLine } from './categories';
 import s from './budget.module.css';
 
 /** One save (and one "Budget updated.") per burst of edits, not one per keystroke or stepper tap. */
@@ -107,6 +110,35 @@ export function Budget({ code }: { code: string }) {
       return b[category] === amount ? null : withTotals({ ...b, [category]: amount });
     });
 
+  // Custom categories live on this device only (lib/otw/budget-custom.ts), so they skip the draft + PUT above.
+  // TODO(backend): persist custom budget categories on the real endpoint; until then the server's totals,
+  // the Dashboard tile and the chat's pinned plan don't include them.
+  const customs = useCustomCategories(roomId);
+  const [focusId, setFocusId] = useState<string | null>(null);
+
+  const onAddCustom = (label: string, icon: IconName): string | null => {
+    if (!roomId) return "Couldn't add that yet. Try again in a moment.";
+    const r = addCategory(roomId, label, icon);
+    if (!r.ok) return r.error;
+    setFocusId(r.item.id);
+    toast('Category added.');
+    return null;
+  };
+  const onEditCustom = (id: string, label: string, icon: IconName): string | null => {
+    if (!roomId) return null;
+    const error = updateCategory(roomId, id, { label, icon });
+    if (!error) toast('Category updated.');
+    return error;
+  };
+  const onCustomAmount = (id: string, pesos: number) => {
+    if (roomId) updateCategory(roomId, id, { amount: pesos });
+  };
+  const onRemoveCustom = (id: string) => {
+    if (!roomId) return;
+    removeCategory(roomId, id);
+    toast('Category removed.');
+  };
+
   const onStep = (delta: number) =>
     edit((b) => {
       const n = Math.max(MIN_PEOPLE, Math.min(MAX_PEOPLE, b.participantCount + delta));
@@ -144,6 +176,16 @@ export function Budget({ code }: { code: string }) {
       />
     );
   } else {
+    // The five server categories plus this device's customs, in bar order. Totals are recomputed here in
+    // integer centavos (the server's estimatedAmount/perPerson only know the five), with the same maths.
+    const lines: BudgetLine[] = [
+      ...CATS.map(([k, label, , color]) => ({ key: k, label, color, amount: value[k] })),
+      ...customs.map((c) => ({ key: c.id, label: c.label, color: customColor(c.tone), amount: c.amount })),
+    ];
+    const totals = totalWithCustom(
+      value,
+      customs.map((c) => c.amount)
+    );
     body = (
       <>
         {state === 'offline' && <Offline />}
@@ -159,8 +201,19 @@ export function Budget({ code }: { code: string }) {
           />
         )}
         <div className={s.cols}>
-          <CostInputs value={value} onAmount={onAmount} onStep={onStep} autoFocus={started} />
-          <BudgetResults value={value} code={code} />
+          <CostInputs
+            value={value}
+            onAmount={onAmount}
+            onStep={onStep}
+            autoFocus={started}
+            customs={customs}
+            focusId={focusId}
+            onCustomAmount={onCustomAmount}
+            onAddCustom={onAddCustom}
+            onEditCustom={onEditCustom}
+            onRemoveCustom={onRemoveCustom}
+          />
+          <BudgetResults lines={lines} total={totals.total} perPerson={totals.perPerson} code={code} />
         </div>
       </>
     );

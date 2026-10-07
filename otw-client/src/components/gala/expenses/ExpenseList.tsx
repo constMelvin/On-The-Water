@@ -40,7 +40,7 @@ export function ExpenseList({ items, members, nameOf, onAdd }: ExpenseListProps)
           const who = nameOf(e.paidBy);
           return (
             <li key={e.id} className={s.erow}>
-              <Avatar name={who} tone={members.find((m) => m.id === e.paidBy)?.c} size={34} />
+              <Avatar name={who} tone={members.find((m) => m.id === e.paidBy)?.c} size={34} userId={e.paidBy} />
               <div className={s.eb}>
                 <b>{e.description}</b>
                 <span>

@@ -21,9 +21,8 @@ Root `com.gala.otw_server`:
 - `security/jwt/`: Supabase JWT verification (anonymous sessions rejected by `AccountRequiredFilter`)
 - `security/authz/`: `@RequireRoomRole` + `RoomAccessAspect`
 - `security/AccountRequiredFilter.java`: global account gate (sits directly in `security/`, next to `SupabaseUser`; not in `authz/`)
-- **Feature packages**: `room` (incl. RSVP, settings, My Galas, summary), `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`, `chat`, `couple`, `notification`
-- Room helpers everyone reuses: `GalaClock` (today/phase in `otw.timezone`), `RoomPermissionService` (member permission toggles), `MemberIdentityRemapper` (**add every new room-scoped user-id column here**)
-- **Cross-cutting (no controller, no five-folder split)**: `realtime/` (RealtimeEventPublisher), `cache/` (CacheKeys, CacheEvictionService), `ratelimit/`
+- **Feature packages**: `room` (incl. RSVP, settings, My Galas, summary), `itinerary`, `checklist`, `budget`, `expense`, `location`, `photo`, `chat`, `couple`, `notification`, `profile`
+- Room helpers everyone reuses: `GalaClock` (today/phase in `otw.timezone`), `RoomPermissionService` (member permission toggles)- **Cross-cutting (no controller, no five-folder split)**: `realtime/` (RealtimeEventPublisher), `cache/` (CacheKeys, CacheEvictionService), `ratelimit/`
 - Resources: `application.yml`, `application-local.yml`, `application-prod.yml`, `db/migration/`
 - Tests mirror the main packages under `src/test/java/com/gala/otw_server/`
 

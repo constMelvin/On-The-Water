@@ -71,7 +71,7 @@ export function MessageList({ code, messages, members, nameOf, myUserId, firstUn
     const member = members.find((x) => x.id === m.senderUserId);
     return (
       <div className={`${s.msg}${me ? ` ${s.me}` : ''}`}>
-        {!me && <Avatar name={who} tone={member?.c} size={32} online={member?.on === 1} />}
+        {!me && <Avatar name={who} tone={member?.c} size={32} online={member?.on === 1} userId={member?.id} />}
         {/* Tap the bubble to heart it (pointer); the heart button is the keyboard / screen-reader control. */}
         <div className={s.mb} onClick={() => onHeart(m.id)}>
           <span className={s.mn}>

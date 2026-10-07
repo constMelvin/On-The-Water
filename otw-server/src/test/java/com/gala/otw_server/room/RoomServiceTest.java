@@ -14,7 +14,6 @@ import com.gala.otw_server.room.entity.RoomType;
 import com.gala.otw_server.room.repository.RoomMemberRepository;
 import com.gala.otw_server.room.repository.RoomRepository;
 import com.gala.otw_server.room.service.GalaClock;
-import com.gala.otw_server.room.service.MemberIdentityRemapper;
 import com.gala.otw_server.ratelimit.RateLimiterService;
 import com.gala.otw_server.room.service.GalaPasswordGuard;
 import com.gala.otw_server.room.service.RoomService;
@@ -62,9 +61,6 @@ class RoomServiceTest {
     private CacheService cacheService;
 
     @Mock
-    private MemberIdentityRemapper remapper;
-
-    @Mock
     private ChatSystemMessageService chatSystem;
 
     @Mock
@@ -85,7 +81,7 @@ class RoomServiceTest {
     void setUp() {
         roomService = new RoomService(roomRepo, memberRepo, realtime, cacheService,
                 passwordEncoder, new GalaPasswordGuard(passwordEncoder, new RateLimiterService(null)),
-                galaClock, remapper, chatSystem, events);
+                galaClock, chatSystem, events);
     }
 
     private CreateRoomRequest createRequest(RoomType type) {
@@ -363,7 +359,7 @@ class RoomServiceTest {
                         new SQLException("duplicate key"), "idx_room_members_room_nickname_active"));
     }
 
-    // ── Enter a Gala ──────────────────────────────────────────────────────────
+    // ── Gala password lockout ─────────────────────────────────────────────────
 
     private Room roomWithPassword() {
         Room room = activeRoom("ROOM1234");
@@ -382,139 +378,16 @@ class RoomServiceTest {
     }
 
     @Test
-    @DisplayName("enterRoom with the right code + password lists members for 'Which one are you?'")
-    void enterRoom_success() {
-        Room room = roomWithPassword();
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(room));
-        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(false);
-        when(memberRepo.findTop100ByRoom_IdAndLeftAtIsNullOrderByJoinedAtAsc(roomId))
-                .thenReturn(List.of(member(UUID.randomUUID(), "Bea", false), member(UUID.randomUUID(), "CJ", true)));
-
-        EnterRoomResponse res = roomService.enterRoom(callerId, new EnterRoomRequest("room1234", "baguio2026"));
-
-        assertThat(res.roomId()).isEqualTo(roomId);
-        assertThat(res.alreadyMember()).isFalse();
-        assertThat(res.members()).extracting(EnterRoomResponse.ClaimableMember::nickname).containsExactly("Bea", "CJ");
-        assertThat(res.members().get(1).hasAccount()).isTrue();
-    }
-
-    @Test
-    @DisplayName("enterRoom with a wrong password is rejected with InvalidGalaPasswordException")
-    void enterRoom_wrongPassword() {
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(roomWithPassword()));
-
-        assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ROOM1234", "nope")))
-                .isInstanceOf(InvalidGalaPasswordException.class);
-    }
-
-    @Test
-    @DisplayName("enterRoom locks the gala after 20 wrong passwords, even for the right one")
-    void enterRoom_locksAfterTooManyWrongPasswords() {
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(roomWithPassword()));
+    @DisplayName("joinRoom locks the gala after 20 wrong passwords, even for the right one")
+    void joinRoom_locksAfterTooManyWrongPasswords() {
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(roomWithPassword()));
 
         for (int i = 0; i < 20; i++) {
-            assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ROOM1234", "nope")))
+            assertThatThrownBy(() -> roomService.joinRoom(callerId, true, new JoinRoomRequest("ROOM1234", "Carlos", "nope")))
                     .isInstanceOf(InvalidGalaPasswordException.class);
         }
-        assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ROOM1234", "baguio2026")))
+        assertThatThrownBy(() -> roomService.joinRoom(callerId, true, new JoinRoomRequest("ROOM1234", "Carlos", "baguio2026")))
                 .isInstanceOf(TooManyRequestsException.class);
-    }
-
-    @Test
-    @DisplayName("enterRoom with an unknown code is rejected with InvalidCodeException")
-    void enterRoom_unknownCode() {
-        when(roomRepo.findByRoomCode("ZZZZZZZZ")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ZZZZZZZZ", "x")))
-                .isInstanceOf(InvalidCodeException.class);
-    }
-
-    @Test
-    @DisplayName("enterRoom on a pre-V6 room with no password set is rejected")
-    void enterRoom_noPasswordSet() {
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(activeRoom("ROOM1234")));
-
-        assertThatThrownBy(() -> roomService.enterRoom(callerId, new EnterRoomRequest("ROOM1234", "anything")))
-                .isInstanceOf(InvalidGalaPasswordException.class);
-    }
-
-    @Test
-    @DisplayName("claimMember rebinds an anonymous member (and everything it owns) to the new session")
-    void claimMember_success() {
-        Room room = roomWithPassword();
-        UUID oldUserId = UUID.randomUUID();
-        RoomMember bea = member(oldUserId, "Bea", false);
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(room));
-        when(memberRepo.findByIdAndRoom_Id(bea.getId(), roomId)).thenReturn(Optional.of(bea));
-        when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.empty());
-
-        RoomMemberDto dto = roomService.claimMember(callerId, false,
-                new ClaimMemberRequest("ROOM1234", "baguio2026", bea.getId()));
-
-        assertThat(dto.userId()).isEqualTo(callerId);
-        assertThat(bea.getUserId()).isEqualTo(callerId);
-        verify(remapper).remap(roomId, oldUserId, callerId);
-        verify(cacheService).evictAfterCommit("room:" + roomId + ":member:" + oldUserId);
-        verify(realtime).publish(eq(roomId), eq("member.reclaimed"), any());
-    }
-
-    @Test
-    @DisplayName("claimMember of the host also moves host_user_id")
-    void claimMember_host() {
-        Room room = roomWithPassword();
-        UUID oldHost = UUID.randomUUID();
-        room.setHostUserId(oldHost);
-        RoomMember host = member(oldHost, "Merylle", false);
-        host.setRole(RoomRole.HOST);
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(room));
-        when(memberRepo.findByIdAndRoom_Id(host.getId(), roomId)).thenReturn(Optional.of(host));
-        when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.empty());
-
-        roomService.claimMember(callerId, false, new ClaimMemberRequest("ROOM1234", "baguio2026", host.getId()));
-
-        assertThat(room.getHostUserId()).isEqualTo(callerId);
-    }
-
-    @Test
-    @DisplayName("claimMember refuses a member linked to an account (they must log in)")
-    void claimMember_accountMemberRefused() {
-        Room room = roomWithPassword();
-        RoomMember cj = member(UUID.randomUUID(), "CJ", true);
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(room));
-        when(memberRepo.findByIdAndRoom_Id(cj.getId(), roomId)).thenReturn(Optional.of(cj));
-
-        assertThatThrownBy(() -> roomService.claimMember(callerId, false,
-                new ClaimMemberRequest("ROOM1234", "baguio2026", cj.getId())))
-                .isInstanceOf(MemberHasAccountException.class);
-        verifyNoInteractions(remapper);
-    }
-
-    @Test
-    @DisplayName("claimMember refuses when the caller is already an active member")
-    void claimMember_callerAlreadyMember() {
-        Room room = roomWithPassword();
-        RoomMember bea = member(UUID.randomUUID(), "Bea", false);
-        RoomMember me = member(callerId, "Me", false);
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(room));
-        when(memberRepo.findByIdAndRoom_Id(bea.getId(), roomId)).thenReturn(Optional.of(bea));
-        when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.of(me));
-
-        assertThatThrownBy(() -> roomService.claimMember(callerId, false,
-                new ClaimMemberRequest("ROOM1234", "baguio2026", bea.getId())))
-                .isInstanceOf(AlreadyAMemberException.class);
-        verifyNoInteractions(remapper);
-    }
-
-    @Test
-    @DisplayName("claimMember with a wrong password never touches members")
-    void claimMember_wrongPassword() {
-        when(roomRepo.findByRoomCode("ROOM1234")).thenReturn(Optional.of(roomWithPassword()));
-
-        assertThatThrownBy(() -> roomService.claimMember(callerId, false,
-                new ClaimMemberRequest("ROOM1234", "wrong", UUID.randomUUID())))
-                .isInstanceOf(InvalidGalaPasswordException.class);
-        verifyNoInteractions(remapper);
-        verify(memberRepo, never()).findByIdAndRoom_Id(any(), any());
     }
 
     // ── RSVP / remove ─────────────────────────────────────────────────────────

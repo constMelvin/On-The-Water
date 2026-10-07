@@ -1,5 +1,7 @@
 /* Settings tab. Ported from reference/otw/styles.css (.two-col.set, .set .card, .col, .srow2,
-   .card.danger). .card, .fl, .in, .sw, .mlist and .tag already live in the global styles. */
+   .card.danger). .card, .fl, .in, .sw and .tag already live in the global styles.
+   Module rules are unlayered, so they beat the global @layer rules: never select a bare `li > span`
+   here (it would hit Avatar and Tag too and stretch them). */
 
 .cols {
   display: grid;
@@ -11,12 +13,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--gap);
+  min-width: 0;
 }
 .cols :global(.card) {
   display: flex;
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
+  min-width: 0;
 }
 .cols :global(.card) > * {
   width: 100%;
@@ -29,37 +33,109 @@
   margin: 0;
 }
 
+/* ---- cards: a solid 3px border + a flat offset shadow in the card's own tone (no pale cream edge) ---- */
+.cTeal {
+  border-color: var(--teal);
+  box-shadow: 0 6px 0 var(--teal-dark);
+}
+.cZest {
+  border-color: var(--zest);
+  box-shadow: 0 6px 0 var(--zest-dark);
+}
+.cRosy {
+  border-color: var(--rosy);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+}
+.danger h3 {
+  color: var(--rosy-ink);
+}
+
+/* ---- inputs in Settings: solid chunky flat shadow (the global one is a pale blossom) ---- */
+.cols :global(.in) {
+  box-shadow: 0 4px 0 var(--teal-dark);
+}
+.cols :global(.in:focus) {
+  border-color: var(--rosy);
+  box-shadow: 0 4px 0 var(--rosy-dark);
+}
+
+/* ---- rows: label left, control right, one height, dashed divider between rows only ---- */
 .srow2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
-  border-bottom: 3px dashed var(--blossom);
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 3px dashed var(--line);
+}
+.srow2:last-of-type {
+  border-bottom: 0;
 }
 .srow2 > div {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
-.danger {
-  border-color: var(--rosy);
+.srow2 > b {
+  flex: 1;
+  min-width: 0;
+}
+.srow2 > :global(.sw),
+.srow2 > :global(.btn) {
+  flex: none;
 }
 .actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
-.mlist li {
+
+/* ---- members: one clean row each, a fixed small circle for the avatar ---- */
+.members {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.member {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 3px dashed var(--line);
 }
-.mlist li > span {
+.member:last-child {
+  border-bottom: 0;
+}
+.member :global(.av) {
+  flex: none;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.mname {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+}
+.member :global(.tag),
+.member :global(.ibtn) {
+  flex: none;
 }
 
 @media (max-width: 1023px) {
   .cols {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 639px) {
+  .cols :global(.card) {
+    padding: 16px;
   }
 }

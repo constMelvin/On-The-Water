@@ -12,7 +12,7 @@
   gap: 12px;
   padding: 18px 0;
   margin-bottom: 10px;
-  border-bottom: 3px solid var(--blossom);
+  border-bottom: 3px solid var(--line);
 }
 
 .brand {
@@ -20,7 +20,7 @@
   align-items: center;
   gap: 6px;
   text-decoration: none;
-  color: var(--teal-dark);
+  color: var(--text);
   font-family: var(--fd);
   font-size: 26px;
 }
@@ -59,6 +59,17 @@
 }
 
 /* group heading + list */
+/* the Upcoming | Month | Week switch under the heading, and the calendar block */
+.viewRow {
+  margin-top: 18px;
+}
+.calWrap {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
 .gh {
   font-size: 22px;
   margin-top: 26px;
@@ -84,6 +95,7 @@
   height: 60px;
   border-radius: 22px;
   background: var(--zest);
+  color: var(--teal-dark); /* ink on a brand fill stays dark in both themes */
   display: grid;
   place-items: center;
   align-content: center;

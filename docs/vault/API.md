@@ -9,7 +9,7 @@ Back to [[00-Index]]
 ## Conventions
 - JSON. Every call needs `Authorization: Bearer <supabase_jwt>` and a registered account; anonymous or email-less tokens → `401 ACCOUNT_REQUIRED` — see [[Auth]].
 - Pagination is cursor-based: `?cursor=...&limit=20` (My Galas uses an opaque offset cursor).
-- Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`. Notable codes: `409 DUPLICATE_NICKNAME`; `401 ACCOUNT_REQUIRED`; `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `MEMBER_HAS_ACCOUNT`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`; `404 NOT_A_COUPLE_ROOM`; `400 INVALID_PHOTO_REFERENCE` (Drive validation failed).
+- Errors use the shape `{ "code": "ROOM_NOT_FOUND", "message": "..." }`. Notable codes: `409 DUPLICATE_NICKNAME`; `401 ACCOUNT_REQUIRED`; `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`; `404 NOT_A_COUPLE_ROOM`; `400 INVALID_PHOTO_REFERENCE` (Drive validation failed).
 - Every write endpoint has Bean Validation on its DTO and a role guard ([[Auth]]). Where relevant, it also emits a realtime event ([[Realtime]]) and evicts cache ([[Caching]]).
 - ✱ = also allowed on an archived gala; other non-GET room endpoints return `409 ROOM_ARCHIVED` there.
 
@@ -20,7 +20,6 @@ Back to [[00-Index]]
 | GET | `/rooms/preview?code=` | Authenticated, rate-limited |
 | POST | `/rooms/join` (code with/without `OTW-`, nickname, **password required**) | Authenticated, rate-limited |
 | GET | `/rooms/directory?q=&cursor=&limit=` (every active **group** gala; couple galas are code-only; password still required to join) | Authenticated |
-| POST | `/rooms/enter` · `/rooms/enter/claim` | Authenticated, rate-limited |
 
 ## Endpoints — inside a gala
 | Method | Path | Role |
@@ -53,5 +52,6 @@ Back to [[00-Index]]
 |---|---|
 | GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` (≤62 days) · `/me/rooms/stats` · each item carries `roomCode` (8 chars, no `OTW-` prefix) so any device can route to `/gala/OTW-XXXX-XXXX` |
 | GET / PUT | `/me/notification-preferences` |
+| GET / PUT | `/me/profile` (nickname ≤20, status ≤40, color, photo data URL ≤65k chars; PUT replaces all) |
 | GET | `/me/notifications` · `/me/notifications/unread-count` |
 | PATCH / POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` |

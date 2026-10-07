@@ -38,7 +38,7 @@ export function ChatSide({ stops }: { stops: number }) {
         <ul className="mlist">
           {online.map((m) => (
             <li key={m.id ?? m.n}>
-              <Avatar name={m.n} tone={m.c} size={30} online />
+              <Avatar name={m.n} tone={m.c} size={30} online userId={m.id} />
               <span>
                 {m.n}
                 {m.n === me ? ' (you)' : ''}

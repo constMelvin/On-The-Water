@@ -32,6 +32,16 @@ const perPersonCents = (totalCents: number, people: number): number => {
 /** Same math as BudgetDto.perPerson: total / max(1, people), 2 dp, half up. */
 export const perPersonOf = (total: number, people: number): number => perPersonCents(toCents(total), people) / 100;
 
+/**
+ * Total and per person once this device's custom category amounts (pesos) are added to the five.
+ * The same integer-centavo maths as withTotals(); custom rows just add more line items.
+ */
+export function totalWithCustom(b: BudgetVM, customAmounts: number[]): { total: number; perPerson: number } {
+  const cents =
+    BUDGET_CATEGORIES.reduce((sum, k) => sum + toCents(b[k]), 0) + customAmounts.reduce((sum, a) => sum + toCents(a), 0);
+  return { total: cents / 100, perPerson: perPersonCents(cents, b.participantCount) / 100 };
+}
+
 /** Recomputes the server-derived totals after a category or the head count changes. */
 export function withTotals(b: BudgetVM): BudgetVM {
   const cents = BUDGET_CATEGORIES.reduce((sum, k) => sum + toCents(b[k]), 0);

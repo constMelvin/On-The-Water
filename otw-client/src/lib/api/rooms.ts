@@ -75,13 +75,6 @@ export interface RoomPreviewDto {
   full: boolean;
 }
 
-export interface EnterRoomResponse {
-  roomId: string;
-  title: string;
-  alreadyMember: boolean;
-  members: { memberId: string; nickname: string; role: RoomRole; hasAccount: boolean }[];
-}
-
 export interface RoomSummaryDto {
   phase: GalaPhase;
   memberCount: number;
@@ -144,12 +137,6 @@ export const getDirectory = (q: string, cursor?: string | null, limit = 20) =>
       cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''
     }`
   );
-
-export const enterRoom = (roomCode: string, password: string) =>
-  api<EnterRoomResponse>('/rooms/enter', { method: 'POST', body: { roomCode, password } });
-
-export const claimMember = (roomCode: string, password: string, memberId: string) =>
-  api<RoomMemberDto>('/rooms/enter/claim', { method: 'POST', body: { roomCode, password, memberId } });
 
 export const getRoom = (roomId: string) => api<RoomDto>(`/rooms/${roomId}`);
 

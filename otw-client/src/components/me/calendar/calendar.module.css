@@ -1,0 +1,553 @@
+/* My Galas calendar (Month + Week). Built on the reference .cal / .dc / .ev / .wd, then crafted: chunky cells,
+   spanning pills, a zest "today", flat offset shadows. Surfaces and text use the theme tokens (light AND dark);
+   brand fills (pills, today) keep their brand colours with explicit ink. */
+
+/* ---- the calendar card ---- */
+.cal {
+  background: var(--surface);
+  color: var(--text);
+  border: 3px solid var(--teal);
+  border-radius: 28px;
+  box-shadow: 0 6px 0 var(--teal-dark);
+  padding: 16px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+.title h3 {
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.year {
+  padding: 3px 11px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  font-family: var(--fd);
+  font-size: 14px;
+  font-weight: 600;
+}
+.nbtn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 3px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text);
+  box-shadow: 0 3px 0 var(--line);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.nbtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--line);
+}
+.nbtn:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.head :global(.btn) {
+  margin-bottom: 4px;
+  flex: none;
+}
+
+/* "Next gala: Nov 14" when the month on screen is empty */
+.jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 6px 14px;
+  border: 3px solid var(--rosy);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--rosy-ink);
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 3px 0 var(--rosy);
+  cursor: pointer;
+}
+.jump:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---- month ---- */
+.dow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.dow span {
+  text-align: center;
+  font-family: var(--fd);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.wknd {
+  color: var(--rosy-ink);
+}
+
+.weeks {
+  display: grid;
+  gap: 6px;
+}
+.wrow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  column-gap: 6px;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  min-height: 112px; /* header 38 + two 22px lanes + gap, then a row for "+N" */
+  padding: 6px 8px;
+  border: 3px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: settle 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 9ms);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.cell:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.num {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-family: var(--fd);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.out .num {
+  opacity: 0.45;
+}
+.has {
+  border-color: var(--teal);
+}
+.sel {
+  background: var(--surface-2);
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.today {
+  border-color: var(--zest-dark);
+}
+.today .num {
+  background: var(--zest);
+  color: var(--teal-dark);
+  box-shadow: 0 2px 0 var(--zest-dark);
+}
+.today .num::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 3px solid var(--zest);
+  border-radius: 50%;
+  opacity: 0;
+  animation: pulse 2.6s ease-out infinite;
+}
+.more {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  padding: 0 7px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  font-size: 11px;
+  font-weight: 800;
+}
+@media (hover: hover) {
+  .cell:hover {
+    background: var(--surface-2);
+  }
+}
+
+/* the gala pills ride on a lane layer on top of the day cells */
+.lanes {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  column-gap: 6px;
+  grid-auto-rows: 22px;
+  row-gap: 4px;
+  align-content: start;
+  padding-top: 38px;
+  pointer-events: none;
+}
+.pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 2px 0 var(--psh);
+  animation: pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--i, 0) * 9ms + 140ms);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pill:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.capL {
+  margin-left: 6px;
+  border-top-left-radius: 99px;
+  border-bottom-left-radius: 99px;
+}
+.capR {
+  margin-right: 6px;
+  border-top-right-radius: 99px;
+  border-bottom-right-radius: 99px;
+}
+.pt {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (hover: hover) {
+  .pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--psh);
+  }
+}
+
+/* status colours = the list's tags: Upcoming zest, Ongoing rosy, Completed teal (explicit ink in both themes) */
+.pUp {
+  background: var(--zest);
+  color: var(--teal-dark);
+  --psh: var(--zest-dark);
+}
+.pOn {
+  background: var(--rosy);
+  color: var(--cream);
+  --psh: var(--rosy-dark);
+}
+.pDone {
+  background: var(--teal);
+  color: var(--cream);
+  --psh: var(--teal-dark);
+}
+
+/* ---- week ---- */
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.wd {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 160px;
+  padding: 8px;
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  animation: settle 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+.wd.has {
+  border-color: var(--teal);
+}
+.wd.today {
+  border-color: var(--zest-dark);
+}
+.wd.sel {
+  background: var(--surface-2);
+}
+.wdh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.wdh:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+.wl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wl .pill {
+  height: auto;
+  min-height: 28px;
+  margin: 0;
+  padding: 5px 9px;
+  border-radius: 12px;
+}
+.wl .pt {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+}
+.free {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+/* ---- legend, notes, day panel ---- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 800;
+}
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 2px 0 var(--psh);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ph {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+}
+.todayTag {
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: var(--zest);
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+.plist {
+  display: grid;
+  gap: 14px;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 3px dashed var(--teal);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--text);
+}
+.empty > div {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+}
+.empty span {
+  font-weight: 600;
+  font-size: 14px;
+}
+.empty :global(.btn) {
+  margin-bottom: 4px;
+}
+.emptyIco {
+  background: var(--surface-2);
+  color: var(--rosy);
+}
+
+/* ---- motion ---- */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+/* ---- tablet: the week wraps ---- */
+@media (max-width: 1023px) {
+  .week {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ---- mobile: small cells, pills become thin colour bars, tap a day for names ---- */
+@media (max-width: 639px) {
+  .cal {
+    padding: 10px;
+    border-radius: 24px;
+  }
+  .title h3 {
+    font-size: 22px;
+  }
+  .nbtn {
+    width: 38px;
+    height: 38px;
+  }
+  .dow,
+  .wrow {
+    column-gap: 3px;
+  }
+  .dow span {
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+  .weeks {
+    gap: 3px;
+  }
+  .cell {
+    min-height: 58px;
+    padding: 3px;
+    border-radius: 12px;
+    align-items: center;
+  }
+  .num {
+    min-width: 22px;
+    height: 22px;
+    font-size: 13px;
+  }
+  .more {
+    display: none;
+  }
+  .lanes {
+    column-gap: 3px;
+    padding-top: 29px;
+    grid-auto-rows: 7px;
+    row-gap: 3px;
+    pointer-events: none;
+  }
+  .pill {
+    height: 7px;
+    padding: 0;
+    pointer-events: none;
+    font-size: 0;
+  }
+  .pill :global(svg),
+  .pt {
+    display: none;
+  }
+  .capL {
+    margin-left: 3px;
+  }
+  .capR {
+    margin-right: 3px;
+  }
+  .week {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wl .pill {
+    height: auto;
+    pointer-events: auto;
+    font-size: 12px;
+    padding: 5px 9px;
+  }
+  .wl .pill :global(svg) {
+    display: block;
+  }
+  .wl .pt {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell,
+  .pill,
+  .wd {
+    animation: none;
+  }
+  .today .num::after {
+    animation: none;
+    display: none;
+  }
+  .cell,
+  .pill,
+  .nbtn {
+    transition: none;
+  }
+  .pill:hover {
+    transform: none;
+  }
+}

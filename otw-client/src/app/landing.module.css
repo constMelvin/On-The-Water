@@ -16,7 +16,7 @@
   position: relative;
   margin: 0;
   font-family: var(--font-nunito), 'Nunito', sans-serif;
-  background: var(--cream);
+  background: var(--cream); /* the landing page is brand-coloured art: it looks the same in light and dark */
   /* clip, not hidden: overflow-x: hidden makes this box its own vertical scroller (a 2nd scrollbar
      next to the page's). */
   overflow-x: clip;

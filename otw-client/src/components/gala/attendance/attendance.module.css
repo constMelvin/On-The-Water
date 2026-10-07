@@ -12,15 +12,19 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border: 3px solid var(--cream);
+  border: 3px solid var(--surface);
   border-radius: 99px;
   padding: 14px;
   font-family: var(--fd);
   font-size: 20px;
   box-shadow: 0 6px 0 var(--sh);
-  opacity: 0.8;
+  opacity: 0.68; /* unselected = clearly dimmed */
   margin-bottom: 6px;
   cursor: pointer;
+  transition: opacity 0.15s;
+}
+.ch:not([aria-pressed='true']):hover {
+  opacity: 0.9;
 }
 .ch[aria-pressed='true'] {
   opacity: 1;
@@ -28,7 +32,7 @@
   outline-offset: 3px;
 }
 .ch:focus-visible {
-  outline: 4px solid var(--teal-dark);
+  outline: 4px solid var(--focus);
   outline-offset: 3px;
 }
 .ch:active {
@@ -45,20 +49,55 @@
 
 .tile {
   border-radius: 30px 30px 30px 12px;
-  padding: 16px 20px;
-  border: 3px solid var(--cream);
-  box-shadow: 0 5px 0 var(--sh, var(--blossom));
+  position: relative;
+  overflow: hidden; /* clips the watermark and sliver to the tile shape */
+  min-height: 118px;
+  padding: 16px 20px 22px;
+  border: 3px solid var(--surface);
+  box-shadow: 0 5px 0 var(--sh, var(--line));
   display: flex;
   flex-direction: column;
 }
+/* .c-teal / .c-zest (otw.css) already give cream / teal-dark text and their own --sh. */
+.tile:global(.c-blossom) {
+  color: var(--rosy-dark);
+}
 .tile b {
   font-family: var(--fd);
-  font-size: 36px;
-  line-height: 1.05;
+  font-size: 52px;
+  line-height: 1;
+  position: relative;
 }
-.tile span {
+.tile .lbl {
   font-size: 14px;
   font-weight: 800;
+  position: relative;
+}
+/* faint corner icon watermark */
+.mark {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  width: 64px;
+  height: 64px;
+  opacity: 0.2;
+  pointer-events: none;
+}
+.mark svg {
+  width: 100%;
+  height: 100%;
+}
+/* thin proportion sliver: width = share of members */
+.bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 6px;
+  width: var(--p, 0%);
+  background: currentColor;
+  opacity: 0.3;
+  border-radius: 0 6px 6px 0;
+  transition: width 0.4s ease;
 }
 
 /* ---- grouped lists (.g.g3 already drops to 1 column on mobile) ---- */
@@ -70,13 +109,27 @@
   .choice {
     grid-template-columns: 1fr;
   }
+  .ch {
+    padding: 12px 14px;
+    font-size: 18px;
+  }
   .tile b {
-    font-size: 26px;
+    font-size: 40px;
+  }
+  .mark {
+    width: 48px;
+    height: 48px;
+    right: 8px;
+    bottom: 6px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ch:active {
     transform: none;
+  }
+  .ch,
+  .bar {
+    transition: none;
   }
 }

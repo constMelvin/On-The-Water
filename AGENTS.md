@@ -34,14 +34,13 @@ see the master plan changelog):
   protected by default. Supabase "Allow anonymous sign-ins" must stay OFF in the dashboard.
   The API gate is global; direct Supabase access (PostgREST/Realtime) depends on RLS + that
   dashboard setting, and RLS does not check `is_anonymous` (see master plan §5.4).
-- "Enter a Gala" (Gala Code + BCrypt-hashed Gala Password → "Which one are you?") is for
-  logged-in users only: it rebinds an unclaimed member row (legacy anonymous rows or members added
-  before an account existed) to the caller via `MemberIdentityRemapper`;
-  `has_account` members can't be claimed. Any new room-scoped user-id column must be added to
-  `MemberIdentityRemapper`.
+- "Enter a Gala" (code + password → "Which one are you?", `/rooms/enter`, `MemberIdentityRemapper`)
+  was REMOVED 2026-10-07 (owner decision). Join a Gala is the only way in; a device that lost its
+  room id reopens the gala from My Galas (`/me/galas`).
 - `userId` comes from the JWT `sub` claim only. There is no local `users` table —
   Supabase `auth.users` is the identity source of truth; Postgres only stores
-  `room_members` rows keyed by that `userId`.
+  `room_members` rows keyed by that `userId`, plus account-level `notification_preferences`
+  and `user_profiles` (V22, 2026-10-07: nickname/status/colour/small photo data URL).
 
 SOURCE OF TRUTH:
 docs/OTW_Backend_Master_Plan.md is the authoritative spec for this project. It defines:

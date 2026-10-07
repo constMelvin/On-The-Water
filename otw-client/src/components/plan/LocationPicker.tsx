@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { placeAt, searchPlaces, type Place } from '@/lib/otw/geocode';
+import { MIN_QUERY, SEARCH_DEBOUNCE_MS, placeAt, searchPlaces, type Place } from '@/lib/otw/geocode';
 
 const MapPicker = dynamic(() => import('./MapPicker'), {
   ssr: false,
@@ -55,7 +55,7 @@ export function LocationPicker({
 
   useEffect(() => {
     const q = value.trim();
-    if (q.length < 3 || q === picked.current) {
+    if (q.length < MIN_QUERY || q === picked.current) {
       setResults([]);
       return;
     }
@@ -69,7 +69,7 @@ export function LocationPicker({
         })
         .catch(() => setResults([]))
         .finally(() => setSearching(false));
-    }, 450); // Nominatim asks for about one request a second at most.
+    }, SEARCH_DEBOUNCE_MS); // Nominatim asks for about one request a second at most.
     return () => {
       clearTimeout(t);
       ctrl.abort();

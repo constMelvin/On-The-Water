@@ -1,0 +1,202 @@
+/* The Profile page: a form on the left, a live preview on the right (stacked above the form on tablet / mobile),
+   plus the greeting chip used in the page header. Surfaces use the theme tokens. */
+
+/* ---- two columns ---- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 26px;
+  align-items: start;
+}
+.layout > .card {
+  grid-column: 1;
+  grid-row: 1;
+}
+.preview {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 16px;
+  min-width: 0;
+}
+.skel {
+  height: 420px;
+}
+
+/* ---- the form card: solid 3px border + a flat offset shadow ---- */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  border-color: var(--teal);
+  box-shadow: 0 6px 0 var(--teal-dark);
+}
+.card :global(.in) {
+  box-shadow: 0 4px 0 var(--teal-dark);
+}
+.card :global(.in:focus) {
+  border-color: var(--rosy);
+  box-shadow: 0 4px 0 var(--rosy-dark);
+}
+
+.sec {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.sec + .sec {
+  padding-top: 20px;
+  border-top: 3px dashed var(--line);
+}
+.st {
+  font-size: 20px;
+}
+
+/* ---- photo ---- */
+.photoRow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.photoBtns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+/* the avatar is always a perfect circle: fixed width = height, never flexed */
+.bigwrap {
+  position: relative;
+  flex: none;
+  width: 88px;
+  height: 88px;
+}
+.bigwrap :global(.av) {
+  flex: none;
+  box-shadow: 0 5px 0 var(--sh, var(--line));
+}
+
+.cam {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 3px solid var(--av-ring);
+  border-radius: 50%;
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 3px 0 var(--rosy-dark);
+  cursor: pointer;
+}
+.cam:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--rosy-dark);
+}
+.cam:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.cam:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.err {
+  margin: 0;
+  color: var(--rosy-ink);
+  font-weight: 800;
+}
+
+.counter {
+  align-self: flex-end;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+/* avatar colour */
+.swatches {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sw {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 3px solid var(--av-ring);
+  border-radius: 50%;
+  box-shadow: 0 3px 0 var(--sh);
+  cursor: pointer;
+}
+.swOn {
+  outline: 4px solid var(--focus);
+  outline-offset: 3px;
+}
+.sw:focus-visible {
+  outline: 4px solid var(--rosy);
+  outline-offset: 3px;
+}
+
+.fine {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---- the greeting + avatar in the page header (MeShell) ---- */
+.me {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 240px;
+  color: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+.me :global(.av) {
+  flex: none;
+}
+.meName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- tablet + mobile: one column, the preview first ---- */
+@media (max-width: 1023px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+  .layout > .card,
+  .preview {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .preview {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cam:active:not(:disabled) {
+    transform: none;
+  }
+}

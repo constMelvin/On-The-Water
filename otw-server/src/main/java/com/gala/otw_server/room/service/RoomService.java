@@ -33,8 +33,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Getting into a gala: create, preview, join, "Enter a Gala" (code + password →
- * "Which one are you?"), plus the member list, RSVP and host removal.
+ * Getting into a gala: create, preview and join, plus the member list, RSVP and host removal.
  * Settings/lifecycle actions live in {@link RoomSettingsService}.
  */
 @Service
@@ -52,7 +51,6 @@ public class RoomService {
     private final PasswordEncoder passwordEncoder;
     private final GalaPasswordGuard passwordGuard;
     private final GalaClock galaClock;
-    private final MemberIdentityRemapper remapper;
     private final ChatSystemMessageService chatSystem;
     private final ApplicationEventPublisher events;
 
@@ -63,7 +61,6 @@ public class RoomService {
                        PasswordEncoder passwordEncoder,
                        GalaPasswordGuard passwordGuard,
                        GalaClock galaClock,
-                       MemberIdentityRemapper remapper,
                        ChatSystemMessageService chatSystem,
                        ApplicationEventPublisher events) {
         this.roomRepo = roomRepo;
@@ -73,7 +70,6 @@ public class RoomService {
         this.passwordEncoder = passwordEncoder;
         this.passwordGuard = passwordGuard;
         this.galaClock = galaClock;
-        this.remapper = remapper;
         this.chatSystem = chatSystem;
         this.events = events;
     }
@@ -206,66 +202,6 @@ public class RoomService {
         return dto;
     }
 
-    // ── Enter a Gala (code + password) ────────────────────────────────────────
-
-    @Transactional(readOnly = true)
-    public EnterRoomResponse enterRoom(UUID callerId, EnterRoomRequest req) {
-        Room room = verifyGalaCredentials(req.roomCode(), req.password());
-        boolean alreadyMember = memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(room.getId(), callerId);
-
-        List<EnterRoomResponse.ClaimableMember> members = alreadyMember ? List.of()
-                : memberRepo.findTop100ByRoom_IdAndLeftAtIsNullOrderByJoinedAtAsc(room.getId()).stream()
-                        .map(m -> new EnterRoomResponse.ClaimableMember(
-                                m.getId(), m.getNickname(), m.getRole(), m.isHasAccount()))
-                        .toList();
-
-        return new EnterRoomResponse(room.getId(), room.getTitle(), alreadyMember, members);
-    }
-
-    /**
-     * "Which one are you?" — rebinds an anonymous member row (and everything it owns in
-     * this room) to the caller's new session. Members linked to an account are refused:
-     * they log in instead, so knowing the code + password can't take over an account.
-     */
-    public RoomMemberDto claimMember(UUID callerId, boolean callerHasAccount, ClaimMemberRequest req) {
-        Room room = verifyGalaCredentials(req.roomCode(), req.password());
-        UUID roomId = room.getId();
-
-        RoomMember target = memberRepo.findByIdAndRoom_Id(req.memberId(), roomId)
-                .filter(RoomMember::isActive)
-                .orElseThrow(MemberNotFoundException::new);
-
-        if (target.getUserId().equals(callerId)) {
-            return RoomMemberDto.from(target);
-        }
-        if (target.isHasAccount()) {
-            throw new MemberHasAccountException();
-        }
-        Optional<RoomMember> callerRow = memberRepo.findByRoom_IdAndUserId(roomId, callerId);
-        if (callerRow.isPresent()) {
-            if (callerRow.get().isActive()) throw new AlreadyAMemberException();
-            throw new InvalidRequestException(
-                    "You left this gala on this device before — join again with the gala code instead");
-        }
-
-        UUID oldUserId = target.getUserId();
-        remapper.remap(roomId, oldUserId, callerId);
-
-        target.setUserId(callerId);
-        target.setHasAccount(callerHasAccount);
-        memberRepo.save(target);
-        if (oldUserId.equals(room.getHostUserId())) {
-            room.setHostUserId(callerId);
-            roomRepo.save(room);
-        }
-
-        cacheService.evictAfterCommit(CacheKeys.roomMember(roomId, oldUserId));
-        publishAfterCommit(roomId, "member.reclaimed", Map.of("memberId", target.getId(), "userId", callerId));
-
-        log.info("Member {} in room {} reclaimed by a new session", target.getId(), roomId);
-        return RoomMemberDto.from(target);
-    }
-
     // ── Read ──────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -337,17 +273,6 @@ public class RoomService {
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
-
-    /**
-     * Wrong code → 404 INVALID_CODE; right code, wrong (or never set) password → 401
-     * INVALID_GALA_PASSWORD; too many wrong passwords for this gala → 429.
-     */
-    private Room verifyGalaCredentials(String rawCode, String password) {
-        Room room = roomRepo.findByRoomCode(CodeGenerator.normalize(rawCode))
-                .orElseThrow(InvalidCodeException::new);
-        passwordGuard.verify(room, password);
-        return room;
-    }
 
     static void validateDates(LocalDate start, LocalDate end, LocalTime startTime, LocalTime endTime) {
         if (start != null && end != null && end.isBefore(start)) {

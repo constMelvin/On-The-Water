@@ -20,6 +20,29 @@
   --rosy-tint: #ffdcea;     /* soft text on rosy */
   --teal-tint: #bfe3ec;     /* soft text on teal */
 
+  /* ---- Surface / semantic tokens: THESE flip between light and dark. The brand colours above never do.
+     Light values are exactly what the brand variables were used for before dark mode existed.
+     (Named --bg-page, not --bg: .btn already uses --bg locally for its own fill.) ---- */
+  --bg-page: var(--cream);        /* the page */
+  --surface: var(--cream);        /* cards, sheets, bars, fields' surround */
+  --surface-2: var(--blossom);    /* inset / raised fills (segmented control, pills, toggles off) */
+  --text: var(--teal-dark);       /* body text on surfaces */
+  --line: var(--blossom);         /* borders, dashed dividers, flat offset shadows */
+  --field-bg: var(--cream);       /* inputs */
+  --sidebar-bg: var(--teal-dark); /* gala sidebar */
+  --scrim: var(--teal-dark);      /* behind sheets */
+  --scrim-opacity: 0.55;
+  --focus: var(--teal-dark);      /* focus ring on surfaces */
+  --rosy-ink: var(--rosy-dark);   /* rosy TEXT on a surface (errors, small headings); lightened in dark so it stays readable */
+  --av-ring: var(--cream);        /* the ring around avatars, so they sit flush on a surface (not shadcn's --ring) */
+  --map-land: var(--blossom);     /* the illustrated route map */
+  --map-block: var(--cream);
+  --map-road: var(--cream);
+  --tile-filter: none;            /* Leaflet OpenStreetMap tiles */
+  --tile-bg: #ddd;                /* Leaflet's own default, behind tiles that haven't loaded yet */
+  /* A custom property can hold a url(): its colour is --teal-dark (#1f6376). */
+  --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f6376' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+
   --fd: 'Fredoka', 'Nunito', system-ui, sans-serif;
   --fb: 'Nunito', system-ui, -apple-system, sans-serif;
 
@@ -37,6 +60,72 @@
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ---- Dark theme: only the surface tokens change; the eight brand colours stay. ----
+   Chosen by data-theme="dark" on <html> (set before paint by the script in app/layout.tsx), and by the
+   OS preference when the person hasn't chosen (also the no-JS fallback). The two blocks are identical. */
+:root[data-theme='dark'] {
+  --bg-page: #0e2229;
+  --surface: #16313a;
+  --surface-2: #24424d;
+  --text: #fff8f2;
+  --line: #2d5260;
+  --field-bg: #0f272e;
+  --sidebar-bg: #0a1b21;
+  --scrim: #000;
+  --scrim-opacity: 0.6;
+  --focus: var(--zest);
+  --rosy-ink: #ff86ad;
+  --av-ring: #16313a;
+  --map-land: #2a3a44;
+  --map-block: #34505c;
+  --map-road: #43616f;
+  --tile-filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.75);
+  --tile-bg: #1d3d48;
+  --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff8f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) {
+    --bg-page: #0e2229;
+    --surface: #16313a;
+    --surface-2: #24424d;
+    --text: #fff8f2;
+    --line: #2d5260;
+    --field-bg: #0f272e;
+    --sidebar-bg: #0a1b21;
+    --scrim: #000;
+    --scrim-opacity: 0.6;
+    --focus: var(--zest);
+    --rosy-ink: #ff86ad;
+    --av-ring: #16313a;
+    --map-land: #2a3a44;
+    --map-block: #34505c;
+    --map-road: #43616f;
+    --tile-filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.75);
+    --tile-bg: #1d3d48;
+    --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff8f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    color-scheme: dark;
+  }
+}
+
+/* A "light island": inside this element every surface token is back to its light value, whatever the theme.
+   Used (via `composes: theme-light from global`) by the brand-coloured flow pages (Plan, Join, Enter code, Privacy
+   paper) whose cream cards and light inputs are part of their artwork. */
+.theme-light {
+  --bg-page: var(--cream);
+  --surface: var(--cream);
+  --surface-2: var(--blossom);
+  --text: var(--teal-dark);
+  --line: var(--blossom);
+  --field-bg: var(--cream);
+  --sidebar-bg: var(--teal-dark);
+  --focus: var(--teal-dark);
+  --rosy-ink: var(--rosy-dark);
+  --av-ring: var(--cream);
+  --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f6376' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  color-scheme: light;
 }
 
 /* tablet: 640px to 1023px */

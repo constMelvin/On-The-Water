@@ -10,6 +10,7 @@ import { DateRangePicker } from '@/components/plan/DateRangePicker';
 import { LocationPicker } from '@/components/plan/LocationPicker';
 import { toast as notify } from '@/lib/otw/feedback';
 import { useAccount } from '@/lib/auth/session';
+import { useProfile } from '@/lib/otw/profile';
 
 /**
  * Fast-Track Plan a Gala: one create screen, then the celebration. The account gate lives in
@@ -252,13 +253,17 @@ export default function PlanPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (new URLSearchParams(window.location.search).get('type') === 'couple') setGalaType('COUPLE');
   }, []);
-  // The nickname starts as the account name (still editable).
-  const nicknamePrefilled = useRef(false);
+  // The nickname starts as the saved profile nickname, else the account name (still editable). Only an
+  // empty field, or one we filled in ourselves, is replaced (the profile can load a moment after the account).
+  const { profile } = useProfile();
+  const autoNickname = useRef('');
   useEffect(() => {
-    if (nicknamePrefilled.current || !hostName) return;
-    nicknamePrefilled.current = true;
-    setNickname((n) => n || hostName.slice(0, NICKNAME_MAX));
-  }, [hostName]);
+    const want = (profile?.nickname || hostName).slice(0, NICKNAME_MAX);
+    if (!want) return;
+    const prev = autoNickname.current;
+    autoNickname.current = want;
+    setNickname((n) => (n === '' || n === prev ? want : n));
+  }, [profile?.nickname, hostName]);
   const shareMsg = `G tayo? Join our gala "${createdTitle}". Code: ${code}`;
 
   useEffect(() => {

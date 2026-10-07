@@ -17,7 +17,7 @@ const buttonVariants = cva(
         ghost:
           "text-teal-dark border-b-2 border-teal-dark/50 rounded-none shadow-none font-sans font-extrabold hover:bg-transparent",
         outline:
-          "border-2 border-blossom bg-transparent text-teal-dark rounded-pill hover:bg-blossom/20",
+          "border-2 border-blossom bg-transparent text-[var(--text)] rounded-pill hover:bg-blossom/20",
       },
       size: {
         default: "h-12 px-7 py-3",

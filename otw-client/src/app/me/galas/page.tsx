@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Button, Icon, PageHead, blob } from '@/components/otw';
+import { Button, Icon, PageHead, SegmentedControl, blob } from '@/components/otw';
+import { CalendarView } from '@/components/me/calendar/CalendarView';
 import { GalaCard, type CardGroup } from '@/components/me/GalaCard';
 import { MeShell } from '@/components/me/MeShell';
 import styles from '@/components/me/me.module.css';
@@ -30,11 +31,45 @@ function useRememberRooms(rooms: MyRoomDto[]) {
   }, [rooms]);
 }
 
+type View = 'upcoming' | 'month' | 'week';
+const VIEW_KEY = 'otw:cal-view';
+
 export default function MyGalasPage() {
   const ongoing = useMyRooms('ongoing');
   const upcoming = useMyRooms('upcoming');
   const completed = useMyRooms('completed');
   const results = { ongoing, upcoming, completed };
+
+  // Upcoming (the list) / Month / Week. The last choice is remembered on this device.
+  const [view, setView] = useState<View>('upcoming');
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(VIEW_KEY);
+      // Read after mount: the server render has no localStorage.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (saved === 'month' || saved === 'week') setView(saved);
+    } catch {
+      /* storage blocked: stays on Upcoming */
+    }
+  }, []);
+  const changeView = (v: View) => {
+    setView(v);
+    try {
+      window.localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* storage blocked: the choice just isn't remembered */
+    }
+  };
+
+  // The calendar reads the very same galas as the list below, so the two always agree.
+  const calGroups = useMemo(
+    () => [
+      { group: 'ongoing' as const, rooms: ongoing.data ?? [] },
+      { group: 'upcoming' as const, rooms: upcoming.data ?? [] },
+      { group: 'done' as const, rooms: completed.data ?? [] },
+    ],
+    [ongoing.data, upcoming.data, completed.data],
+  );
 
   const all = useMemo(
     () => [...(ongoing.data ?? []), ...(upcoming.data ?? []), ...(completed.data ?? [])],
@@ -57,6 +92,19 @@ export default function MyGalasPage() {
         <Link className="btn sm rosy" href="/plan">
           <Icon name="plus" size={18} /> Plan a Gala
         </Link>
+      </div>
+
+      <div className={styles.viewRow}>
+        <SegmentedControl<View>
+          label="Calendar view"
+          value={view}
+          onChange={changeView}
+          options={[
+            { value: 'upcoming', label: 'Upcoming' },
+            { value: 'month', label: 'Month' },
+            { value: 'week', label: 'Week' },
+          ]}
+        />
       </div>
 
       {failed.length > 0 && (
@@ -82,7 +130,13 @@ export default function MyGalasPage() {
         </div>
       )}
 
-      {empty && (
+      {!loading && view !== 'upcoming' && (
+        <div className={styles.calWrap}>
+          <CalendarView groups={calGroups} mode={view} />
+        </div>
+      )}
+
+      {empty && view === 'upcoming' && (
         <div className={styles.gate}>
           <span className="ico xl" style={blob(2)}>
             <Icon name="calendar" size={44} />
@@ -95,11 +149,11 @@ export default function MyGalasPage() {
         </div>
       )}
 
-      {GROUPS.map(({ view, group, title }) => {
-        const list = results[view].data ?? [];
+      {view === 'upcoming' && GROUPS.map(({ view: v, group, title }) => {
+        const list = results[v].data ?? [];
         if (!list.length) return null;
         return (
-          <section key={view} aria-label={title}>
+          <section key={v} aria-label={title}>
             <h3 className={styles.gh}>{title}</h3>
             <div className={styles.gl}>
               {list.map((room) => (

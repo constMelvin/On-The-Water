@@ -9,6 +9,7 @@ import { lookupGala, joinGala, type GalaEvent } from './joinApi';
 import { GalaDirectory } from './GalaDirectory';
 import { galaRoute, isValidCode, normCode, roomIdFor } from '@/lib/otw/gala-registry';
 import { useAccount } from '@/lib/auth/session';
+import { useProfile } from '@/lib/otw/profile';
 import { OFFLINE_MESSAGE } from '@/lib/auth/errors';
 
 // Dashboard route for the gala the member just joined
@@ -108,15 +109,19 @@ export default function JoinPage() {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Default the nickname to the account Name once (still editable before joining).
-  // The Name given at Create account (Supabase user_metadata.name).
+  // Default the nickname to the saved profile nickname, else the account Name (still editable before
+  // joining). The Name given at Create account is Supabase user_metadata.name. Only an empty field, or
+  // one we filled in ourselves, is replaced (the profile can load a moment after the account).
   const account = useAccount();
-  const nicknamePrefilled = useRef(false);
+  const { profile } = useProfile();
+  const autoNickname = useRef('');
   useEffect(() => {
-    if (nicknamePrefilled.current || !account.name) return;
-    nicknamePrefilled.current = true;
-    setNickname((current) => current || account.name.slice(0, 20));
-  }, [account.name]);
+    const want = (profile?.nickname || account.name).slice(0, 20);
+    if (!want) return;
+    const prev = autoNickname.current;
+    autoNickname.current = want;
+    setNickname((current) => (current === '' || current === prev ? want : current));
+  }, [profile?.nickname, account.name]);
 
   const [codeError, setCodeError] = useState('');
   const [nicknameError, setNicknameError] = useState('');
@@ -272,9 +277,9 @@ export default function JoinPage() {
           setStep(1);
           setCodeError("Hmm, we can't find that code. Check your group chat and try again.");
         } else if (result.error === 'ALREADY_A_MEMBER') {
-          // Already in this gala on this device: open it (or re-enter if the id was lost).
+          // Already in this gala: open it (or go to My Galas, which restores it, if the id was lost).
           const c = normalizeGalaCode(code);
-          router.push(roomIdFor(c) ? MEMBER_DASHBOARD_ROUTE(c) : `/enter?code=${encodeURIComponent(c)}`);
+          router.push(roomIdFor(c) ? MEMBER_DASHBOARD_ROUTE(c) : '/me/galas');
         } else if (result.error === 'INVALID_GALA_PASSWORD' || result.error === 'MISSING_PASSWORD') {
           setPasswordError("That password doesn't match. Check with your Gala Leader.");
           passwordInputRef.current?.focus();

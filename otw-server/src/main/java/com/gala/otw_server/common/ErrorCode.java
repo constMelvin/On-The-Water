@@ -41,7 +41,6 @@ public enum ErrorCode {
     INVALID_CODE,               // bad room_code on join
     ROOM_ARCHIVED,              // write attempted on an archived ("Mga Drawing") gala
     ROOM_FULL,                  // couple gala already has two members
-    MEMBER_HAS_ACCOUNT,         // "Which one are you?" claim of a member linked to an account — log in instead
     HOST_CANNOT_LEAVE,          // the Gala Leader must archive or delete instead of leaving
     ALREADY_CLAIMED,            // checklist item already assigned to someone
     SETTLEMENT_MISMATCH,        // payment doesn't match an outstanding transfer

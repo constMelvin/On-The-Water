@@ -186,13 +186,6 @@ public final class DomainExceptions {
         }
     }
 
-    public static class MemberHasAccountException extends BaseException {
-        public MemberHasAccountException() {
-            super(ErrorCode.MEMBER_HAS_ACCOUNT, HttpStatus.CONFLICT,
-                    "That member saved this gala to an account — log in instead");
-        }
-    }
-
     public static class HostCannotLeaveException extends BaseException {
         public HostCannotLeaveException() {
             super(ErrorCode.HOST_CANNOT_LEAVE, HttpStatus.CONFLICT,

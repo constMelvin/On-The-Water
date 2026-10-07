@@ -20,6 +20,7 @@ import { failed, upsertIn, useBudget, useCoupleIdeas, useItinerary, usePhotos } 
 import { toCents, withTotals } from '@/lib/otw/budget';
 import { timeLabel } from '@/lib/otw/time';
 import { createStop, saveBudget, setCoupleIdeaSaved, type StopInput } from '@/lib/api/gala';
+import { setStopExtras, type StopExtras } from '@/lib/otw/stop-extras';
 import type { BudgetVM, CoupleIdeaVM } from '@/lib/api/types';
 import type { IconName } from '@/lib/otw/icons';
 import { ErrorState, Skeleton } from '../States';
@@ -59,7 +60,7 @@ export function Couple() {
                   <Icon name="heart" size={22} />
                 </span>
               )}
-              <Avatar name={m.nickname} tone={toneOf(m.userId)} size={52} />
+              <Avatar name={m.nickname} tone={toneOf(m.userId)} size={52} userId={m.userId} />
             </span>
           ))}
         </div>
@@ -190,10 +191,12 @@ function Places() {
   if (q.isPending) return <Skeleton label="Loading places" />;
   const places = [...(q.data ?? [])].sort((a, b) => a.position - b.position);
 
-  const onAdd = async (input: StopInput) => {
+  const onAdd = async (input: StopInput, pin?: StopExtras) => {
     if (!roomId) return;
     try {
       const row = await createStop(roomId, input);
+      // The pin is kept on this device (same helper as the plan tab). TODO(backend): lat/lng in the DTO.
+      if (pin) setStopExtras(roomId, row.id, pin);
       upsertIn(qc, featureKey(roomId, 'itinerary'), row);
       void qc.invalidateQueries({ queryKey: featureKey(roomId, 'summary') });
       setAdding(false);

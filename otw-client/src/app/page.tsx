@@ -161,8 +161,8 @@ const FOOTER_SHAPES: ShapeDef[] = [
 
 const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   {
-    t: 'Pick the date',
-    d: 'Let’s turn “someday” into an actual date.',
+    t: 'Pick a date',
+    d: 'Turn “someday” into an actual date.',
     icon: (
       <>
         <rect x="3.5" y="5" width="17" height="15" rx="4" />
@@ -182,7 +182,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Build the plan',
-    d: 'Places, food stops and timing, in order.',
+    d: 'Places, food, timing, and everything in between.',
     icon: (
       <>
         <circle cx="6" cy="18" r="2.2" />
@@ -193,7 +193,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Talk gastos',
-    d: 'Estimate the budget before “magkano ba?” starts.',
+    d: 'Set the budget before “magkano ba?” begins.',
     icon: (
       <>
         <rect x="3" y="6.5" width="18" height="13" rx="4" />
@@ -213,8 +213,8 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
     ),
   },
   {
-    t: 'Real-time GC chat',
-    d: 'Keep all the banter, updates, and side-talk in one place.',
+    t: 'Keep the GC going',
+    d: 'Banter, updates, and last-minute changes, all in one place.',
     icon: (
       <>
         <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
@@ -224,7 +224,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Watch everyone go OTW',
-    d: 'Live location on gala day.',
+    d: 'Live location, because “OTW” needs proof.',
     icon: (
       <>
         <path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z" />
@@ -336,17 +336,17 @@ function RoadTracker() {
 /* ------------------------------------------------------------------ */
 
 const NOW_ITEMS = [
-  'Plan a Gala or join with a code',
+  'Plan or join a gala',
   'Attendance, itinerary, checklist',
-  'Budget, expenses, chat',
+  'Budget, expenses, and chat',
   'Live location on gala day',
   'The Gala Dump for photos',
 ];
 
 const LATER_ITEMS = [
   'Saved galas, one tap away',
-  'A personal gala calendar',
-  'Gala history, plus Mga Drawing',
+  'Your personal gala calendar',
+  'Gala history, including the mga drawing',
   'Reminders, even when you’re not in the gala',
   'Your galas on any device',
 ];
@@ -374,10 +374,10 @@ function ForkCards() {
         onPointerMove={tilt}
         onPointerLeave={untilt}
       >
-        <span className={styles.forkTag}>ONE ACCOUNT, KAHIT ILANG GALA</span>
-        <h3>Account muna. Tapos G na.</h3>
+        <span className={styles.forkTag}>ONE ACCOUNT. AS MANY GALAS AS YOU WANT.</span>
+        <h3>Create once. Gala anytime.</h3>
         <p className={styles.forkSub}>
-          Gumawa ng account para ma-save ang gala mo. Isang beses lang, tapos plan or join na kayo.
+          Create an account to save your galas and keep everything in one place.
         </p>
         <ul className={styles.forkList}>
           {NOW_ITEMS.map((t) => (
@@ -407,9 +407,9 @@ function ForkCards() {
         onPointerMove={tilt}
         onPointerLeave={untilt}
       >
-        <span className={styles.forkTag}>SAVED SA ACCOUNT MO</span>
-        <h3>Your galas, kasama mo kahit saan.</h3>
-        <p className={styles.forkSub}>Libre ang account. Nandito lahat ng gala mo.</p>
+        <span className={styles.forkTag}>YOUR GALAS, ALWAYS WITH YOU.</span>
+        <h3>Never lose a gala again.</h3>
+        <p className={styles.forkSub}>Your plans, past galas, and upcoming adventures, all in one place.</p>
         <ul className={styles.forkList}>
           {LATER_ITEMS.map((t) => (
             <li key={t}>
@@ -424,73 +424,6 @@ function ForkCards() {
         </ul>
       </article>
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Returning users: pill that opens into a quick gala-code input     */
-/* ------------------------------------------------------------------ */
-
-function ReEnterGala() {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [code, setCode] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const c = code.replace(/\s+/g, '');
-    router.push(c ? `/enter?code=${encodeURIComponent(c)}` : '/enter');
-  };
-
-  if (!open) {
-    return (
-      <button type="button" className={styles.reenter} onClick={() => setOpen(true)}>
-        <span className={styles.reenterIcon}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 4h3a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-3M10 16l4-4-4-4M14 12H4" />
-          </svg>
-        </span>
-        <span className={styles.reenterSoft}>Bagong device?</span> Enter a Gala
-      </button>
-    );
-  }
-
-  return (
-    <form
-      className={styles.reenterForm}
-      onSubmit={submit}
-      onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-    >
-      <label htmlFor="reenter-code" className={styles.srOnly}>
-        Gala code
-      </label>
-      <input
-        id="reenter-code"
-        ref={inputRef}
-        className={styles.reenterInput}
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        placeholder="Gala code"
-        autoComplete="off"
-        autoCapitalize="characters"
-        spellCheck={false}
-      />
-      <button type="submit" className={styles.reenterGo} aria-label="Enter gala">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12h14M13 6l6 6-6 6" />
-        </svg>
-      </button>
-      <button type="button" className={styles.reenterClose} onClick={() => setOpen(false)} aria-label="Close">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round">
-          <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-      </button>
-    </form>
   );
 }
 
@@ -772,7 +705,7 @@ export default function LandingPage() {
             </h1>
 
             <p className={`${styles.lead} ${styles.heroRise}`} style={delay(0.25)}>
-              Finally, a place for all those gala plans na ilang buwan nang nasa group chat. Plan it. Share it. Make it happen.
+              Say goodbye to fake “OTW.” Plan the gala, get everyone on board, and actually make it happen.
             </p>
 
             <div
@@ -808,19 +741,6 @@ export default function LandingPage() {
               ))}
             </div>
 
-            <div className={`${styles.reenterWrap} ${styles.heroRise}`} style={delay(0.5)}>
-              <ReEnterGala />
-            </div>
-
-            <p className={`${styles.accountNote} ${styles.heroRise}`} style={delay(0.55)}>
-              Libre ang account. Isang beses lang, tapos plan or join na kayo.
-            </p>
-            <p
-              className={styles.heroRise}
-              style={{ ...delay(0.6), color: 'var(--rosy-tint)', fontSize: '12px', marginTop: '14px', fontWeight: 700 }}
-            >
-              And yes, we can tell if you&apos;re actually OTW.
-            </p>
           </div>
 
           {/* WITHOUT OTW vs WITH OTW conversation ad */}
@@ -837,7 +757,7 @@ export default function LandingPage() {
         <div className={styles.howInner}>
           <h2 data-reveal style={delay(0)}>Your gala starts here.</h2>
           <p className={styles.howSub} data-reveal style={delay(0.1)}>
-            NO COMPLICATED SETUP. JUST MAKE A PLAN AND GET EVERYONE MOVING.
+            NO COMPLICATED SETUP. JUST PICK A DATE, GET THE GROUP IN, AND MAKE IT HAPPEN.
           </p>
           <RoadTracker />
         </div>
@@ -877,7 +797,7 @@ export default function LandingPage() {
             <circle cx="12" cy="12" r="3" fill="var(--rosy-dark)" stroke="none" />
           </svg>
         </h2>
-        <p data-reveal style={delay(0.1)}>Libre ang account. Zero planning skills required.</p>
+        <p data-reveal style={delay(0.1)}>No planning skills required. Just bring the group chat.</p>
         <div className={styles.ctaBtnWrap} data-reveal style={delay(0.2)}>
           <Link className={styles.btnDark} href="/plan">
             Tara G! — It&apos;s Free
@@ -899,16 +819,15 @@ export default function LandingPage() {
           />
         </div>
         <p>
-          On The Way — planning made for people who decide things last minute
+          On The Water — because “someday” isn’t a plan.
           <svg width="12" height="12" viewBox="0 0 24 24" style={{ verticalAlign: '1px', marginLeft: '2px' }}>
             <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" style={{ fill: 'var(--teal-tint)' }} />
           </svg>
         </p>
-        <p className={styles.footerNote}>Kailangan ng account para mag-plan o mag-join. Libre &apos;yan.</p>
+        <p className={styles.footerNote}>One free account. All your galas in one place.</p>
         <nav className={styles.footerLinks} aria-label="Footer">
           <Link href="/plan">Plan a Gala</Link>
           <Link href="/join">Join a Gala</Link>
-          <Link href="/enter">Enter a Gala</Link>
           <Link href="/login">Log in</Link>
           <Link href="/privacy">Privacy</Link>
         </nav>

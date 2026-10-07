@@ -6,28 +6,27 @@
  * Data is GET /rooms/{roomId}/itinerary. Reordering sends the whole route with each stop's
  * version (POST .../reorder; a stale one is a 409: toast + refetch). Adding a stop also posts a
  * card in the chat (the server writes it). Members can edit only while "Edit the plan" is on.
+ * Editing a stop (host or its creator) is PATCH .../itinerary/{id} with the stop's version; a stale
+ * one is a 409. The map pin and custom type live on this device (see lib/otw/stop-extras.ts).
  */
 import { useState, type DragEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Avatar, Button, Card, Icon, Tag, blob, type TagVariant } from '@/components/otw';
+import { Avatar, Button, Card, Icon, Tag, blob } from '@/components/otw';
 import { burst, toast } from '@/lib/otw/feedback';
 import { useGala } from '@/lib/otw/gala-store';
 import { featureKey } from '@/lib/otw/live';
 import { failed, removeFrom, upsertIn, useItinerary, useTabState } from '@/lib/otw/gala-queries';
 import { dayLabel, timeLabel } from '@/lib/otw/time';
-import { createStop, deleteStop, reorderStops, type StopInput } from '@/lib/api/gala';
-import type { ItineraryItemVM, StopType } from '@/lib/api/types';
+import { removeStopExtras, setStopExtras, useStopExtras, type StopExtras } from '@/lib/otw/stop-extras';
+import { isApiError } from '@/lib/api/client';
+import { createStop, deleteStop, reorderStops, updateStop, type StopInput } from '@/lib/api/gala';
+import type { ItineraryItemVM } from '@/lib/api/types';
 import { Empty, StateGate } from '../States';
 import { AddStopSheet } from './AddStopSheet';
-import { MapArt } from './MapArt';
+import { RouteRoad } from './RouteRoad';
+import { metaFor } from './stop-style';
 import { galaHref } from '../nav';
 import s from './route.module.css';
-
-const TYPE: Record<StopType, { label: string; tag: TagVariant }> = {
-  MEET_UP: { label: 'Meet-up', tag: 'teal' },
-  ACTIVITY: { label: 'Activity', tag: 'zest' },
-  FOOD: { label: 'Food', tag: 'blossom' },
-};
 
 const burstMid = () => burst(window.innerWidth / 2, window.innerHeight / 2);
 
@@ -40,7 +39,7 @@ export function useCanEditPlan(): boolean {
 }
 
 export function Route() {
-  const { gala, nameOf, toneOf, roomId, setViewState } = useGala();
+  const { gala, nameOf, toneOf, roomId, setViewState, role, myUserId } = useGala();
   const canEdit = useCanEditPlan();
   const qc = useQueryClient();
   const q = useItinerary();
@@ -49,7 +48,19 @@ export function Route() {
   const summaryKey = featureKey(roomId, 'summary');
 
   const stops = [...(q.data ?? [])].sort(byPosition);
+  // Map pin + custom type, kept on this device. TODO(backend): come from the itinerary DTO instead.
+  const extras = useStopExtras(roomId);
+  // The caption's area: the most common one among the stops' pins, else the gala's destination.
+  const areas = new Map<string, number>();
+  for (const it of stops) {
+    const a = extras[it.id]?.area;
+    if (a) areas.set(a, (areas.get(a) ?? 0) + 1);
+  }
+  const area = [...areas.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? gala.dest;
   const [adding, setAdding] = useState(false);
+  // The stop being edited (by id, so a stop someone deletes meanwhile just closes the sheet).
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = stops.find((it) => it.id === editingId) ?? null;
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const multiDay = (gala.days ?? 1) > 1;
@@ -94,16 +105,18 @@ export function Route() {
     removeFrom(qc, key, it.id);
     deleteStop(roomId, it.id)
       .then(() => {
+        removeStopExtras(roomId, it.id);
         toast('Stop removed.');
         void qc.invalidateQueries({ queryKey: summaryKey });
       })
       .catch((e: unknown) => failed(qc, [key], e, "Couldn't remove that stop."));
   };
 
-  const onAdd = async (input: StopInput) => {
+  const onAdd = async (input: StopInput, pin?: StopExtras) => {
     if (!roomId) return;
     try {
       const row = await createStop(roomId, input);
+      if (pin) setStopExtras(roomId, row.id, pin);
       upsertIn(qc, key, row);
       void qc.invalidateQueries({ queryKey: summaryKey });
       void qc.invalidateQueries({ queryKey: featureKey(roomId, 'chat') });
@@ -114,6 +127,39 @@ export function Route() {
       failed(qc, [key], e, "Couldn't add that stop.");
     }
   };
+
+  /**
+   * Saves an edited stop: PATCH with the version we read, so a stale one is a 409. Notes go as ''
+   * (not null) because the server ignores null; the time can be changed but not cleared.
+   */
+  const onSave = async (it: ItineraryItemVM, input: StopInput, pin?: StopExtras) => {
+    if (!roomId) return;
+    try {
+      const saved = await updateStop(roomId, it.id, {
+        title: input.title,
+        stopType: input.stopType,
+        notes: input.notes ?? '',
+        startsAt: input.startsAt,
+        version: it.version,
+      });
+      if (pin) setStopExtras(roomId, it.id, pin);
+      else removeStopExtras(roomId, it.id);
+      upsertIn(qc, key, saved);
+      setEditingId(null);
+      toast('Stop updated.');
+    } catch (e) {
+      if (isApiError(e, 'OPTIMISTIC_LOCK_CONFLICT')) {
+        toast("Couldn't update that stop. Someone may have changed it. Try again.", 'err');
+        void qc.invalidateQueries({ queryKey: key });
+        setEditingId(null); // reopen to edit the latest
+      } else {
+        failed(qc, [key], e, "Couldn't update that stop.");
+      }
+    }
+  };
+
+  /** Only the Gala Leader or the person who added a stop may edit it (the server says 403 otherwise). */
+  const canEditStop = (it: ItineraryItemVM) => canEdit && (role === 'leader' || (!!myUserId && it.createdBy === myUserId));
 
   const openAdd = () => setAdding(true);
   const dragProps = (it: ItineraryItemVM) =>
@@ -179,7 +225,8 @@ export function Route() {
             <ol className={s.stops}>
               {stops.map((it, i) => {
                 const who = nameOf(it.createdBy);
-                const t = TYPE[it.stopType] ?? TYPE.ACTIVITY;
+                const x = extras[it.id];
+                const meta = metaFor(it.stopType, x?.customType);
                 const cls = [s.stop, dragId === it.id && s.drag, overId === it.id && dragId !== it.id && s.over, it.completed && s.done]
                   .filter(Boolean)
                   .join(' ');
@@ -197,8 +244,16 @@ export function Route() {
                       <div className={s.sbody}>
                         <div className={s.srow1}>
                           <b>{it.title}</b>
-                          <Tag variant={t.tag}>{t.label}</Tag>
+                          <Tag variant={meta.tag} icon={meta.icon}>
+                            {meta.label}
+                          </Tag>
                         </div>
+                        {x?.area && (
+                          <span className={s.stime}>
+                            <Icon name="pin" size={14} />
+                            {x.area}
+                          </span>
+                        )}
                         {it.startsAt && (
                           <span className={s.stime}>
                             <Icon name="clock" size={14} />
@@ -208,7 +263,7 @@ export function Route() {
                         )}
                         {it.notes && <p>{it.notes}</p>}
                         <span className={s.addby}>
-                          Added by <Avatar name={who} tone={toneOf(it.createdBy)} size={20} />
+                          Added by <Avatar name={who} tone={toneOf(it.createdBy)} size={20} userId={it.createdBy} />
                           {who}
                         </span>
                       </div>
@@ -232,6 +287,16 @@ export function Route() {
                           >
                             <Icon name="chevd" size={20} />
                           </button>
+                          {canEditStop(it) && (
+                            <button
+                              type="button"
+                              className="ibtn"
+                              aria-label={`Edit ${it.title}`}
+                              onClick={() => setEditingId(it.id)}
+                            >
+                              <Icon name="edit" size={20} />
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="ibtn"
@@ -248,10 +313,18 @@ export function Route() {
               })}
             </ol>
             <Card className={s.mapcard}>
-              <MapArt label="Map of the gala route" />
+              <RouteRoad
+                stops={stops.map((it) => ({
+                  id: it.id,
+                  title: it.title,
+                  stopType: it.stopType,
+                  customType: extras[it.id]?.customType,
+                }))}
+                label={`The gala route: ${stops.length} ${stops.length === 1 ? 'stop' : 'stops'}, in order`}
+              />
               <div className={s.mapnote}>
                 <Icon name="pin" size={16} /> {stops.length} {stops.length === 1 ? 'stop' : 'stops'}
-                {gala.dest ? ` · ${gala.dest}` : ''}
+                {area ? ` · ${area}` : ''}
               </div>
             </Card>
           </div>
@@ -267,6 +340,27 @@ export function Route() {
 
       {adding && (
         <AddStopSheet startDate={gala.dateISO} days={gala.days ?? 1} onAdd={onAdd} onClose={() => setAdding(false)} />
+      )}
+
+      {editing && (
+        <AddStopSheet
+          key={editing.id}
+          title="Save changes"
+          startDate={gala.dateISO}
+          days={gala.days ?? 1}
+          initial={{
+            title: editing.title,
+            stopType: editing.stopType,
+            customType: extras[editing.id]?.customType,
+            startsAt: editing.startsAt,
+            notes: editing.notes,
+            lat: extras[editing.id]?.lat,
+            lng: extras[editing.id]?.lng,
+            area: extras[editing.id]?.area,
+          }}
+          onAdd={(input, pin) => onSave(editing, input, pin)}
+          onClose={() => setEditingId(null)}
+        />
       )}
     </>
   );

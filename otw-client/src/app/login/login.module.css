@@ -1,5 +1,6 @@
 /* Everything is centered: the page content sits in the middle, horizontally and vertically. */
 .page {
+  composes: theme-light from global; /* brand-coloured page (bg-blossom): its fields stay light in dark mode */
   position: relative;
   min-height: 100dvh;
   padding: 88px var(--pad) 40px;
@@ -109,6 +110,7 @@
 
 /* ---- planner card: paper, spiral rings, ruled lines ---- */
 .planner {
+  composes: theme-light from global; /* a cream paper planner in both themes */
   position: relative;
   background: var(--cream);
   color: var(--teal-dark);

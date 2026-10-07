@@ -57,7 +57,7 @@ export function Settings() {
   if (!room || !roomId) return <Skeleton label="Loading settings" />;
 
   // Navigate away without forgetting the room first: the gala gate sends a device that no longer
-  // knows the room to Enter a Gala, which would race this push. A left / deleted room is forgotten
+  // knows the room to My Galas, which would race this push. A left / deleted room is forgotten
   // the next time its code is opened (403 / 404 from GET /rooms/{id}).
   const leaveTo = (path: string, msg: string) => {
     void qc.invalidateQueries({ queryKey: meKeys.all });
@@ -168,7 +168,7 @@ export function Settings() {
       <>
         <PageHead title="Your settings" sub={`You're a member of ${gala.title}.`} tag={<Tag variant="blossom" icon="user">Member</Tag>} />
         <div className={s.cols}>
-          <Card>
+          <Card className={s.cTeal}>
             <h3>You in this gala</h3>
             <NicknameForm roomId={roomId} current={me} />
             <div className={s.srow2}>
@@ -181,7 +181,7 @@ export function Settings() {
               </Button>
             </div>
           </Card>
-          <Card>
+          <Card className={s.cZest}>
             <h3>Coming back later</h3>
             <p className="fine">
               You&apos;ll need the gala code and the gala password. Ask your Gala Leader if you don&apos;t have it.
@@ -217,11 +217,11 @@ export function Settings() {
       />
       <div className={s.cols}>
         <div className={s.col}>
-          <Card>
+          <Card className={s.cTeal}>
             <h3>Gala details</h3>
             <DetailsForm room={room} />
           </Card>
-          <Card>
+          <Card className={s.cZest}>
             <h3>Access</h3>
             <div className={s.srow2}>
               <div>
@@ -247,13 +247,13 @@ export function Settings() {
           </Card>
         </div>
         <div className={s.col}>
-          <Card>
+          <Card className={s.cTeal}>
             <h3>Members</h3>
-            <ul className={`mlist ${s.mlist}`}>
+            <ul className={s.members}>
               {memberRows.map((m) => (
-                <li key={m.userId}>
-                  <Avatar name={m.nickname} tone={toneOf(m.userId)} size={30} />
-                  <span>
+                <li key={m.userId} className={s.member}>
+                  <Avatar name={m.nickname} tone={toneOf(m.userId)} size={40} userId={m.userId} />
+                  <span className={s.mname}>
                     {m.nickname}
                     {m.userId === myUserId ? ' (you)' : ''}
                   </span>
@@ -273,7 +273,7 @@ export function Settings() {
               ))}
             </ul>
           </Card>
-          <Card>
+          <Card className={s.cZest}>
             <h3>What members can do</h3>
             {PERMS.map(([key, label]) => (
               <div key={key} className={s.srow2}>
@@ -282,7 +282,7 @@ export function Settings() {
               </div>
             ))}
           </Card>
-          <Card className={s.danger}>
+          <Card className={`${s.cRosy} ${s.danger}`}>
             <h3>Danger zone</h3>
             <div className={s.actions}>
               <Button sm variant="ghost" onClick={() => setConfirm({ kind: 'archive' })}>

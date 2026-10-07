@@ -1,5 +1,6 @@
 /* Fast-Track /plan: one create screen + one celebration screen (prototype: otw-fasttrack-plan.jsx). */
 .page {
+  composes: theme-light from global; /* brand-coloured flow page: stays light in dark mode */
   --rosy: #e0417c;
   --rosy-dark: #c22e64;
   --zest: #f8e140;

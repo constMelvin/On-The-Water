@@ -20,8 +20,8 @@
 
   body {
     margin: 0;
-    background: var(--cream);
-    color: var(--teal-dark);
+    background: var(--bg-page);
+    color: var(--text);
     font-family: var(--fb);
     font-weight: 700;
     font-size: 16px;
@@ -79,7 +79,7 @@
   }
 
   :focus-visible {
-    outline: 3px solid var(--teal-dark);
+    outline: 3px solid var(--focus);
     outline-offset: 3px;
   }
 
@@ -103,13 +103,13 @@
   .bg-teal { background: var(--teal); color: var(--cream); }
   .bg-blossom { background: var(--blossom); color: var(--teal-dark); }
   .bg-tdark { background: var(--teal-dark); color: var(--cream); }
-  .bg-cream { background: var(--cream); }
+  .bg-cream { background: var(--bg-page); }
 
   .c-rosy { background: var(--rosy); color: var(--cream); --sh: var(--rosy-dark); }
   .c-zest { background: var(--zest); color: var(--teal-dark); --sh: var(--zest-dark); }
   .c-teal { background: var(--teal); color: var(--cream); --sh: var(--teal-dark); }
   .c-blossom { background: var(--blossom); color: var(--teal-dark); --sh: var(--rosy); }
-  .c-cream { background: var(--cream); color: var(--teal-dark); --sh: var(--blossom); }
+  .c-cream { background: var(--cream); color: var(--teal-dark); --sh: var(--line); }
 
   /* ---- buttons ---- */
   .btn {
@@ -179,7 +179,7 @@
     color: inherit;
     flex: none;
   }
-  .ibtn:hover { background: var(--blossom); }
+  .ibtn:hover { background: var(--surface-2); }
   .ibtn[disabled] { opacity: 0.35; pointer-events: none; }
   .ibtn.dark { background: var(--blossom); color: var(--teal-dark); }
 
@@ -189,12 +189,12 @@
     font: inherit;
     font-weight: 700;
     font-size: 17px;
-    color: var(--teal-dark);
-    background: var(--cream);
+    color: var(--text);
+    background: var(--field-bg);
     border: 3px solid var(--teal);
     border-radius: 20px;
     padding: 12px 18px;
-    box-shadow: 0 4px 0 var(--blossom);
+    box-shadow: 0 4px 0 var(--line);
     outline: none;
   }
   .in:focus { border-color: var(--rosy); box-shadow: 0 4px 0 var(--rosy-dark); }
@@ -203,6 +203,36 @@
   .in.bad { border-color: var(--rosy-dark); box-shadow: 0 4px 0 var(--rosy-dark); }
   .in.sel { width: auto; padding: 9px 16px; font-size: 15px; }
   .in.num { padding: 8px 12px; font-size: 17px; text-align: right; }
+
+  /* ---- selects: brand look only (fill, border, radius, chevron, focus / open, option text).
+     Width, padding and font size stay as .in sets them; the chevron sits in the right padding.
+     The chevron colours are --teal-dark (#1f6376) and --rosy-dark (#c22e64): a data-URI
+     image can't read CSS variables. ---- */
+  select.in {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    padding-right: 46px;
+    background-image: var(--chev-img);
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px 16px;
+  }
+  select.in.sel { padding-right: 38px; background-position: right 12px center; }
+  select.in:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c22e64' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  }
+  select.in:disabled { opacity: 0.6; cursor: not-allowed; }
+  select.in option { font-family: var(--fb, inherit); font-weight: 700; color: var(--text); background: var(--field-bg); }
+  select.in option:checked { background: var(--surface-2); }
+  @supports selector(select:open) {
+    select.in:open {
+      border-color: var(--rosy);
+      box-shadow: 0 4px 0 var(--rosy-dark);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c22e64' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 15l6-6 6 6'/%3E%3C/svg%3E");
+    }
+  }
 
   .fl { display: flex; flex-direction: column; gap: 8px; font-size: 15px; font-weight: 800; }
   .fl > .in,
@@ -225,17 +255,17 @@
     transform: translateY(-50%);
     width: 40px;
     height: 40px;
-    color: var(--teal-dark);
+    color: var(--text);
   }
-  .eye:hover { background: var(--blossom); }
+  .eye:hover { background: var(--surface-2); }
   .ferr {
     display: flex;
     gap: 8px;
     align-items: flex-start;
     font-weight: 800;
     font-size: 15px;
-    background: var(--cream);
-    color: var(--rosy-dark);
+    background: var(--surface);
+    color: var(--rosy-ink);
     border-radius: 16px;
     padding: 10px 14px;
     border: 3px solid var(--rosy-dark);
@@ -246,7 +276,7 @@
   /* ---- segmented control ---- */
   .seg {
     display: inline-flex;
-    background: var(--blossom);
+    background: var(--surface-2);
     border-radius: 999px;
     padding: 4px;
     gap: 2px;
@@ -260,7 +290,7 @@
     padding: 8px 15px;
     font-weight: 800;
     font-size: 15px;
-    color: var(--teal-dark);
+    color: var(--text);
     display: inline-flex;
     gap: 6px;
     align-items: center;
@@ -278,16 +308,16 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: var(--cream);
-    color: var(--teal-dark);
-    border: 3px solid var(--blossom);
+    background: var(--surface);
+    color: var(--text);
+    border: 3px solid var(--line);
     border-radius: 999px;
     padding: 6px 14px;
     font-weight: 800;
     font-size: 14px;
   }
   .chip:hover,
-  .chip[aria-pressed='true'] { border-color: var(--rosy); background: var(--blossom); }
+  .chip[aria-pressed='true'] { border-color: var(--rosy); background: var(--surface-2); }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 
   /* ---- switch + checkbox ---- */
@@ -296,7 +326,7 @@
     height: 32px;
     border-radius: 99px;
     border: 0;
-    background: var(--blossom);
+    background: var(--surface-2);
     padding: 3px;
     box-shadow: inset 0 0 0 3px var(--teal);
     flex: none;
@@ -317,7 +347,7 @@
     height: 32px;
     border-radius: 11px;
     border: 3px solid var(--teal);
-    background: var(--cream);
+    background: var(--field-bg);
     display: grid;
     place-items: center;
     color: var(--cream);
@@ -361,7 +391,7 @@
     place-items: center;
     font-family: var(--fd);
     font-weight: 600;
-    border: 3px solid var(--cream);
+    border: 3px solid var(--av-ring);
     flex: none;
     position: relative;
   }
@@ -374,7 +404,7 @@
     height: 11px;
     border-radius: 50%;
     background: var(--teal);
-    border: 2px solid var(--cream);
+    border: 2px solid var(--av-ring);
   }
   .stack { display: inline-flex; }
   .stack .av { margin-left: -10px; }
@@ -399,7 +429,7 @@
     width: 52px;
     height: 52px;
     border-radius: 44% 56% 52% 48% / 52% 44% 56% 48%;
-    background: var(--cream);
+    background: var(--surface);
     color: var(--rosy);
     display: grid;
     place-items: center;
@@ -410,16 +440,16 @@
 
   /* ---- cards ---- */
   .card {
-    background: var(--cream);
-    color: var(--teal-dark);
-    border: 3px solid var(--cream);
+    background: var(--surface);
+    color: var(--text);
+    border: 3px solid var(--surface);
     border-radius: 26px;
     padding: 20px;
-    box-shadow: 0 6px 0 var(--sh, var(--blossom));
+    box-shadow: 0 6px 0 var(--sh, var(--line));
   }
-  /* Matches the reference cascade: .card keeps its cream fill; a c-* tone only
+  /* Matches the reference cascade: .card keeps its surface fill; a c-* tone only
      swaps the offset shadow (e.g. the dashboard "Gala Code" card). */
-  .card.c-blossom { border-color: var(--cream); }
+  .card.c-blossom { border-color: var(--surface); }
   .card p { font-size: 15px; font-weight: 600; }
   .blobcard { border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%; }
   .card.blobcard { border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%; padding: 26px 28px; }
@@ -432,7 +462,7 @@
   /* ---- progress ---- */
   .bar {
     height: 16px;
-    background: var(--blossom);
+    background: var(--surface-2);
     border-radius: 99px;
     overflow: hidden;
     width: 100%;
@@ -447,7 +477,7 @@
 
   /* ---- skeleton ---- */
   .sk {
-    background: var(--blossom);
+    background: var(--surface-2);
     border-radius: 18px;
     animation: pulse 1.4s ease-in-out infinite;
   }
@@ -495,6 +525,24 @@
     animation: pop 0.7s ease-out forwards;
   }
 }
+
+/* A short colour crossfade right after switching light / dark (class added by lib/otw/theme.ts, never under reduced motion). */
+html.theme-anim,
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-anim,
+  html.theme-anim * {
+    transition: none !important;
+  }
+}
+
+/* Leaflet (OpenStreetMap) in dark: only the tiles are dimmed/inverted; markers and controls keep their colours. */
+.leaflet-tile-pane { filter: var(--tile-filter); }
+html .leaflet-container { background: var(--tile-bg); } /* html prefix: leaflet.css loads later and would win */
 
 @keyframes pop {
   0% { transform: translate(0, 0) scale(0.4); opacity: 1; }

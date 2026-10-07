@@ -3,7 +3,8 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AvatarStack, Icon, Tag } from '@/components/otw';
+import { Avatar, AvatarStack, Icon, Tag, ThemeToggle } from '@/components/otw';
+import { useMyIdentity } from '@/components/me/useMyIdentity';
 import { useGala } from '@/lib/otw/gala-store';
 import { GBOT, GNAV, PTABS, SETTINGS, galaHref } from './nav';
 import { GalaSheets } from './GalaSheets';
@@ -20,7 +21,9 @@ export function GalaShell({ children }: { children: ReactNode }) {
   const href = (s: string) => galaHref(gala.code, s);
   const showTabs = PTABS.some((t) => t.seg === seg);
   const badge = (s: string) => s === 'chat' && seg !== 'chat' && unread > 0 && <em className="badge">{unread}</em>;
-  const going = members.filter((m) => m.s === 'g').map((m) => m.n);
+  const going = members.filter((m) => m.s === 'g').map((m) => ({ name: m.n, userId: m.id, tone: m.c }));
+  // My look (photo, colour, nickname) for the account buttons; updates the moment the profile is saved.
+  const me = useMyIdentity();
 
   return (
     <div className="shell">
@@ -69,6 +72,10 @@ export function GalaShell({ children }: { children: ReactNode }) {
             <Icon name="calendar" size={22} />
             <span className="lbl">My Galas</span>
           </Link>
+          <Link href="/me/profile" className="sn" title="Your profile">
+            <Avatar name={me.name} tone={me.tone ?? 'rosy'} size={28} userId={me.id} />
+            <span className="lbl">{me.name}</span>
+          </Link>
         </div>
       </aside>
 
@@ -84,6 +91,10 @@ export function GalaShell({ children }: { children: ReactNode }) {
             </button>
           </div>
           <div className="tb-r">
+            <ThemeToggle />
+            <Link href="/me/profile" className="ibtn" aria-label={`Your profile, ${me.name}`} title={me.name}>
+              <Avatar name={me.name} tone={me.tone ?? 'rosy'} size={32} userId={me.id} />
+            </Link>
             {role === 'leader' ? (
               <Tag variant="zest" icon="crown">
                 Gala Leader
@@ -93,7 +104,7 @@ export function GalaShell({ children }: { children: ReactNode }) {
                 Member
               </Tag>
             )}
-            <AvatarStack names={going} size={30} max={4} />
+            <AvatarStack people={going} size={30} max={4} />
           </div>
         </div>
 

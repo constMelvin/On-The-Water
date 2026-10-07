@@ -27,7 +27,7 @@ const burstMid = () => burst(window.innerWidth / 2, window.innerHeight / 2);
 
 /** The room comes from the gala context (GalaProvider in the /gala/[code] layout). */
 export function Expenses() {
-  const { members, memberRows, nameOf, roomId, myUserId, setViewState } = useGala();
+  const { members, memberRows, nameOf, toneOf, roomId, myUserId, setViewState } = useGala();
   const qc = useQueryClient();
   const expensesQ = useExpenses();
   const settlementQ = useSettlement();
@@ -38,12 +38,12 @@ export function Expenses() {
   const items = expensesQ.data ?? [];
   const st = settlementQ.data;
 
-  // Who a new expense splits between: everyone who said "I'm G", else every member
-  // (the server's own default, sent explicitly so the sheet's "N people" is exact).
-  const sharers = useMemo(() => {
-    const going = memberRows.filter((m) => m.rsvpStatus === 'GOING').map((m) => m.userId);
-    return going.length ? going : memberRows.map((m) => m.userId);
-  }, [memberRows]);
+  // Who can pay for, and share, an expense. The sheet lets the person pick who shares each one
+  // (everyone by default); "Only the G's" uses the `going` flag.
+  const people = useMemo(
+    () => memberRows.map((m) => ({ id: m.userId, going: m.rsvpStatus === 'GOING' })),
+    [memberRows]
+  );
 
   // Outstanding transfers first, then the ones already marked paid.
   const debts = useMemo<Debt[]>(
@@ -81,6 +81,11 @@ export function Expenses() {
       toast('Add an amount first.', 'err');
       return;
     }
+    // An empty list would make the server split between "everyone who is G" instead, so never send one.
+    if (input.splitWith.length === 0) {
+      toast('Pick at least one person.', 'err');
+      return;
+    }
     if (!roomId) return;
     try {
       const row = await createExpense(roomId, {
@@ -88,7 +93,8 @@ export function Expenses() {
         amount: Math.round(input.amount * 100) / 100,
         paidBy: input.paidBy,
         category: input.category,
-        splitWithUserIds: sharers,
+        // Each expense keeps its own set of people; the server stores one share per person.
+        splitWithUserIds: input.splitWith,
       });
       upsertIn(qc, expensesKey, row);
       refresh();
@@ -165,6 +171,8 @@ export function Expenses() {
                 myId={myId}
                 members={members}
                 nameOf={nameOf}
+                expenses={items}
+                payments={st?.payments ?? []}
                 onPaid={onPaid}
               />
             </div>
@@ -178,9 +186,9 @@ export function Expenses() {
 
       {adding && (
         <AddExpenseSheet
-          sharers={sharers}
-          payers={memberRows.map((m) => m.userId)}
+          people={people}
           nameOf={nameOf}
+          toneOf={toneOf}
           defaultPaidBy={myId}
           onAdd={onAdd}
           onClose={() => setAdding(false)}

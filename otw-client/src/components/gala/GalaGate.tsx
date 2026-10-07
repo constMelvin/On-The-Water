@@ -44,16 +44,16 @@ function GalaError({ message }: { message: string }) {
 
 /**
  * Decides what /gala/[code] shows once the gala has been loaded from the backend:
- * the shell (I'm in it), the not-found state (unknown code), or Enter a Gala
+ * the shell (I'm in it), the not-found state (unknown code), My Galas
  * (this device isn't a member of the gala yet), or the error state.
  */
 export function GalaGate({ children }: { children: ReactNode }) {
-  const { status, gala, error } = useGala();
+  const { status, error } = useGala();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'guest') router.replace(`/enter?code=${encodeURIComponent(gala.code)}`);
-  }, [status, gala.code, router]);
+    if (status === 'guest') router.replace('/me/galas');
+  }, [status, router]);
 
   if (status === 'missing') return <GalaNotFound />;
   if (status === 'error') return <GalaError message={error} />;

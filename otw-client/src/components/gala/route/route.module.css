@@ -51,7 +51,7 @@
   font-size: 20px;
   flex: none;
   z-index: 1;
-  border: 3px solid var(--cream);
+  border: 3px solid var(--av-ring);
 }
 .stopc {
   flex: 1;
@@ -59,7 +59,7 @@
   gap: 10px;
   align-items: flex-start;
   padding: 14px 16px;
-  border-color: var(--blossom);
+  border-color: var(--line);
   min-width: 0;
 }
 .grip {
@@ -94,7 +94,7 @@
   align-items: center;
   font-weight: 800;
   font-size: 14px;
-  color: var(--rosy-dark);
+  color: var(--rosy-ink);
 }
 .addby {
   display: flex;
@@ -104,8 +104,10 @@
   font-weight: 700;
 }
 .sact {
-  display: flex;
-  flex-direction: column;
+  /* up / down on the first row, edit / delete on the second (edit only for the host or the creator) */
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  align-content: start;
   gap: 0;
   opacity: 0.3;
 }
@@ -184,6 +186,7 @@
     display: none;
   }
   .sact {
+    display: flex;
     flex-direction: row;
     opacity: 1;
   }

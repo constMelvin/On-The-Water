@@ -14,6 +14,7 @@
 }
 
 .card {
+  composes: theme-light from global; /* a cream "paper" card in both themes */
   width: 100%;
   max-width: 760px;
   background: var(--cream);

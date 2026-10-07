@@ -2,14 +2,23 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Button, Icon } from '@/components/otw';
-import { useAccount } from '@/lib/auth/session';
+import { Avatar, Button, Icon, ThemeToggle } from '@/components/otw';
 import { useLogOut } from '@/components/gala/useLogOut';
+import { useMyIdentity } from './useMyIdentity';
 import styles from './me.module.css';
+import profile from './profile.module.css';
 
-/** Page chrome shared by My Galas and History: brand, who's signed in, the other page, log out. */
-export function MeShell({ active, children }: { active: 'galas' | 'history'; children: ReactNode }) {
-  const { signedIn, displayName } = useAccount();
+type Page = 'galas' | 'history' | 'profile';
+
+const PAGES: { page: Page; href: string; label: string }[] = [
+  { page: 'galas', href: '/me/galas', label: 'My Galas' },
+  { page: 'history', href: '/me/history', label: 'History' },
+  { page: 'profile', href: '/me/profile', label: 'Profile' },
+];
+
+/** Page chrome shared by My Galas, History and Profile: brand, who's signed in, the other pages, log out. */
+export function MeShell({ active, children }: { active: Page; children: ReactNode }) {
+  const { id, name, tone, signedIn } = useMyIdentity();
   const logOut = useLogOut();
 
   return (
@@ -21,16 +30,23 @@ export function MeShell({ active, children }: { active: 'galas' | 'history'; chi
             <b>OTW</b>
           </Link>
           <div className={styles.topActions}>
-            {signedIn && <span className={styles.who}>Hi, {displayName}</span>}
-            {active === 'galas' ? (
-              <Link className={`btn sm ghost ${styles.navLink}`} href="/me/history">
-                History
-              </Link>
-            ) : (
-              <Link className={`btn sm ghost ${styles.navLink}`} href="/me/galas">
-                My Galas
+            <ThemeToggle />
+            {signedIn && (
+              <Link
+                href="/me/profile"
+                className={profile.me}
+                aria-label="Your profile"
+                aria-current={active === 'profile' ? 'page' : undefined}
+              >
+                <Avatar name={name} tone={tone ?? 'rosy'} size={32} userId={id} />
+                <span className={profile.meName}>Hi, {name}</span>
               </Link>
             )}
+            {PAGES.filter((p) => p.page !== active).map((p) => (
+              <Link key={p.page} className={`btn sm ghost ${styles.navLink}`} href={p.href}>
+                {p.label}
+              </Link>
+            ))}
             <Link className="btn sm ghost" href="/">
               Back to OTW
             </Link>

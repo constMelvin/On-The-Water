@@ -258,7 +258,7 @@ function Rail() {
         <ul className="mlist">
           {members.slice(0, 6).map((m) => (
             <li key={m.n}>
-              <Avatar name={m.n} tone={m.c} size={34} online={!!m.on} />
+              <Avatar name={m.n} tone={m.c} size={34} online={!!m.on} userId={m.id} />
               <span>
                 {m.n}
                 {m.n === me ? ' (you)' : ''}

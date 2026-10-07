@@ -1,9 +1,9 @@
 /**
- * Gala helpers shared by Plan a Gala, Join a Gala, Enter a Gala and the dashboard.
+ * Gala helpers shared by Plan a Gala, Join a Gala, My Galas and the dashboard.
  *
  * The backend (otw-server) is the source of truth for galas. This device only remembers
  * which room id a gala code maps to (localStorage "otw:rooms" -> { [CODE]: roomId }),
- * written after a successful create / join / enter. Who "I" am is the Supabase session.
+ * written after a successful create / join (or when My Galas lists it). Who "I" am is the Supabase session.
  */
 
 const ROOMS_KEY = 'otw:rooms';
@@ -46,7 +46,7 @@ function writeRooms(rooms: Record<string, string>) {
   listeners.forEach((l) => l());
 }
 
-/** Remembers that `code` is room `roomId` (after create / join / enter). */
+/** Remembers that `code` is room `roomId` (after create / join / My Galas). */
 export function rememberRoom(code: string, roomId: string) {
   writeRooms({ ...readRooms(), [rawCode(code)]: roomId });
 }

@@ -7,6 +7,8 @@
 >
 > **2026-10-02 — account required everywhere (owner decision):** reverses anonymous-first. Anonymous Supabase sessions are rejected on every route by AccountRequiredFilter (401 ACCOUNT_REQUIRED); login is email + password (OAuth later; Confirm email off); @RequireAccount, AccountRequiredAspect and POST /me/link-account removed; Enter a Gala kept for logged-in users. Spec: docs/superpowers/specs/2026-10-02-real-auth-account-required-design.md.
 >
+> **2026-10-07 — Enter a Gala removed (owner decision):** `POST /rooms/enter`, `POST /rooms/enter/claim`, `MemberIdentityRemapper`, the `member.reclaimed` realtime event, `MEMBER_HAS_ACCOUNT` and the `/enter` page are deleted. Join a Gala is unchanged. A device that lost its room id reopens a gala from My Galas (`/me/galas`).
+>
 > **2026-10-02 (slice 2A):** `GET /me/rooms` items now include `roomCode`; the frontend My Galas and a new History page read the account-wide list instead of the device registry. Spec: docs/superpowers/specs/2026-10-02-my-galas-history-design.md.
 >
 > **2026-10-05 — realtime channels made private (implementation drift fix, no spec change):** §8 always specified private, membership-gated `room:{roomId}` channels, but `RealtimeEventPublisher` sent public broadcasts and no `realtime.messages` policy existed. Broadcasts now set `private: true`, and **V16** adds RLS on `realtime.messages`: active room members may receive broadcast/presence on their room's topic and track presence; nobody but the service role can send broadcasts. On a non-Supabase Postgres V16 is a no-op. The frontend (`otw-client/src/lib/otw/live.ts`) subscribes privately and falls back to polling when the channel isn't connected.
@@ -14,6 +16,8 @@
 > **2026-10-05 (later) — gala directory + password on every join (owner decision):** the Join a Gala page now lists galas the Gala Leader opted in with "List this gala" (`rooms.is_listed`, **V17**, default off), via `GET /rooms/directory?q=&cursor=&limit=` (active, listed, not yet ended; soonest first; shows code, title, dates, destination, type, host nickname, member count, full, alreadyMember — no member list). `POST /rooms/join` now **requires** `password` and returns `401 INVALID_GALA_PASSWORD` on a mismatch (a gala with no password can't be joined until the leader sets one). Unlisted galas stay reachable by code only. `PATCH /rooms/{id}` takes `listed`; `RoomDto` returns it.
 >
 > **2026-10-05 (later still) — directory shows every gala (owner decision, supersedes the opt-in above):** `GET /rooms/directory` now returns **every ACTIVE gala** (archived ones excluded), upcoming/ongoing first by start date, finished ones after. Any logged-in account can see every gala's code, title, dates, destination, type, host nickname and member count, and its member nicknames through `GET /rooms/preview`; the Gala Password on `POST /rooms/join` is the only gate. `rooms.is_listed` (V17) and the `listed` field are kept but **no longer used** (migrations are additive); the "List this gala" switch was removed from the frontend.
+>
+> **2026-10-07 — account profile (owner decision; exception to "no users table" and "no binaries"):** **V22** adds `user_profiles` (`user_id` PK = JWT `sub`, `nickname` ≤20, `status` ≤40, `color` rosy|teal|zest|blossom or NULL, `photo` TEXT NULL, `updated_at`; no FK to `auth.users`, same as `notification_preferences`). `GET`/`PUT /me/profile` (account-only, keyed by the caller's id; `PUT` replaces the whole profile; no row = empty profile). `photo` is the browser-downscaled `data:image/(webp|jpeg|png);base64,…` URL (≤65,000 chars, checked in `ProfileService` and by a DB CHECK) so a small avatar needs no Drive folder per user; this is the one place the DB holds image bytes, deliberately capped. Room-member nicknames stay per-room and unchanged. Exposing profile colour/photo to other members is NOT done yet.
 >
 > **2026-10-05 (latest) — one Drive folder per gala + videos (owner decision):** the backend's Drive access is no longer read-only: the service account (scopes `drive.metadata.readonly` + `drive.file`) creates a folder per gala, "<title> · OTW-XXXX-XXXX", inside `GOOGLE_DRIVE_PHOTOS_FOLDER_ID`, right after Plan a Gala commits (`GalaCreatedEvent` → `GalaFolderOnCreateListener`), or on first upload via `POST /rooms/{id}/photos/folder` (MEMBER + add-photos permission → `{folderId}`; a race keeps the first folder). **V18** adds `rooms.drive_folder_id` and `photos.mime_type`. `POST /rooms/{id}/photos` now requires the file to be inside that gala's folder (the shared folder only for a gala that has none yet) and stores its MIME type; `PhotoDto` returns `mimeType`. The backend still never handles photo or video bytes.
 >
@@ -262,7 +266,7 @@ photos (
 ```sql
 -- V6 rooms: gala details + Gala Password (schedule_at kept, written as start date+time)
 rooms += destination VARCHAR(150), start_date DATE, end_date DATE, start_time TIME, end_time TIME,
-         password_hash VARCHAR(100)          -- BCrypt; NULL for pre-V6 rooms (Enter a Gala unavailable until set)
+         password_hash VARCHAR(100)          -- BCrypt; NULL for pre-V6 rooms (the gala cannot be joined until a password is set)
          CHECK (end_date >= start_date)
 -- V7 rooms: Couple Mode + "What members can do"
 rooms += room_type VARCHAR(10) DEFAULT 'GROUP' CHECK IN ('GROUP','COUPLE'),
@@ -291,8 +295,9 @@ notifications (id, user_id, room_id FK CASCADE NULL, type, title, body, dedupe_k
 --     INSERT presence for active members whose room matches realtime.topic() = 'room:{roomId}'
 -- V17 rooms += is_listed BOOLEAN NOT NULL DEFAULT false; partial index (start_date) WHERE is_listed AND status='ACTIVE'
 -- V19 rooms += destination_lat, destination_lng DOUBLE PRECISION (nullable; the destination's map pin, both or neither)
+-- V22 user_profiles (user_id PK, nickname VARCHAR(20), status VARCHAR(40), color NULL CHECK in 4 tones, photo TEXT NULL <=65000 data URL, updated_at)
 ```
-Every new table has an RLS SELECT policy (members of the room, or `user_id = auth.uid()` for per-user tables). Every column holding a user id inside a room must also be listed in `MemberIdentityRemapper` (see §5.1 "Enter a Gala").
+Every new table has an RLS SELECT policy (members of the room, or `user_id = auth.uid()` for per-user tables). Every column holding a user id inside a room should be listed in the RLS policies above.
 
 ### 3.2 Indexes (minimum set)
 - `rooms(room_code)` — unique, used on every "join" call
@@ -370,8 +375,6 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 | Method | Path | Purpose | Role |
 |---|---|---|---|
 | GET | `/rooms/preview?code=` | "Is this the one?" preview (title, dates, destination, type, member count, ≤12 nicknames, full) | Authenticated, rate-limited |
-| POST | `/rooms/enter` | Enter a Gala: `{roomCode, password}` → members for "Which one are you?" | Authenticated, rate-limited |
-| POST | `/rooms/enter/claim` | `{roomCode, password, memberId}` → rebind that unclaimed member to the caller | Authenticated, rate-limited |
 | GET | `/rooms/{roomId}/summary` | Dashboard cards + recap counts | Member |
 | PATCH | `/rooms/{roomId}` | Edit gala details (incl. destination pin `destinationLat/Lng`) + member permission toggles | Host |
 | PUT | `/rooms/{roomId}/password` | Change Gala Password | Host |
@@ -395,6 +398,7 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 | GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` | My Galas / calendar (≤62-day range) · each item carries `roomCode` (8 chars, no `OTW-` prefix) so any device can route to `/gala/OTW-XXXX-XXXX` | Account |
 | GET | `/me/rooms/stats` | Gala History tiles | Account |
 | GET / PUT | `/me/notification-preferences` | Seven reminder toggles | Account |
+| GET / PUT | `/me/profile` | Nickname, status, avatar colour, small photo (data URL ≤65k chars); `PUT` replaces all | Account |
 | GET | `/me/notifications` · `/me/notifications/unread-count` | Feed (cursor) · bell badge | Account |
 | PATCH / POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | Mark read | Account |
 
@@ -402,7 +406,7 @@ Changed existing endpoints: `POST /rooms` now takes `startDate` (required), `end
 
 Every write endpoint: Bean Validation on the request DTO, ownership/role check via the `@RequireRoomRole` aspect (see §5.3), and — where relevant — emits a realtime event (§8) and evicts a cache key (§6).
 
-Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST /rooms/join` (nickname already taken by an active member of that room); `401 ACCOUNT_REQUIRED` on any endpoint for anonymous or email-less tokens (distinct from the generic `401 UNAUTHENTICATED` — see §5.1); `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `404 NOT_A_COUPLE_ROOM`, `PAYMENT_NOT_FOUND`, `CHAT_MESSAGE_NOT_FOUND`, `NOTIFICATION_NOT_FOUND`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `MEMBER_HAS_ACCOUNT`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`.
+Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST /rooms/join` (nickname already taken by an active member of that room); `401 ACCOUNT_REQUIRED` on any endpoint for anonymous or email-less tokens (distinct from the generic `401 UNAUTHENTICATED` — see §5.1); `401 INVALID_GALA_PASSWORD`; `403 PERMISSION_DISABLED`; `404 NOT_A_COUPLE_ROOM`, `PAYMENT_NOT_FOUND`, `CHAT_MESSAGE_NOT_FOUND`, `NOTIFICATION_NOT_FOUND`; `409 ROOM_ARCHIVED`, `ROOM_FULL`, `HOST_CANNOT_LEAVE`, `ALREADY_CLAIMED`, `SETTLEMENT_MISMATCH`.
 
 ---
 
@@ -413,7 +417,7 @@ Error codes added since the original contract: `409 DUPLICATE_NICKNAME` on `POST
 - Spring Boot does **not** re-implement login, signup, or token refresh — the frontend talks to Supabase Auth directly and just attaches the resulting token as `Authorization: Bearer <token>`. The backend's only job is to **verify** that token on every request.
 - Reject any token whose `aud`/`iss` doesn't match your Supabase project.
 - **Account required everywhere (2026-10-02, owner decision; reverses the 2026-09-29 anonymous-first rule).** Supabase anonymous sessions are **rejected**: `AccountRequiredFilter` returns `401 {"code":"ACCOUNT_REQUIRED"}` for any token that is anonymous (`is_anonymous`) or has no `email` claim (fail-closed), on every route except the public/health/docs paths. There is no per-endpoint annotation; new endpoints are protected by default. The frontend routes to `/login?next=...`. Supabase "Allow anonymous sign-ins" must stay OFF; login is email + password (OAuth providers planned; Confirm email off).
-- **Enter a Gala** (logged-in users only): `POST /rooms/enter` checks the Gala Code + Gala Password (BCrypt) and lists members; `POST /rooms/enter/claim` rebinds the picked unclaimed member row (legacy anonymous rows or members added before an account existed) to the caller and `MemberIdentityRemapper` moves every room-scoped user-id column (items, shares, payments, photos, chat, …) in the same transaction. Members with `has_account = true` can't be claimed (`409 MEMBER_HAS_ACCOUNT`). Both steps are rate-limited per client. Wrong code → `404 INVALID_CODE`; wrong password → `401 INVALID_GALA_PASSWORD`.
+- **Enter a Gala removed (2026-10-07, owner decision):** `POST /rooms/enter`, `POST /rooms/enter/claim`, `MemberIdentityRemapper`, the `member.reclaimed` event and `409 MEMBER_HAS_ACCOUNT` no longer exist. The frontend `/enter` page is gone; a device that lost its room id reopens a gala from My Galas (`/me/galas`), which restores the code → roomId map from `GET /me/galas`. Unclaimed legacy member rows can no longer be rebound to an account.
 
 #### 5.1.1 Implementation — verifying Supabase JWTs in Spring Boot
 
@@ -634,7 +638,7 @@ Event catalog (subset most relevant to backend implementation):
 | `expense.created` | expense write | expense DTO (settlement recomputed client-side or via follow-up fetch) | room members |
 | `location.updated` | location write | `{userId, lat, lng, mode}` | room members who opted into seeing locations |
 | `room.updated` / `room.code.changed` / `room.archived` / `room.restored` / `room.deleted` | gala settings | room DTO or `{roomId, …}` | room members |
-| `member.reclaimed` / `member.updated` / `member.travel.changed` / `member.nudged` | Enter a Gala claim, nickname, travel status, nudge | `{memberId, userId}` / member DTO / `{userId, status}` / `{userId}` | room members |
+| `member.updated` / `member.travel.changed` / `member.nudged` | nickname, travel status, nudge | member DTO / `{userId, status}` / `{userId}` | room members |
 | `itinerary.reordered` | reorder | `[{id, position, version}]` | room members |
 | `budget.updated` | budget write | budget DTO | room members |
 | `expense.deleted`, `settlement.payment.recorded` / `.deleted` | expense delete, Mark paid, undo | `{id}` / payment DTO | room members |

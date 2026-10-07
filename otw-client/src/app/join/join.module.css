@@ -1,4 +1,5 @@
 .joinRoot {
+  composes: theme-light from global; /* brand-coloured flow page: its cream cards + light inputs stay light in dark mode */
   --rosy: #e0417c;
   --rosy-dark: #c22e64;
   --zest: #f8e140;
