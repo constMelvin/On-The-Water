@@ -543,9 +543,23 @@ html.theme-anim *::after {
   }
 }
 
-/* Leaflet (OpenStreetMap) in dark: only the tiles are dimmed/inverted; markers and controls keep their colours. */
-.leaflet-tile-pane { filter: var(--tile-filter); }
-html .leaflet-container { background: var(--tile-bg); } /* html prefix: leaflet.css loads later and would win */
+/* MapLibre maps (Who's OTW?, Pick on map): brand-styled zoom buttons and attribution.
+   html prefix: maplibre-gl.css loads later and would win. */
+html .maplibregl-map { font: inherit; background: var(--tile-bg); }
+html .maplibregl-ctrl-group {
+  background: var(--surface);
+  border: 3px solid var(--teal);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 3px 0 var(--teal-dark);
+}
+html .maplibregl-ctrl-group button { width: 36px; height: 36px; }
+html .maplibregl-ctrl-group button + button { border-top: 2px solid var(--line); }
+html .maplibregl-ctrl-group button:hover { background-color: var(--surface-2); }
+html[data-theme='dark'] .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1); }
+html .maplibregl-ctrl-attrib { font-size: 11px; background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--text); }
+html .maplibregl-ctrl-attrib a { color: inherit; }
+html .maplibregl-ctrl-attrib.maplibregl-compact { border-radius: 14px; }
 
 @keyframes pop {
   0% { transform: translate(0, 0) scale(0.4); opacity: 1; }

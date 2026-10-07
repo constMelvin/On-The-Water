@@ -3,9 +3,16 @@
 
 .head {
   display: flex;
+  /* a row (the global .phead is a column): title left, buttons right, wrapping under it when tight */
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
+}
+.head > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .headActs {
   display: flex;
@@ -106,11 +113,18 @@
   flex-direction: column;
   padding: 16px;
 }
-.lbX {
+/* top bar: download, delete (when allowed), close */
+.lbBar {
   align-self: flex-end;
-  color: var(--cream);
+  display: flex;
+  gap: 8px;
 }
-.lbX:hover,
+.lbA {
+  color: var(--cream);
+  width: 48px;
+  height: 48px;
+}
+.lbA:hover,
 .lbN:hover {
   background: var(--teal);
 }
@@ -181,6 +195,13 @@
   text-align: center;
   color: var(--teal);
 }
+.dropBtns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
 .drop b {
   font-family: var(--fd);
   font-size: 20px;
@@ -250,6 +271,14 @@
 }
 
 /* ---- mobile add button ---- */
+.fab.fabCam {
+  bottom: calc(172px + env(safe-area-inset-bottom, 0px));
+  width: 54px;
+  height: 54px;
+  right: 22px;
+  background: var(--teal);
+  box-shadow: 0 6px 0 var(--teal-dark);
+}
 .fab {
   display: none;
   position: fixed;

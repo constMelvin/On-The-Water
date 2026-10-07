@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Icon } from '@/components/otw';
-import { drivePlayer, isVideo } from '@/lib/otw/drive';
+import { driveDownload, drivePlayer, isVideo } from '@/lib/otw/drive';
 import { shortDay } from '@/lib/otw/time';
 import type { PhotoVM } from '@/lib/api/types';
 import { DriveImg } from './DriveImg';
@@ -14,10 +14,14 @@ export interface LightboxProps {
   nameOf: (userId: string) => string;
   onIndex: (i: number) => void;
   onClose: () => void;
+  /** Whether this viewer may delete the photo (Gala Leader, or the uploader when allowed). */
+  canDelete?: (p: PhotoVM) => boolean;
+  /** Asks to delete (the caller confirms first). */
+  onDelete?: (p: PhotoVM) => void;
 }
 
-/** Full-screen photo viewer (reference lbHtml): arrows / swipe to browse, Escape closes. */
-export function Lightbox({ photos, index, nameOf, onIndex, onClose }: LightboxProps) {
+/** Full-screen photo viewer (reference lbHtml): arrows / swipe to browse, Escape closes; download and delete up top. */
+export function Lightbox({ photos, index, nameOf, onIndex, onClose, canDelete, onDelete }: LightboxProps) {
   const n = photos.length;
   const i = ((index % n) + n) % n;
   const p = photos[i];
@@ -56,9 +60,32 @@ export function Lightbox({ photos, index, nameOf, onIndex, onClose }: LightboxPr
         if (Math.abs(dx) > 50) onIndex(dx < 0 ? i + 1 : i - 1);
       }}
     >
-      <button ref={closeRef} type="button" className={`ibtn ${s.lbX}`} onClick={onClose} aria-label="Close">
-        <Icon name="x" size={26} />
-      </button>
+      <div className={s.lbBar}>
+        <a
+          className={`ibtn ${s.lbA}`}
+          href={driveDownload(p.driveFileId)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Download this ${isVideo(p.mimeType) ? 'video' : 'photo'}`}
+          title="Download"
+        >
+          <Icon name="download" size={24} />
+        </a>
+        {onDelete && canDelete?.(p) && (
+          <button
+            type="button"
+            className={`ibtn ${s.lbA}`}
+            onClick={() => onDelete(p)}
+            aria-label={`Delete this ${isVideo(p.mimeType) ? 'video' : 'photo'}`}
+            title="Delete"
+          >
+            <Icon name="trash" size={24} />
+          </button>
+        )}
+        <button ref={closeRef} type="button" className={`ibtn ${s.lbA}`} onClick={onClose} aria-label="Close" title="Close">
+          <Icon name="x" size={26} />
+        </button>
+      </div>
       <div className={s.stage}>
         <button type="button" className={`ibtn ${s.lbN}`} onClick={() => onIndex(i - 1)} aria-label="Previous photo">
           <Icon name="chevl" size={30} />

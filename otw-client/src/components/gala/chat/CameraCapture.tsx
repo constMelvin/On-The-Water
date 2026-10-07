@@ -13,8 +13,14 @@ const MAX_SIDE = 1600;
 
 export interface CameraCaptureProps {
   onClose: () => void;
-  /** Uploads the shot to the Gala Dump and posts it with the caption; true when it went through. */
+  /** Hands over the shot (and caption); resolves true when it went through, which closes the camera. */
   onSend: (file: File, caption: string) => Promise<boolean>;
+  /** Show a caption box on the preview (off when the caller has its own). Default true. */
+  withCaption?: boolean;
+  /** Label of the preview's main button. Default "Send". */
+  sendLabel?: string;
+  /** Small line under the preview buttons. */
+  note?: string;
 }
 
 /**
@@ -22,7 +28,14 @@ export interface CameraCaptureProps {
  * preview to send (with a caption) or retake. Falls back to the phone's own camera app when the
  * browser can't open the camera here (no permission, or the page isn't on HTTPS).
  */
-export function CameraCapture({ onClose, onSend }: CameraCaptureProps) {
+export function CameraCapture({
+  onClose,
+  onSend,
+  withCaption = true,
+  sendLabel = 'Send',
+  note = 'Goes to the chat and the Gala Dump.',
+}: CameraCaptureProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const nativeRef = useRef<HTMLInputElement>(null);
   const shutterRef = useRef<HTMLButtonElement>(null);
@@ -78,13 +91,36 @@ export function CameraCapture({ onClose, onSend }: CameraCaptureProps) {
     return () => URL.revokeObjectURL(shot.url);
   }, [shot]);
 
-  // Escape closes (but not mid-send).
+  // Escape closes (but not mid-send) and Tab stays inside the camera. Capture phase + stopPropagation,
+  // so a sheet underneath (e.g. Add Photos) doesn't also close or pull focus back to itself.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !sending) onClose();
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!sending) onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      e.stopPropagation();
+      const list = Array.from(
+        rootRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]):not([hidden])') ?? []
+      );
+      if (!list.length) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      const active = document.activeElement;
+      const inside = !!active && !!rootRef.current?.contains(active);
+      if (e.shiftKey && (active === first || !inside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !inside)) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [onClose, sending]);
 
   const capture = () => {
@@ -138,7 +174,7 @@ export function CameraCapture({ onClose, onSend }: CameraCaptureProps) {
   };
 
   return createPortal(
-    <div className={s.cam} role="dialog" aria-modal="true" aria-label={shot ? 'Send this photo?' : 'Camera'}>
+    <div ref={rootRef} className={s.cam} role="dialog" aria-modal="true" aria-label={shot ? 'Send this photo?' : 'Camera'}>
       {/* The phone's own camera app: the fallback when the camera can't open in the page. */}
       <input
         ref={nativeRef}
@@ -170,21 +206,23 @@ export function CameraCapture({ onClose, onSend }: CameraCaptureProps) {
           {/* Plain <img>: a local blob preview, which next/image can't optimize. */}
           <img className={s.media} src={shot.url} alt="Photo you just took" />
           <div className={s.bottom}>
-            <input
-              className={`in ${s.caption}`}
-              placeholder="Add a caption…"
-              aria-label="Caption"
-              maxLength={1000}
-              value={caption}
-              disabled={sending}
-              onChange={(e) => setCaption(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-                  e.preventDefault();
-                  void send();
-                }
-              }}
-            />
+            {withCaption && (
+              <input
+                className={`in ${s.caption}`}
+                placeholder="Add a caption…"
+                aria-label="Caption"
+                maxLength={1000}
+                value={caption}
+                disabled={sending}
+                onChange={(e) => setCaption(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    void send();
+                  }
+                }}
+              />
+            )}
             <div className={s.row}>
               <button type="button" className={s.ghost} onClick={retake} disabled={sending}>
                 <Icon name="refresh" size={20} /> Retake
@@ -194,12 +232,12 @@ export function CameraCapture({ onClose, onSend }: CameraCaptureProps) {
                 className={s.send}
                 onClick={() => void send()}
                 disabled={sending}
-                aria-label="Send photo"
+                aria-label={`${sendLabel} photo`}
               >
-                {sending ? 'Sending…' : 'Send'} <Icon name="send" size={20} />
+                {sending ? 'Sending…' : sendLabel} <Icon name="send" size={20} />
               </button>
             </div>
-            <p className={s.note}>Goes to the chat and the Gala Dump.</p>
+            {note && <p className={s.note}>{note}</p>}
           </div>
         </>
       ) : status === 'blocked' || status === 'unsupported' ? (

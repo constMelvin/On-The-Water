@@ -38,8 +38,7 @@
   --map-land: var(--blossom);     /* the illustrated route map */
   --map-block: var(--cream);
   --map-road: var(--cream);
-  --tile-filter: none;            /* Leaflet OpenStreetMap tiles */
-  --tile-bg: #ddd;                /* Leaflet's own default, behind tiles that haven't loaded yet */
+  --tile-bg: #f8f4f0;             /* behind a map while its tiles load (the light style's land colour) */
   /* A custom property can hold a url(): its colour is --teal-dark (#1f6376). */
   --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f6376' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 
@@ -81,7 +80,6 @@
   --map-land: #2a3a44;
   --map-block: #34505c;
   --map-road: #43616f;
-  --tile-filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.75);
   --tile-bg: #1d3d48;
   --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff8f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: dark;
@@ -103,7 +101,6 @@
     --map-land: #2a3a44;
     --map-block: #34505c;
     --map-road: #43616f;
-    --tile-filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.75);
     --tile-bg: #1d3d48;
     --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff8f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     color-scheme: dark;

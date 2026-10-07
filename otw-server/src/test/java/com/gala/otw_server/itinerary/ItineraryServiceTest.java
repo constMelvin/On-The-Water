@@ -2,6 +2,7 @@ package com.gala.otw_server.itinerary;
 
 import com.gala.otw_server.chat.service.ChatSystemMessageService;
 import com.gala.otw_server.common.DomainExceptions.ForbiddenException;
+import com.gala.otw_server.common.DomainExceptions.InvalidRequestException;
 import com.gala.otw_server.common.DomainExceptions.OptimisticLockConflictException;
 import com.gala.otw_server.common.DomainExceptions.PermissionDisabledException;
 import com.gala.otw_server.itinerary.dto.CreateItineraryItemRequest;
@@ -95,7 +96,7 @@ class ItineraryServiceTest {
         });
 
         CreateItineraryItemRequest req = new CreateItineraryItemRequest(
-                "Strawberry Farm, La Trinidad", "Bring cash", null, StopType.ACTIVITY, null
+                "Strawberry Farm, La Trinidad", "Bring cash", null, StopType.ACTIVITY, 16.4559, 120.5873, null
         );
 
         ItineraryItemDto result = itineraryService.createItem(roomId, callerId, req);
@@ -104,6 +105,8 @@ class ItineraryServiceTest {
         assertThat(result.position()).isEqualTo(4);
         assertThat(result.stopType()).isEqualTo(StopType.ACTIVITY);
         assertThat(result.createdBy()).isEqualTo(callerId);
+        assertThat(result.lat()).isEqualTo(16.4559);
+        assertThat(result.lng()).isEqualTo(120.5873);
         verify(itemRepo).save(any(ItineraryItem.class));
         verify(chatSystem).card(eq(roomId), eq(callerId), anyString(),
                 eq(ChatSystemMessageService.REF_ITINERARY_ITEM), eq(itemId));
@@ -116,9 +119,38 @@ class ItineraryServiceTest {
                 .thenThrow(new PermissionDisabledException("off"));
 
         assertThatThrownBy(() -> itineraryService.createItem(roomId, callerId,
-                new CreateItineraryItemRequest("X", null, null, null, null)))
+                new CreateItineraryItemRequest("X", null, null, null, null, null, null)))
                 .isInstanceOf(PermissionDisabledException.class);
         verify(itemRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createItem rejects a pin with only a latitude")
+    void createItem_HalfPinRejected() {
+        when(permissions.require(roomId, callerId, Permission.EDIT_PLAN)).thenReturn(room);
+
+        assertThatThrownBy(() -> itineraryService.createItem(roomId, callerId,
+                new CreateItineraryItemRequest("X", null, null, null, 14.6, null, null)))
+                .isInstanceOf(InvalidRequestException.class);
+        verify(itemRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("updateItem moves the pin, and clearPin removes it")
+    void updateItem_MovesAndClearsPin() {
+        ItineraryItem existing = item(itemId, 0, 1, callerId);
+        when(itemRepo.findByIdAndRoom_Id(itemId, roomId)).thenReturn(Optional.of(existing));
+        when(itemRepo.save(any(ItineraryItem.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ItineraryItemDto moved = itineraryService.updateItem(roomId, itemId, callerId,
+                new UpdateItineraryItemRequest(null, null, null, null, 14.6, 121.0, null, null, null, 1));
+        assertThat(moved.lat()).isEqualTo(14.6);
+        assertThat(moved.lng()).isEqualTo(121.0);
+
+        ItineraryItemDto cleared = itineraryService.updateItem(roomId, itemId, callerId,
+                new UpdateItineraryItemRequest(null, null, null, null, null, null, true, null, null, 1));
+        assertThat(cleared.lat()).isNull();
+        assertThat(cleared.lng()).isNull();
     }
 
     @Test
@@ -129,7 +161,7 @@ class ItineraryServiceTest {
 
         // Client sent stale version 1
         UpdateItineraryItemRequest req = new UpdateItineraryItemRequest(
-                "Updated title", null, null, null, null, null, 1
+                "Updated title", null, null, null, null, null, null, null, null, 1
         );
 
         assertThatThrownBy(() -> itineraryService.updateItem(roomId, itemId, callerId, req))
@@ -150,7 +182,7 @@ class ItineraryServiceTest {
         when(memberRepo.findByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId)).thenReturn(Optional.of(member));
 
         UpdateItineraryItemRequest req = new UpdateItineraryItemRequest(
-                "Sneaky edit", null, null, null, null, null, 1
+                "Sneaky edit", null, null, null, null, null, null, null, null, 1
         );
 
         assertThatThrownBy(() -> itineraryService.updateItem(roomId, itemId, callerId, req))
@@ -173,7 +205,7 @@ class ItineraryServiceTest {
         when(itemRepo.save(any(ItineraryItem.class))).thenAnswer(inv -> inv.getArgument(0));
 
         UpdateItineraryItemRequest req = new UpdateItineraryItemRequest(
-                "Host Updated Title", null, null, StopType.FOOD, null, null, 1
+                "Host Updated Title", null, null, StopType.FOOD, null, null, null, null, null, 1
         );
 
         ItineraryItemDto result = itineraryService.updateItem(roomId, itemId, callerId, req);

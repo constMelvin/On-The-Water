@@ -75,6 +75,7 @@ export function Dump() {
 
   const [filter, setFilter] = useState<Filter>('all');
   const [uploading, setUploading] = useState(false);
+  const [withCamera, setWithCamera] = useState(false);
   const [uploadedAny, setUploadedAny] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<PhotoVM | null>(null);
@@ -85,12 +86,13 @@ export function Dump() {
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   const photos = filter === 'mine' ? all.filter((p) => p.uploadedBy === myUserId) : all;
 
-  const openUpload = () => {
+  const openUpload = (camera = false) => {
     if (!canAdd) {
       toast('The Gala Leader turned off adding photos.', 'err');
       return;
     }
     setUploadedAny(false);
+    setWithCamera(camera);
     setUploading(true);
   };
 
@@ -105,9 +107,14 @@ export function Dump() {
         </div>
         <div className={`${s.headActs} hide-m`}>
           {canAdd && (
-            <Button onClick={openUpload}>
-              <Icon name="upload" size={20} /> Add Photos
-            </Button>
+            <>
+              <Button onClick={() => openUpload()}>
+                <Icon name="upload" size={20} /> Add Photos
+              </Button>
+              <Button variant="teal" onClick={() => openUpload(true)}>
+                <Icon name="camera" size={20} /> Take Photo
+              </Button>
+            </>
           )}
           {all.length > 0 && (
             <Button variant="ghost" onClick={() => setOpen(0)}>
@@ -131,7 +138,7 @@ export function Dump() {
         }}
       >
         {all.length === 0 ? (
-          <Empty kind="dump" onAction={openUpload} />
+          <Empty kind="dump" onAction={() => openUpload()} />
         ) : (
           <>
             <div className={s.toolbar}>
@@ -164,13 +171,19 @@ export function Dump() {
       </StateGate>
 
       {canAdd && (
-        <button type="button" className={s.fab} onClick={openUpload} aria-label="Add Photos">
-          <Icon name="upload" size={28} />
-        </button>
+        <>
+          <button type="button" className={`${s.fab} ${s.fabCam}`} onClick={() => openUpload(true)} aria-label="Take Photo">
+            <Icon name="camera" size={24} />
+          </button>
+          <button type="button" className={s.fab} onClick={() => openUpload()} aria-label="Add Photos">
+            <Icon name="upload" size={28} />
+          </button>
+        </>
       )}
 
       {uploading && (
         <UploadSheet
+          startWithCamera={withCamera}
           startUpload={actions.startUpload}
           register={actions.register}
           onUploaded={(p) => {
@@ -188,7 +201,19 @@ export function Dump() {
       )}
 
       {open !== null && photos.length > 0 && (
-        <Lightbox photos={photos} index={open} nameOf={nameOf} onIndex={setOpen} onClose={() => setOpen(null)} />
+        <Lightbox
+          photos={photos}
+          index={open}
+          nameOf={nameOf}
+          onIndex={setOpen}
+          onClose={() => setOpen(null)}
+          canDelete={canDelete}
+          onDelete={(p) => {
+            // Close the viewer so the confirm sheet isn't hidden behind it.
+            setOpen(null);
+            setDeleting(p);
+          }}
+        />
       )}
 
       {deleting && (

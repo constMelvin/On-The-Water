@@ -19,6 +19,9 @@ export interface ItineraryItemVM {
   /** ISO date-time, or null when no time is set. */
   startsAt: string | null;
   stopType: StopType;
+  /** The stop's map pin (both null when it has none). */
+  lat: number | null;
+  lng: number | null;
   position: number;
   createdBy: string;
   completed: boolean;

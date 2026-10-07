@@ -4,6 +4,7 @@ import { useRef, useState, type DragEvent } from 'react';
 import { Button, Icon, Sheet } from '@/components/otw';
 import { uploadToDrive, type StartUpload } from '@/lib/otw/drive';
 import type { PhotoVM } from '@/lib/api/types';
+import { CameraCapture } from '../chat/CameraCapture';
 import s from './dump.module.css';
 
 type Status = 'waiting' | 'compressing' | 'uploading' | 'saving' | 'done' | 'failed';
@@ -33,14 +34,20 @@ export interface UploadSheetProps {
   /** Called after every photo or video that made it, so the grid can show it right away. */
   onUploaded: (p: PhotoVM) => void;
   onClose: () => void;
+  /** Open straight into the camera (the "Take Photo" buttons). */
+  startWithCamera?: boolean;
 }
 
-/** "Add Photos" sheet (reference sheet upload): drop or choose photos and videos, one progress row each, retry on failure. */
-export function UploadSheet({ startUpload, register, onUploaded, onClose }: UploadSheetProps) {
+/**
+ * "Add Photos" sheet (reference sheet upload): drop or choose photos and videos, or take one with
+ * the camera; one progress row each, retry on failure.
+ */
+export function UploadSheet({ startUpload, register, onUploaded, onClose, startWithCamera }: UploadSheetProps) {
   const input = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [caption, setCaption] = useState('');
   const [over, setOver] = useState(false);
+  const [camera, setCamera] = useState(!!startWithCamera);
   const busy = rows.some((r) => r.status !== 'done' && r.status !== 'failed' && r.status !== 'waiting');
   const finished = rows.length > 0 && rows.every((r) => r.status === 'done' || r.status === 'failed');
 
@@ -61,7 +68,7 @@ export function UploadSheet({ startUpload, register, onUploaded, onClose }: Uplo
     }
   };
 
-  const add = (files: FileList | null) => {
+  const add = (files: FileList | File[] | null) => {
     const list = Array.from(files ?? []).filter((f) => f.type.startsWith('image/') || f.type.startsWith('video/'));
     if (!list.length) return;
     const next = list.map((file, i) => ({ key: `${Date.now()}-${i}-${file.name}`, file, status: 'waiting' as Status }));
@@ -109,9 +116,14 @@ export function UploadSheet({ startUpload, register, onUploaded, onClose }: Uplo
         <Icon name="upload" size={36} />
         <b>Drop photos or videos here</b>
         <span>or pick them from your device</span>
-        <Button sm variant="teal" onClick={() => input.current?.click()} disabled={busy}>
-          Choose files
-        </Button>
+        <div className={s.dropBtns}>
+          <Button sm variant="teal" onClick={() => input.current?.click()} disabled={busy}>
+            Choose files
+          </Button>
+          <Button sm variant="rosy" onClick={() => setCamera(true)} disabled={busy}>
+            <Icon name="camera" size={18} /> Take a photo
+          </Button>
+        </div>
         <input
           ref={input}
           type="file"
@@ -157,6 +169,19 @@ export function UploadSheet({ startUpload, register, onUploaded, onClose }: Uplo
         </ul>
       )}
       {firstError && <p className="fine">{firstError}</p>}
+      {camera && (
+        <CameraCapture
+          withCaption={false}
+          sendLabel="Add"
+          note="Goes to the Gala Dump. Add a caption in the sheet if you want."
+          onClose={() => setCamera(false)}
+          onSend={async (file) => {
+            // Uploads in the sheet, with its progress row and retry.
+            add([file]);
+            return true;
+          }}
+        />
+      )}
       <p className="fine">
         Everything goes to this gala&apos;s own Google Drive folder. Videos up to 300 MB. Anyone with a file&apos;s link
         can view it.

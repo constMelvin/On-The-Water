@@ -17,6 +17,9 @@ public record ItineraryItemDto(
         String notes,
         OffsetDateTime startsAt,
         StopType stopType,
+        /** The stop's map pin; both null when it has none. */
+        Double lat,
+        Double lng,
         int position,
         UUID createdBy,
         boolean completed,
@@ -32,6 +35,8 @@ public record ItineraryItemDto(
                 item.getNotes(),
                 item.getStartsAt(),
                 item.getStopType(),
+                item.getLat(),
+                item.getLng(),
                 item.getPosition(),
                 item.getCreatedBy(),
                 item.isCompleted(),

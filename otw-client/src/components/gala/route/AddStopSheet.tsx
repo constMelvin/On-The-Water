@@ -6,12 +6,13 @@ import { Button, Icon, Sheet } from '@/components/otw';
 import { addDays, daysBetween } from '@/lib/otw/gala-registry';
 import { MIN_QUERY, SEARCH_DEBOUNCE_MS, placeAt, searchPlaces, type Place } from '@/lib/otw/geocode';
 import type { StopExtras } from '@/lib/otw/stop-extras';
+import type { Landmark } from '@/components/plan/MapPicker';
 import { manilaIso, splitManila } from '@/lib/otw/time';
 import type { StopType } from '@/lib/api/types';
 import type { StopInput } from '@/lib/api/gala';
 import s from './AddStopSheet.module.css';
 
-/** Leaflet needs `window`, so the map loads on the client only (same map as Plan a Gala's "Pick on map"). */
+/** MapLibre needs `window`, so the map loads on the client only (same map as Plan a Gala's "Pick on map"). */
 const MapPicker = dynamic(() => import('@/components/plan/MapPicker'), {
   ssr: false,
   loading: () => <div className={s.map} role="img" aria-label="Loading the map" />,
@@ -63,14 +64,16 @@ export interface AddStopSheetProps {
   /**
    * Called with the form's values (to add, or to save when `initial` is set). `extras` (map pin,
    * custom type) is optional: a caller that ignores it still gets a normal stop.
-   * TODO(backend): send lat/lng and a free-text type in `stop` once the itinerary DTO has them.
+   * The pin is saved on the stop by the caller; the custom type still lives on this device.
    */
   onAdd: (stop: StopInput, extras?: StopExtras) => void | Promise<void>;
   onClose: () => void;
+  /** Stops already pinned and the gala, shown on the map so the next stop is easy to place. */
+  landmarks?: Landmark[];
 }
 
 /** "Add a Stop" sheet (reference sheet addStop): place (searchable, pinned on a map), time, type, notes. Multi-day galas also pick the day. */
-export function AddStopSheet({ startDate, days, title = 'Add a Stop', initial, onAdd, onClose }: AddStopSheetProps) {
+export function AddStopSheet({ startDate, days, title = 'Add a Stop', initial, onAdd, onClose, landmarks }: AddStopSheetProps) {
   const when = initial?.startsAt ? splitManila(initial.startsAt) : null;
   const [place, setPlace] = useState(initial?.title ?? '');
   const [coords, setCoords] = useState<{ lat: number; lng: number; area?: string } | null>(
@@ -279,8 +282,8 @@ export function AddStopSheet({ startDate, days, title = 'Add a Stop', initial, o
             pin={coords ? { lat: coords.lat, lng: coords.lng } : null}
             onPick={onMapPick}
             className={s.map}
-            scrollWheelZoom={false}
             calm={calm}
+            landmarks={landmarks}
           />
           <p className={`${s.note} ${mapNote ? s.err : ''}`} aria-live="polite">
             {mapNote || (coords ? 'Pinned. Tap the map to move it.' : 'Search a place above, or tap the map to drop a pin.')}

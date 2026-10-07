@@ -1,5 +1,5 @@
 /* The plan (itinerary) tab. Ported from reference/otw/styles.css (.phead.row, .two-col, .stops,
-   .stop, .stn, .stopc, .grip, .sbody, .srow1, .stime, .addby, .sact, .mapcard, .map, .mapnote,
+   .stop, .stn, .stopc, .grip, .sbody, .srow1, .stime, .addby, .sact, .mapcard, .map,
    .hint, .fab). .card, .tag, .ibtn and .av already live in the global styles. */
 
 .head {
@@ -128,18 +128,16 @@
   box-shadow: 0 6px 0 var(--rosy);
 }
 
-/* ---- map preview ---- */
+/* ---- route map ---- */
+.mapLoading {
+  height: 340px;
+  border-radius: 20px;
+  background: var(--tile-bg);
+}
 .mapcard {
   padding: 10px;
   position: sticky;
   top: 0;
-}
-.mapnote {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  padding: 10px 6px 2px;
-  font-size: 14px;
 }
 .hint {
   text-align: center;
@@ -172,8 +170,10 @@
   .cols {
     grid-template-columns: 1fr;
   }
+  /* the real map is useful on phones too: above the list there */
   .mapcard {
-    display: none;
+    position: static;
+    order: -1;
   }
 }
 

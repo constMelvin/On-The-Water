@@ -1,6 +1,6 @@
 /* "Who's OTW?" (location) tab. Ported from reference/otw/styles.css (.lbar, .live, .locgrid,
    .locside, .mapcard, .mapstat, .callout, .eta, .mini) plus the status picker, the Everyone
-   card-rows and the Leaflet pin styles. Module rules are unlayered, so they beat the global
+   card-rows and the map pin styles. Module rules are unlayered, so they beat the global
    @layer rules: never select bare `li > span` here (it would hit Avatar and Tag too). */
 
 .lbar {
@@ -70,26 +70,14 @@
   border-color: var(--teal);
   box-shadow: 0 6px 0 var(--teal-dark);
 }
-.leaflet {
+.map {
+  position: relative;
   width: 100%;
   height: 420px;
   border-radius: 20px;
-  z-index: 0;
-}
-.leaflet :global(.leaflet-bar) {
-  border: 3px solid var(--teal);
-  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 3px 0 var(--teal-dark);
-}
-.leaflet :global(.leaflet-bar a) {
-  background: var(--surface);
-  color: var(--text);
-  font-family: var(--fd);
-  border-bottom-color: var(--line);
-}
-.leaflet :global(.leaflet-bar a:hover) {
-  background: var(--surface-2);
+  z-index: 0;
+  background: var(--tile-bg);
 }
 .place {
   display: flex;
@@ -332,10 +320,16 @@
   align-items: flex-start;
 }
 
-/* ---- Leaflet markers ---- */
+/* ---- map markers (MapLibre) ---- */
 .pinWrap {
   background: none;
   border: 0;
+  cursor: pointer;
+}
+.pinWrap:focus-visible {
+  outline: 3px solid var(--rosy);
+  outline-offset: 2px;
+  border-radius: 12px;
 }
 
 /* member pin: a teardrop in the member's colour, ringed by status */
@@ -529,7 +523,7 @@
   .lbar {
     flex-wrap: wrap;
   }
-  .leaflet {
+  .map {
     height: 300px;
   }
   .choice {

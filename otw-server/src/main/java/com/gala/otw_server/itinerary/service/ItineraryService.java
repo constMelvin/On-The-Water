@@ -89,6 +89,7 @@ public class ItineraryService {
 
     public ItineraryItemDto createItem(UUID roomId, UUID callerId, CreateItineraryItemRequest req) {
         Room room = permissions.require(roomId, callerId, Permission.EDIT_PLAN);
+        validatePin(req.lat(), req.lng());
 
         int position = (req.position() != null)
                 ? req.position()
@@ -100,6 +101,8 @@ public class ItineraryService {
         item.setNotes(req.notes());
         item.setStartsAt(req.startsAt());
         item.setStopType(req.stopType() != null ? req.stopType() : StopType.ACTIVITY);
+        item.setLat(req.lat());
+        item.setLng(req.lng());
         item.setPosition(position);
         item.setCreatedBy(callerId);
         item.setCompleted(false);
@@ -118,6 +121,7 @@ public class ItineraryService {
 
     public ItineraryItemDto updateItem(UUID roomId, UUID itemId, UUID callerId, UpdateItineraryItemRequest req) {
         permissions.require(roomId, callerId, Permission.EDIT_PLAN);
+        validatePin(req.lat(), req.lng());
 
         ItineraryItem item = itemRepo.findByIdAndRoom_Id(itemId, roomId)
                 .orElseThrow(ItineraryItemNotFoundException::new);
@@ -140,6 +144,13 @@ public class ItineraryService {
         }
         if (req.stopType() != null) {
             item.setStopType(req.stopType());
+        }
+        if (Boolean.TRUE.equals(req.clearPin())) {
+            item.setLat(null);
+            item.setLng(null);
+        } else if (req.lat() != null) {
+            item.setLat(req.lat());
+            item.setLng(req.lng());
         }
         if (req.position() != null) {
             item.setPosition(req.position());
@@ -222,6 +233,13 @@ public class ItineraryService {
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /** A pin is a lat/lng pair: both or neither. */
+    private static void validatePin(Double lat, Double lng) {
+        if ((lat == null) != (lng == null)) {
+            throw new InvalidRequestException("Send both the latitude and the longitude of the stop, or neither");
+        }
+    }
 
     private void verifyEditOrDeletePermission(UUID roomId, ItineraryItem item, UUID callerId) {
         if (item.getCreatedBy().equals(callerId)) {

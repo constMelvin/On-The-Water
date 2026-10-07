@@ -42,6 +42,13 @@ public class ItineraryItem {
     @Column(name = "stop_type", nullable = false, length = 20)
     private StopType stopType = StopType.ACTIVITY;
 
+    /** The stop's map pin (V23); both null when the place has no pin. */
+    @Column(name = "lat")
+    private Double lat;
+
+    @Column(name = "lng")
+    private Double lng;
+
     @Column(name = "position", nullable = false)
     private int position;
 

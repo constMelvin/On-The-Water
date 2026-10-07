@@ -17,6 +17,8 @@
 >
 > **2026-10-05 (later still) — directory shows every gala (owner decision, supersedes the opt-in above):** `GET /rooms/directory` now returns **every ACTIVE gala** (archived ones excluded), upcoming/ongoing first by start date, finished ones after. Any logged-in account can see every gala's code, title, dates, destination, type, host nickname and member count, and its member nicknames through `GET /rooms/preview`; the Gala Password on `POST /rooms/join` is the only gate. `rooms.is_listed` (V17) and the `listed` field are kept but **no longer used** (migrations are additive); the "List this gala" switch was removed from the frontend.
 >
+> **2026-10-07 (later) — stop pins on the server + real route map (owner decision):** **V23** adds `itinerary_items.lat` / `lng` (`DOUBLE PRECISION`, nullable). `POST /rooms/{id}/itinerary` and `PATCH .../itinerary/{itemId}` take optional `lat` (−90..90) / `lng` (−180..180), both or neither (else `400`); `PATCH` also takes `clearPin: true` to remove the pin. `ItineraryItemDto` returns them, so every member sees the same stops (before this the pin lived only in the browser that added the stop, `otw-client/src/lib/otw/stop-extras.ts`; a device that still holds a local pin uploads it once). "The plan" draws a real MapLibre map with each pinned stop and the gala's destination, joined by a driving route stop 1 → 2 → … → destination from the public OSRM server (`router.project-osrm.org`, browser-side, no key, nothing stored; a dashed straight line if OSRM is unreachable). Stops without a pin are listed, not drawn.
+>
 > **2026-10-07 — account profile (owner decision; exception to "no users table" and "no binaries"):** **V22** adds `user_profiles` (`user_id` PK = JWT `sub`, `nickname` ≤20, `status` ≤40, `color` rosy|teal|zest|blossom or NULL, `photo` TEXT NULL, `updated_at`; no FK to `auth.users`, same as `notification_preferences`). `GET`/`PUT /me/profile` (account-only, keyed by the caller's id; `PUT` replaces the whole profile; no row = empty profile). `photo` is the browser-downscaled `data:image/(webp|jpeg|png);base64,…` URL (≤65,000 chars, checked in `ProfileService` and by a DB CHECK) so a small avatar needs no Drive folder per user; this is the one place the DB holds image bytes, deliberately capped. Room-member nicknames stay per-room and unchanged. Exposing profile colour/photo to other members is NOT done yet.
 >
 > **2026-10-05 (latest) — one Drive folder per gala + videos (owner decision):** the backend's Drive access is no longer read-only: the service account (scopes `drive.metadata.readonly` + `drive.file`) creates a folder per gala, "<title> · OTW-XXXX-XXXX", inside `GOOGLE_DRIVE_PHOTOS_FOLDER_ID`, right after Plan a Gala commits (`GalaCreatedEvent` → `GalaFolderOnCreateListener`), or on first upload via `POST /rooms/{id}/photos/folder` (MEMBER + add-photos permission → `{folderId}`; a race keeps the first folder). **V18** adds `rooms.drive_folder_id` and `photos.mime_type`. `POST /rooms/{id}/photos` now requires the file to be inside that gala's folder (the shared folder only for a gala that has none yet) and stores its MIME type; `PhotoDto` returns `mimeType`. The backend still never handles photo or video bytes.
@@ -191,6 +193,8 @@ itinerary_items (
   title VARCHAR(150) NOT NULL,
   notes TEXT,
   starts_at TIMESTAMPTZ,
+  lat DOUBLE PRECISION,                -- V23: the stop's map pin (both or neither)
+  lng DOUBLE PRECISION,
   position INT NOT NULL,               -- for manual ordering
   created_by UUID NOT NULL,
   completed BOOLEAN NOT NULL DEFAULT false,
@@ -300,6 +304,7 @@ notifications (id, user_id, room_id FK CASCADE NULL, type, title, body, dedupe_k
 -- V20 revoke anon/authenticated on public tables/sequences/functions; otw_private.is_room_channel_member()
 -- V21 chat_reactions += reaction VARCHAR(10) NOT NULL DEFAULT 'HEART' CHECK IN (HEART, HAHA, WOW, SAD, ANGRY, LIKE)
 -- V22 user_profiles (user_id PK, nickname VARCHAR(20), status VARCHAR(40), color NULL CHECK in 4 tones, photo TEXT NULL <=65000 data URL, updated_at)
+-- V23 itinerary_items += lat, lng DOUBLE PRECISION (nullable; the stop's map pin, both or neither)
 ```
 Every new table has an RLS SELECT policy (members of the room, or `user_id = auth.uid()` for per-user tables). Every column holding a user id inside a room should be listed in the RLS policies above.
 
@@ -357,8 +362,8 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 | DELETE | `/rooms/{roomId}/members/{userId}` | Remove member | Host |
 | PATCH | `/rooms/{roomId}/members/me/rsvp` | Update own RSVP | Member |
 | GET | `/rooms/{roomId}/itinerary` | List items | Member |
-| POST | `/rooms/{roomId}/itinerary` | Add item | Member |
-| PATCH | `/rooms/{roomId}/itinerary/{itemId}` | Edit item (needs `version`) | Member (owner or host) |
+| POST | `/rooms/{roomId}/itinerary` | Add item (optional `lat`/`lng` pin) | Member |
+| PATCH | `/rooms/{roomId}/itinerary/{itemId}` | Edit item (needs `version`; `lat`/`lng` move the pin, `clearPin` removes it) | Member (owner or host) |
 | DELETE | `/rooms/{roomId}/itinerary/{itemId}` | Remove item | Member (owner or host) |
 | GET | `/rooms/{roomId}/checklist` | List items | Member |
 | POST | `/rooms/{roomId}/checklist` | Add item | Member |

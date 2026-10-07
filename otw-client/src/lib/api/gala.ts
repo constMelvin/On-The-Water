@@ -55,6 +55,9 @@ export interface StopInput {
   notes?: string | null;
   startsAt?: string | null;
   stopType?: StopType;
+  /** The stop's map pin; send both or neither. */
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export const createStop = (roomId: string, body: StopInput) =>
@@ -63,7 +66,7 @@ export const createStop = (roomId: string, body: StopInput) =>
 export const updateStop = (
   roomId: string,
   id: string,
-  body: Partial<StopInput> & { completed?: boolean; version: number }
+  body: Partial<StopInput> & { completed?: boolean; clearPin?: boolean; version: number }
 ) => api<ItineraryItemVM>(`${room(roomId)}/itinerary/${id}`, { method: 'PATCH', body });
 
 /** The full route in its new order, each with the version last seen (stale -> 409). */

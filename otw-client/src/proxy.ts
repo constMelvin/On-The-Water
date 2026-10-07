@@ -19,14 +19,18 @@ export function proxy(request: NextRequest) {
   // Third parties, each for one feature:
   // - www.googleapis.com: the Gala Dump upload (the browser PUTs to a one-time Drive link).
   // - drive.google.com: the video player in the Dump viewer (thumbnails fall under img-src https:).
-  // - nominatim.openstreetmap.org: Plan a Gala's place search (map tiles fall under img-src https:).
+  // - nominatim.openstreetmap.org: Plan a Gala's place search.
+  // - tiles.openfreemap.org: MapLibre map styles, vector tiles, fonts and icons (fetched by the
+  //   map's web worker, which is served from our own origin: worker-src 'self').
+  // - router.project-osrm.org: the driving route on "The plan" map (public OSRM, no key).
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    `connect-src 'self' ${backendUrl} ${supabaseUrl} ${supabaseWs}${isDev ? ' ws://localhost:*' : ''} https://www.googleapis.com https://nominatim.openstreetmap.org`,
+    `connect-src 'self' ${backendUrl} ${supabaseUrl} ${supabaseWs}${isDev ? ' ws://localhost:*' : ''} https://www.googleapis.com https://nominatim.openstreetmap.org https://tiles.openfreemap.org https://router.project-osrm.org`,
+    "worker-src 'self' blob:",
     'frame-src https://drive.google.com',
     "object-src 'none'",
     "base-uri 'self'",

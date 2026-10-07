@@ -1,0 +1,113 @@
+/* "The plan" map (RouteMap): real map, numbered stop pins, the gala pin, the road route caption.
+   Map controls are styled for every map in styles/otw.css. */
+
+.map {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  z-index: 0;
+  background: var(--tile-bg);
+}
+
+.pinWrap {
+  background: none;
+  border: 0;
+}
+
+/* a stop: a round badge in the stop type's colour with its icon, and its number on a cream chip */
+.pin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--ink);
+  border: 3px solid var(--cream);
+  box-shadow: 0 3px 0 var(--teal-dark);
+}
+.num {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  background: var(--cream);
+  color: var(--rosy-dark);
+  border: 2px solid var(--rosy);
+  font-family: var(--fd);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* the gala's destination: the zest pin with a flag and a "Gala" tag (same as Who's OTW?) */
+.dest {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 56px;
+}
+.dest svg {
+  display: block;
+  filter: drop-shadow(0 3px 0 var(--teal-dark));
+}
+.destPin {
+  fill: var(--zest);
+  stroke: var(--teal-dark);
+  stroke-width: 1.6;
+}
+.destFlag {
+  fill: var(--rosy);
+  stroke: var(--teal-dark);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gtag {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  transform: translateX(-50%);
+  background: var(--cream);
+  color: var(--teal-dark);
+  border: 2px solid var(--teal-dark);
+  border-radius: 99px;
+  padding: 0 8px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.note {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  padding: 10px 6px 2px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.note > :global(svg) {
+  flex: none;
+  margin-top: 2px;
+}
+.drive {
+  color: var(--rosy-ink);
+}
+.sub {
+  margin: 4px 6px 0;
+}
+
+@media (max-width: 639px) {
+  .map {
+    height: 260px;
+  }
+}

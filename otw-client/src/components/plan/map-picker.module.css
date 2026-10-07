@@ -1,0 +1,48 @@
+/* "Pick on map" (MapPicker). Map controls are styled for every map in styles/otw.css. */
+
+.map {
+  position: relative;
+  overflow: hidden;
+  background: var(--tile-bg);
+}
+
+/* the picked spot: a rosy dot with a cream ring and a soft halo */
+.dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--rosy);
+  border: 4px solid var(--cream);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--rosy) 30%, transparent),
+    0 3px 0 var(--rosy-dark);
+  pointer-events: none;
+}
+
+/* reference markers (Add a Stop): the other stops, numbered, and the gala. Clicks pass through. */
+.lmStop,
+.lmGala {
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  font-family: var(--fd);
+  font-weight: 700;
+  line-height: 1;
+  border: 2px solid var(--cream);
+  box-shadow: 0 2px 0 var(--teal-dark);
+}
+.lmStop {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--cream);
+  font-size: 12px;
+}
+.lmGala {
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--zest);
+  color: var(--teal-dark);
+  font-size: 11px;
+}

@@ -22,6 +22,10 @@ export const driveThumb = (fileId: string, w = 800) =>
 /** Drive's own player, for videos in the viewer. */
 export const drivePlayer = (fileId: string) => `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview`;
 
+/** Drive's download link for the original file (gala files are viewable by link). */
+export const driveDownload = (fileId: string) =>
+  `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
+
 export type UploadStage = 'compressing' | 'uploading';
 
 /** Asks the backend for a one-time upload link for a file of this name, type and size. */

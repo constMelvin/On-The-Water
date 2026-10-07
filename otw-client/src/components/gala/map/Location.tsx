@@ -26,7 +26,7 @@ import s from './map.module.css';
 
 const LiveMap = dynamic(() => import('./LiveMap'), {
   ssr: false,
-  loading: () => <div className={s.leaflet} aria-label="Loading the map" />,
+  loading: () => <div className={s.map} aria-label="Loading the map" />,
 });
 
 /** The picker button colour for each status (see .cHome etc. in map.module.css). */

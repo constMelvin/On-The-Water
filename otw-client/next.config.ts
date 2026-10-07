@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -15,6 +16,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The repo root has its own package-lock.json, so Turbopack would guess D:\Code\Gala-Planner as the
+  // project root; that mixed-up root made nested routes (e.g. /gala/[code]/map) 404 in dev.
+  turbopack: { root: path.join(__dirname) },
   // Dev only: lets a phone on the same Wi-Fi open the dev server by the PC's LAN address.
   allowedDevOrigins: ['192.168.2.4'],
   async headers() {

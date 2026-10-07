@@ -32,7 +32,7 @@ Back to [[00-Index]]
 | PATCH | `/rooms/{roomId}/members/me/rsvp` · PATCH `/members/me` (nickname) · PUT `/members/me/travel-status` | Member |
 | POST | `/rooms/{roomId}/members/me/leave` | Member ✱ |
 | GET / POST | `/rooms/{roomId}/itinerary` · POST `/itinerary/reorder` | Member (writes: edit-plan permission) |
-| PATCH / DELETE | `/rooms/{roomId}/itinerary/{itemId}` | Member (item owner or host). PATCH needs `version` |
+| PATCH / DELETE | `/rooms/{roomId}/itinerary/{itemId}` | Member (item owner or host). PATCH needs `version`; POST/PATCH take optional `lat`/`lng` pin (both or neither), PATCH `clearPin` |
 | GET / POST | `/rooms/{roomId}/checklist` (`?isDone=&mine=`) | Member |
 | PATCH | `/rooms/{roomId}/checklist/{itemId}` (needs `version`) · POST `/{itemId}/claim` | Member |
 | GET / PUT | `/rooms/{roomId}/budget` | Member / Member while "Edit the plan" is on (host always) |

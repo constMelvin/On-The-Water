@@ -42,6 +42,7 @@ export const IC = {
   trash: '<path d="M5 7h14M9 7V5h6v2M7 7l1 12h8l1-12"/>',
   edit: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>',
   upload: '<path d="M12 16V5M8 9l4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',
+  download: '<path d="M12 5v11M8 12l4 4 4-4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',
   alert: '<path d="M12 4l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none"/>',
   wifioff: '<path d="M3 9a14 14 0 0 1 4-2.5M21 9a14 14 0 0 0-8.5-4M6 12.5a9 9 0 0 1 3-1.8M18 12.5a9 9 0 0 0-4-2.1M9.5 16a4 4 0 0 1 5 0"/><circle cx="12" cy="19" r=".8" fill="currentColor" stroke="none"/><path d="M4 4l16 16"/>',
   crown: '<path d="M4 18l-1-10 5 4 4-7 4 7 5-4-1 10z"/>',

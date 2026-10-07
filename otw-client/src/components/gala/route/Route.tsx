@@ -7,9 +7,12 @@
  * version (POST .../reorder; a stale one is a 409: toast + refetch). Adding a stop also posts a
  * card in the chat (the server writes it). Members can edit only while "Edit the plan" is on.
  * Editing a stop (host or its creator) is PATCH .../itinerary/{id} with the stop's version; a stale
- * one is a 409. The map pin and custom type live on this device (see lib/otw/stop-extras.ts).
+ * one is a 409. The map pin (lat/lng) is saved on the stop (V23) so every member sees it; the
+ * custom type and the pin's area name still live on this device (see lib/otw/stop-extras.ts).
+ * The map is a real MapLibre map with the driving route through every pinned stop to the gala.
  */
-import { useState, type DragEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent } from 'react';
+import dynamic from 'next/dynamic';
 import { useQueryClient } from '@tanstack/react-query';
 import { Avatar, Button, Card, Icon, Tag, blob } from '@/components/otw';
 import { burst, toast } from '@/lib/otw/feedback';
@@ -23,10 +26,17 @@ import { createStop, deleteStop, reorderStops, updateStop, type StopInput } from
 import type { ItineraryItemVM } from '@/lib/api/types';
 import { Empty, StateGate } from '../States';
 import { AddStopSheet } from './AddStopSheet';
-import { RouteRoad } from './RouteRoad';
+import type { MapStop } from './RouteMap';
+import type { Landmark } from '@/components/plan/MapPicker';
 import { metaFor } from './stop-style';
 import { galaHref } from '../nav';
 import s from './route.module.css';
+
+/** MapLibre needs `window` and WebGL, so the map loads on the client only. */
+const RouteMap = dynamic(() => import('./RouteMap'), {
+  ssr: false,
+  loading: () => <div className={s.mapLoading} aria-label="Loading the map" />,
+});
 
 const burstMid = () => burst(window.innerWidth / 2, window.innerHeight / 2);
 
@@ -39,7 +49,7 @@ export function useCanEditPlan(): boolean {
 }
 
 export function Route() {
-  const { gala, nameOf, toneOf, roomId, setViewState, role, myUserId } = useGala();
+  const { gala, room, nameOf, toneOf, roomId, setViewState, role, myUserId } = useGala();
   const canEdit = useCanEditPlan();
   const qc = useQueryClient();
   const q = useItinerary();
@@ -48,8 +58,14 @@ export function Route() {
   const summaryKey = featureKey(roomId, 'summary');
 
   const stops = [...(q.data ?? [])].sort(byPosition);
-  // Map pin + custom type, kept on this device. TODO(backend): come from the itinerary DTO instead.
+  // Custom type + the pin's area name, kept on this device (the pin itself is on the stop).
   const extras = useStopExtras(roomId);
+  /** The stop's pin: the server's, else an older one only this device still has. */
+  const pinOf = (it: ItineraryItemVM): { lat: number; lng: number } | null => {
+    if (it.lat != null && it.lng != null) return { lat: it.lat, lng: it.lng };
+    const x = extras[it.id];
+    return x?.lat != null && x?.lng != null ? { lat: x.lat, lng: x.lng } : null;
+  };
   // The caption's area: the most common one among the stops' pins, else the gala's destination.
   const areas = new Map<string, number>();
   for (const it of stops) {
@@ -115,7 +131,7 @@ export function Route() {
   const onAdd = async (input: StopInput, pin?: StopExtras) => {
     if (!roomId) return;
     try {
-      const row = await createStop(roomId, input);
+      const row = await createStop(roomId, { ...input, lat: pin?.lat ?? null, lng: pin?.lng ?? null });
       if (pin) setStopExtras(roomId, row.id, pin);
       upsertIn(qc, key, row);
       void qc.invalidateQueries({ queryKey: summaryKey });
@@ -140,6 +156,7 @@ export function Route() {
         stopType: input.stopType,
         notes: input.notes ?? '',
         startsAt: input.startsAt,
+        ...(pin?.lat != null && pin?.lng != null ? { lat: pin.lat, lng: pin.lng } : { clearPin: true }),
         version: it.version,
       });
       if (pin) setStopExtras(roomId, it.id, pin);
@@ -160,6 +177,36 @@ export function Route() {
 
   /** Only the Gala Leader or the person who added a stop may edit it (the server says 403 otherwise). */
   const canEditStop = (it: ItineraryItemVM) => canEdit && (role === 'leader' || (!!myUserId && it.createdBy === myUserId));
+
+  // Pins added before V23 live only in the browser that added them: upload each once (if this
+  // person may edit that stop), so every member sees it on the map.
+  const uploaded = useRef(new Set<string>());
+  useEffect(() => {
+    if (!roomId) return;
+    for (const it of stops) {
+      const x = extras[it.id];
+      if (it.lat != null || x?.lat == null || x?.lng == null || uploaded.current.has(it.id) || !canEditStop(it)) continue;
+      uploaded.current.add(it.id);
+      updateStop(roomId, it.id, { lat: x.lat, lng: x.lng, version: it.version })
+        .then((saved) => upsertIn(qc, key, saved))
+        .catch(() => {
+          /* stale version or no right to edit: the pin stays on this device; try again next visit */
+        });
+    }
+  });
+
+  const destination =
+    room?.destinationLat != null && room?.destinationLng != null
+      ? { lat: room.destinationLat, lng: room.destinationLng, label: room.destination }
+      : null;
+  /** What's already on the map, for the Add / Edit sheet (leaving out the stop being edited). */
+  const landmarksFor = (skipId?: string): Landmark[] => [
+    ...stops.flatMap((it, i): Landmark[] => {
+      const p = it.id === skipId ? null : pinOf(it);
+      return p ? [{ ...p, label: `${i + 1}. ${it.title}`, kind: 'stop', n: i + 1 }] : [];
+    }),
+    ...(destination ? [{ ...destination, kind: 'gala' as const }] : []),
+  ];
 
   const openAdd = () => setAdding(true);
   const dragProps = (it: ItineraryItemVM) =>
@@ -313,19 +360,20 @@ export function Route() {
               })}
             </ol>
             <Card className={s.mapcard}>
-              <RouteRoad
-                stops={stops.map((it) => ({
-                  id: it.id,
-                  title: it.title,
-                  stopType: it.stopType,
-                  customType: extras[it.id]?.customType,
-                }))}
-                label={`The gala route: ${stops.length} ${stops.length === 1 ? 'stop' : 'stops'}, in order`}
+              <RouteMap
+                stops={stops.map(
+                  (it, i): MapStop => ({
+                    id: it.id,
+                    n: i + 1,
+                    title: it.title,
+                    stopType: it.stopType,
+                    customType: extras[it.id]?.customType,
+                    ...(pinOf(it) ?? { lat: null, lng: null }),
+                  })
+                )}
+                destination={destination}
+                area={area}
               />
-              <div className={s.mapnote}>
-                <Icon name="pin" size={16} /> {stops.length} {stops.length === 1 ? 'stop' : 'stops'}
-                {area ? ` · ${area}` : ''}
-              </div>
             </Card>
           </div>
         )}
@@ -339,7 +387,13 @@ export function Route() {
       )}
 
       {adding && (
-        <AddStopSheet startDate={gala.dateISO} days={gala.days ?? 1} onAdd={onAdd} onClose={() => setAdding(false)} />
+        <AddStopSheet
+          startDate={gala.dateISO}
+          days={gala.days ?? 1}
+          landmarks={landmarksFor()}
+          onAdd={onAdd}
+          onClose={() => setAdding(false)}
+        />
       )}
 
       {editing && (
@@ -354,10 +408,11 @@ export function Route() {
             customType: extras[editing.id]?.customType,
             startsAt: editing.startsAt,
             notes: editing.notes,
-            lat: extras[editing.id]?.lat,
-            lng: extras[editing.id]?.lng,
+            lat: pinOf(editing)?.lat,
+            lng: pinOf(editing)?.lng,
             area: extras[editing.id]?.area,
           }}
+          landmarks={landmarksFor(editing.id)}
           onAdd={(input, pin) => onSave(editing, input, pin)}
           onClose={() => setEditingId(null)}
         />
