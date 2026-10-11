@@ -14,8 +14,8 @@ type Ctx = 'plan' | 'join' | 'enter' | 'me' | '';
 
 /** Why we're asking, by what the person was about to do (OTW voice: clear first, a little playful). */
 const CTX_BAR: Record<Exclude<Ctx, ''>, string> = {
-  plan: 'Account first, then back to planning your gala.',
-  join: 'Account first, then back to joining your gala.',
+  plan: 'Quick account first, then back to planning your gala.',
+  join: 'Quick account first, then you’re in your gala.',
   enter: 'Log in, then we’ll take you back to your gala.',
   me: 'Log in, then we’ll take you to your galas.',
 };
@@ -30,10 +30,9 @@ const CREATE_SUB: Record<Ctx, string> = {
 
 /** What an account keeps for you. Written into the planner card, one line at a time. */
 const PLANNER_ITEMS = [
-  'Saved galas',
+  'Your saved galas',
   'Personal gala calendar',
   'Gala history',
-  'Reminders, even when you’re not in OTW',
   'Your galas on any device',
 ];
 
@@ -210,7 +209,7 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
           ) : (
             <>
             <h1 className={styles.heading}>
-              {create ? 'Create an account to save your gala.' : 'Welcome back.'}
+              {create ? 'Create your OTW account.' : 'Welcome back.'}
             </h1>
             <p className={styles.sub}>
               {create ? CREATE_SUB[ctx] : 'Your galas are right where you left them.'}
@@ -306,7 +305,7 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
 
               <div className={styles.actions}>
                 <Button type="submit" variant="rosy" disabled={busy}>
-                  {create ? 'Create an Account' : 'Log in'}
+                  {create ? 'Create account' : 'Log in'}
                 </Button>
                 <button type="button" className="lnk" onClick={() => switchTab(create ? 'login' : 'create')}>
                   {create ? 'Already have an account? Log in' : 'New here? Create an account'}

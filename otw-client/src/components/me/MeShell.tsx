@@ -1,8 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { Icon } from '@/components/otw';
 import { AccountCluster } from '@/components/nav/AccountCluster';
 import nav from '@/components/nav/nav.module.css';
 import styles from './me.module.css';
@@ -22,8 +22,7 @@ export function MeShell({ active, children }: { active: Page; children: ReactNod
       <div className={styles.inner}>
         <header className={styles.top}>
           <Link href="/" className={styles.brand} aria-label="OTW home">
-            <Icon name="pin" size={26} />
-            <b>OTW</b>
+            <Image src="/otw-logo.svg" alt="OTW" width={1500} height={1027} className="logoimg" priority />
           </Link>
           <AccountCluster />
         </header>

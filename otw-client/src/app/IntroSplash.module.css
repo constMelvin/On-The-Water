@@ -1,0 +1,176 @@
+/* The opening splash: a giant "G na?", a car drives through, the page splits open. Pure CSS timeline. */
+
+.splash {
+  --rosy: #e0417c;
+  --rosy-dark: #c22e64;
+  --zest: #f8e140;
+  --cream: #fff8f2;
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --road: 26vh;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  cursor: pointer;
+  /* safety net: if JS never unmounts it, it still gets out of the way */
+  animation: gone 0.01s 3.4s forwards;
+}
+@keyframes gone {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  overflow: hidden;
+  background: var(--rosy);
+  will-change: transform;
+}
+.left {
+  left: 0;
+  animation: openL 0.95s cubic-bezier(0.6, 0, 0.8, 0.3) 2s both;
+}
+.right {
+  right: 0;
+  animation: openR 0.95s cubic-bezier(0.6, 0, 0.8, 0.3) 2s both;
+}
+@keyframes openL {
+  to {
+    transform: translateX(-102%);
+  }
+}
+@keyframes openR {
+  to {
+    transform: translateX(102%);
+  }
+}
+
+/* each half holds the same full-width stage, anchored so the two halves line up */
+.stage {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100vw;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--cream) 22%, transparent) 1.6px, transparent 2px) 0 0 / 28px 28px,
+    linear-gradient(160deg, var(--rosy) 0%, var(--rosy-dark) 100%);
+}
+.left .stage {
+  left: 0;
+}
+.right .stage {
+  right: 0;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%;
+}
+.b1 {
+  width: 34vmin;
+  height: 34vmin;
+  left: 6%;
+  top: 8%;
+  background: var(--rosy-dark);
+}
+.b2 {
+  width: 26vmin;
+  height: 26vmin;
+  right: 6%;
+  bottom: 12%;
+  background: var(--zest);
+}
+
+.giant {
+  position: relative;
+  margin: 0;
+  margin-top: -10vh;
+  font-family: var(--font-fredoka), 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(120px, 31vw, 440px);
+  line-height: 0.85;
+  letter-spacing: -0.045em;
+  color: var(--cream);
+  white-space: nowrap;
+}
+.g,
+.na {
+  display: inline-block;
+  animation: letterIn 0.8s var(--bounce) 0.15s backwards;
+}
+.na {
+  color: var(--zest);
+  animation-delay: 0.4s;
+}
+@keyframes letterIn {
+  from {
+    opacity: 0;
+    transform: translateY(40%) scale(0.6) rotate(-6deg);
+  }
+}
+
+.road {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--road) - 4px);
+  height: 0;
+  border-top: 7px dashed color-mix(in srgb, var(--cream) 70%, transparent);
+}
+
+.car {
+  --w: clamp(170px, 24vw, 300px);
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--road) - 2px);
+  width: var(--w);
+  z-index: 2;
+  animation: drive 1.75s cubic-bezier(0.5, 0.05, 0.55, 0.95) 1.2s both;
+  transform: translateX(-130%);
+}
+@keyframes drive {
+  from {
+    transform: translateX(-130%);
+  }
+  to {
+    transform: translateX(calc(100vw + 30%));
+  }
+}
+.carSvg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  animation: bob 0.32s ease-in-out infinite alternate;
+}
+@keyframes bob {
+  to {
+    transform: translateY(-3px) rotate(-0.6deg);
+  }
+}
+.wheel {
+  animation: spin 0.5s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .giant {
+    font-size: clamp(110px, 38vw, 220px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    display: none;
+  }
+}

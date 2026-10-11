@@ -320,8 +320,8 @@
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 28px;
+  justify-content: flex-end;
+  padding: 44px 28px 12px;
   max-width: 1120px;
   margin: 0 auto;
   z-index: 5;
@@ -331,10 +331,14 @@
 .logoWrap {
   display: block;
   flex: 0 0 auto;
-  width: clamp(150px, 18vw, 215px);
+  --lw: clamp(150px, 18vw, 215px); /* logo width: the artwork has ~5% empty margin left, ~20% empty below */
+  width: var(--lw);
   aspect-ratio: 1500 / 1027;
+  min-height: 0;
   position: relative;
-  top: clamp(18px, 4.5vw, 68px);
+  z-index: 5; /* the car that drives out of it stays in front */
+  margin-left: calc(var(--lw) * -0.05);
+  margin-bottom: calc(var(--lw) * -0.09);
   transform-origin: 50% 60%;
   transition: transform 0.35s var(--bounce);
   animation: logoBob 6s var(--soft) infinite;
@@ -345,6 +349,11 @@
     transform: rotate(-4deg) scale(1.08);
     animation-play-state: paused;
   }
+}
+
+.logoWrap > a,
+.logoWrap > button {
+  height: 100%;
 }
 
 .logoImg {
@@ -438,11 +447,11 @@
 @media (max-width: 480px) {
   /* small phones: logo + both buttons on one row, labels never wrap */
   .nav {
-    padding: 12px 16px;
+    padding: 30px 16px 12px;
   }
 
   .logoWrap {
-    width: clamp(108px, 30vw, 150px);
+    --lw: clamp(108px, 30vw, 150px);
   }
 
   .navActions {
@@ -473,14 +482,14 @@
 /* ---- HERO : full rosy bleed ---- */
 .hero {
   background: linear-gradient(160deg, var(--rosy) 0%, var(--rosy-dark) 100%);
-  padding: calc(clamp(150px, 18vw, 215px) * 0.685 + 24px + 44px) 28px 110px;
+  padding: 92px 28px 110px;
 }
 
 .heroInner {
   max-width: 1120px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  grid-template-columns: 0.9fr 1.1fr;
   gap: 40px;
   align-items: center;
 }
@@ -1532,4 +1541,10 @@
   .logoWrap:hover {
     transform: none;
   }
+}
+
+/* roadmap cards may shrink so their little scenes never push the page wide */
+.stopCard,
+.stopCard > div {
+  min-width: 0;
 }

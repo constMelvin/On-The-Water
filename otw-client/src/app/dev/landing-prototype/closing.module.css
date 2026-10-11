@@ -1,0 +1,119 @@
+.section {
+  background: var(--rosy);
+  color: var(--cream);
+  text-align: center;
+  overflow: hidden;
+  padding-top: clamp(40px, 6vw, 80px);
+}
+.inner {
+  display: grid;
+  place-items: center;
+}
+.blob {
+  position: absolute;
+  border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%;
+  animation: drift 9s ease-in-out infinite alternate;
+}
+.b1 {
+  width: clamp(180px, 28vw, 380px);
+  aspect-ratio: 1;
+  left: -6%;
+  top: 8%;
+  background: var(--rosy-dark);
+}
+.b2 {
+  width: clamp(140px, 22vw, 300px);
+  aspect-ratio: 1;
+  right: -4%;
+  bottom: 6%;
+  background: var(--zest);
+  animation-delay: -4s;
+}
+@keyframes drift {
+  to {
+    transform: translate(20px, -24px) rotate(14deg);
+  }
+}
+.giant {
+  font-size: clamp(110px, 24vw, 340px);
+  line-height: 0.85;
+  letter-spacing: -0.045em;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.4s var(--bounce);
+}
+@media (hover: hover) {
+  .giant:hover {
+    transform: scale(1.04) rotate(-2deg);
+  }
+}
+.na {
+  color: var(--zest);
+}
+.sub {
+  margin: 18px auto 0;
+  max-width: 40ch;
+  font-size: clamp(18px, 2.2vw, 24px);
+}
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.footer {
+  background: var(--teal-dark);
+  color: var(--cream);
+  padding: 44px clamp(18px, 4vw, 40px) 28px;
+}
+.fwrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: 440px;
+}
+.brand p {
+  font-size: 15px;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.links a {
+  padding: 8px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 800;
+}
+@media (hover: hover) {
+  .links a:hover {
+    background: color-mix(in srgb, var(--cream) 16%, transparent);
+  }
+}
+.note {
+  max-width: 1160px;
+  margin: 28px auto 0;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob {
+    animation: none;
+  }
+  .giant {
+    transition: none;
+  }
+}

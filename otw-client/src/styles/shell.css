@@ -15,6 +15,25 @@
   }
   .logo b { font-weight: 700; }
   .logo .ic { color: var(--zest); }
+  /* the real OTW logo (public/otw-logo.svg); the artwork has ~5% empty margin on the left */
+  .logoimg { display: block; width: 132px; height: auto; margin-left: -7px; }
+  .brandbox .logoimg { position: relative; z-index: 1; margin: 0; width: 138px; animation: bb-bob 5s ease-in-out infinite; }
+
+  /* animated backdrop behind the sidebar logo: drifting blobs and twinkling sparkles */
+  .brandbox { position: relative; isolation: isolate; display: grid; place-items: center; align-self: stretch; padding: 14px 0 12px; border-radius: 30px; overflow: hidden; background: color-mix(in srgb, var(--teal-dark) 38%, transparent); }
+  .bb-bg { position: absolute; inset: 0; z-index: 0; }
+  .bb-bg i { position: absolute; display: block; }
+  .bb-b1, .bb-b2 { border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%; filter: blur(2px); }
+  .bb-b1 { width: 110px; height: 110px; left: -26px; top: -30px; background: color-mix(in srgb, var(--rosy) 55%, transparent); animation: bb-drift 7s ease-in-out infinite alternate; }
+  .bb-b2 { width: 96px; height: 96px; right: -22px; bottom: -34px; background: color-mix(in srgb, var(--zest) 45%, transparent); animation: bb-drift 9s ease-in-out -3s infinite alternate-reverse; }
+  .bb-s1, .bb-s2, .bb-s3 { background: var(--cream); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: bb-twinkle 2.6s ease-in-out infinite; }
+  .bb-s1 { width: 14px; height: 14px; left: 14%; top: 22%; }
+  .bb-s2 { width: 10px; height: 10px; right: 16%; top: 14%; animation-delay: -1s; }
+  .bb-s3 { width: 12px; height: 12px; right: 22%; bottom: 16%; animation-delay: -1.8s; }
+  @keyframes bb-drift { to { transform: translate(22px, 16px) rotate(24deg) scale(1.12); } }
+  @keyframes bb-twinkle { 0%, 100% { opacity: .15; transform: scale(.5) rotate(0); } 50% { opacity: .95; transform: scale(1.15) rotate(45deg); } }
+  @keyframes bb-bob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+  @media (prefers-reduced-motion: reduce) { .brandbox .logoimg, .bb-bg i { animation: none; } .bb-s1, .bb-s2, .bb-s3 { opacity: .6; } }
 
   /* ---- page head ---- */
   .h2 { font-size: var(--h2); letter-spacing: -0.015em; }
@@ -293,6 +312,9 @@
     .side .lbl,
     .side .gmini,
     .side .logo b { display: none; }
+    .side .logoimg { width: 62px; margin-left: -3px; }
+    .side .brandbox { padding: 8px 0; border-radius: 22px; }
+    .side .brandbox .logoimg { width: 58px; margin: 0; }
     .sn { padding: 12px; justify-content: center; }
     .sn .badge { position: absolute; top: 2px; right: 0; margin: 0; }
     .savecard { padding: 12px; }

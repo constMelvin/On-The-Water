@@ -1,0 +1,500 @@
+/* Scroll-driven story: a winding route fills as you scroll, and four chapters land along it. */
+
+.section {
+  --p: 0;
+  --vy: 0%;
+  background: var(--teal-dark);
+  color: var(--cream);
+  padding-bottom: 0;
+}
+.zest {
+  color: var(--zest);
+}
+
+/* depth: decorations drift with the scroll, each at its own speed */
+.decor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.d {
+  position: absolute;
+  display: block;
+  will-change: transform;
+}
+.d1 {
+  left: -6%;
+  top: 18%;
+  width: 280px;
+  height: 280px;
+  border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%;
+  background: var(--teal);
+  opacity: 0.35;
+  transform: translateY(calc((var(--p) - 0.5) * -140px));
+}
+.d2 {
+  right: 4%;
+  top: 46%;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 18px solid var(--rosy);
+  opacity: 0.25;
+  transform: translateY(calc((var(--p) - 0.5) * 220px));
+}
+.d3 {
+  right: 10%;
+  top: 12%;
+  width: 90px;
+  color: var(--zest);
+  opacity: 0.4;
+  transform: translateY(calc((var(--p) - 0.5) * -260px)) rotate(calc(var(--p) * 180deg));
+}
+
+.track {
+  position: relative;
+  margin-top: clamp(30px, 5vw, 60px);
+  padding-bottom: clamp(60px, 8vw, 110px);
+}
+.line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 200px;
+  height: calc(100% - clamp(60px, 8vw, 110px));
+  margin-left: -100px;
+  overflow: visible;
+}
+.lineBase,
+.lineFill {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 6;
+}
+.lineBase {
+  stroke: color-mix(in srgb, var(--cream) 22%, transparent);
+  stroke-dasharray: 2 14;
+}
+.lineFill {
+  stroke: var(--zest);
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--p));
+}
+.rider {
+  position: absolute;
+  left: 50%;
+  top: var(--vy);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  background: var(--zest);
+  color: var(--teal-dark);
+  box-shadow: 0 4px 0 var(--zest-dark);
+  transform: rotate(180deg);
+}
+
+.chapters {
+  position: relative;
+  z-index: 2;
+}
+.chapter {
+  position: relative;
+  min-height: 430px;
+  display: flex;
+  align-items: center;
+}
+.left {
+  justify-content: flex-start;
+}
+.right {
+  justify-content: flex-end;
+}
+.pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-radius: 50%;
+  border: 4px solid var(--teal-dark);
+  background: color-mix(in srgb, var(--cream) 22%, var(--teal-dark));
+  color: var(--cream);
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 18px;
+  transition: background-color 0.4s ease, color 0.4s ease, transform 0.6s var(--bounce);
+}
+.in .pin {
+  background: var(--rosy);
+  transform: scale(1.12);
+}
+.card {
+  width: calc(50% - 56px);
+  padding: 22px 24px 26px;
+  border-radius: 34px 34px 34px 14px;
+  background: var(--cream);
+  color: var(--teal-dark);
+  box-shadow: 0 10px 0 color-mix(in srgb, var(--cream) 40%, var(--teal));
+  opacity: 0;
+  transform: translateY(40px) rotate(var(--rot, 0deg));
+  transition: opacity 0.7s var(--soft), transform 0.9s var(--bounce);
+}
+.left .card {
+  --rot: -1.2deg;
+}
+.right .card {
+  --rot: 1.2deg;
+}
+.in .card {
+  opacity: 1;
+  transform: rotate(var(--rot, 0deg));
+}
+.card h3 {
+  font-size: clamp(28px, 3.4vw, 42px);
+  letter-spacing: -0.02em;
+}
+.card p {
+  margin-top: 8px;
+  font-size: 17px;
+}
+.visual {
+  margin-top: 18px;
+}
+
+/* 1. calendar */
+.cal {
+  padding: 12px;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--blossom) 40%, var(--cream));
+}
+.cal header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-family: var(--fd);
+}
+.cal header span {
+  opacity: 0.6;
+}
+.calGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.calGrid i {
+  display: grid;
+  place-items: center;
+  height: 30px;
+  border-radius: 10px;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 800;
+  background: var(--cream);
+}
+.calGrid i.calOn {
+  background: var(--rosy);
+  color: var(--cream);
+  animation: pick 0.6s var(--bounce) 0.5s both;
+}
+@keyframes pick {
+  from {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.2);
+  }
+}
+.calGrid i:not(.calOn) {
+  opacity: 1;
+}
+
+/* 2. who's G */
+.gTiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.gTile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 10px 12px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--blossom) 40%, var(--cream));
+}
+.gTile > i {
+  grid-row: span 2;
+}
+.gTile b {
+  font-family: var(--fd);
+  font-weight: 600;
+}
+.gChip {
+  position: relative;
+  height: 22px;
+  min-width: 78px;
+}
+.gMaybe,
+.gYes {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.gMaybe {
+  background: var(--zest);
+}
+.gYes {
+  background: var(--teal);
+  color: var(--cream);
+  opacity: 0;
+}
+.gOn .gMaybe {
+  animation: maybeOut 0.15s linear calc(0.4s + var(--i) * 0.35s) forwards;
+}
+.gOn .gYes {
+  opacity: 1;
+  animation: flip 0.6s var(--bounce) calc(0.4s + var(--i) * 0.35s) both;
+}
+@keyframes flip {
+  from {
+    opacity: 0;
+    transform: rotateX(90deg);
+  }
+}
+@keyframes maybeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* 3. route */
+.route {
+  display: grid;
+  gap: 7px;
+}
+.route li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--blossom) 40%, var(--cream));
+  font-size: 14px;
+  opacity: 0;
+  transform: translateX(18px);
+}
+.routeOn li {
+  animation: row 0.6s var(--bounce) calc(0.35s + var(--i) * 0.35s) both;
+}
+@keyframes row {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.route i {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--rosy);
+  color: var(--cream);
+  font-style: normal;
+  font-family: var(--fd);
+  font-size: 13px;
+}
+.route b {
+  font-family: var(--fd);
+  font-weight: 600;
+  color: var(--rosy);
+  min-width: 66px;
+}
+.route em {
+  font-style: normal;
+  font-weight: 800;
+  color: var(--teal);
+}
+
+/* 4. arrive */
+.map {
+  position: relative;
+  height: 170px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--blossom) 40%, var(--cream));
+}
+.map svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.water {
+  fill: color-mix(in srgb, var(--teal) 30%, var(--cream));
+}
+.road {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.routeLine {
+  fill: none;
+  stroke: var(--rosy);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+}
+.mapOn .routeLine {
+  animation: drawIt 1.4s ease-in-out 0.3s forwards;
+}
+@keyframes drawIt {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.flag {
+  position: absolute;
+  right: 12%;
+  top: 14%;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--rosy);
+  color: var(--cream);
+}
+.arrive {
+  position: absolute;
+  margin: -15px 0 0 -15px;
+  opacity: 0;
+  transform: translateY(-40px) scale(0.6);
+}
+.mapOn .arrive {
+  animation: land 0.7s var(--bounce) calc(0.9s + var(--i) * 0.28s) both;
+}
+@keyframes land {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.here {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--zest);
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+.mapOn .here {
+  animation: fadeUp 0.5s ease 2.2s both;
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 860px) {
+  .line {
+    left: 28px;
+    width: 56px;
+    margin-left: -28px;
+  }
+  .rider {
+    left: 28px;
+  }
+  .pin {
+    left: 28px;
+    width: 46px;
+    height: 46px;
+    margin: -23px 0 0 -23px;
+    font-size: 15px;
+  }
+  .chapter,
+  .left,
+  .right {
+    justify-content: flex-end;
+    min-height: 0;
+    padding: 22px 0;
+  }
+  .card {
+    width: calc(100% - 64px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .pin {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .route li,
+  .arrive,
+  .here {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .here {
+    transform: translateX(-50%);
+  }
+  .routeLine {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .gOn .gYes,
+  .calGrid i.calOn {
+    animation: none;
+  }
+  .d {
+    transform: none;
+  }
+}

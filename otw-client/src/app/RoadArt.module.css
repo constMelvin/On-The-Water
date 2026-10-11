@@ -1,0 +1,447 @@
+/* Roadmap stop scenes. Base = finished state; `.play` replays each animation from its start. */
+
+.art {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--blossom) 45%, var(--cream));
+  min-height: 56px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --rosy: #e0417c;
+  --rosy-dark: #c22e64;
+  --zest: #f8e140;
+  --zest-dark: #c9b418;
+  --blossom: #eac7df;
+  --teal: #2f8aa3;
+  --teal-dark: #1f6376;
+  --cream: #fff8f2;
+  color: var(--teal-dark);
+}
+.art > * {
+  width: 100%;
+}
+
+/* 1. pick a date */
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+.days > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--cream);
+  font-size: 11px;
+  font-weight: 800;
+}
+.days .pick {
+  background: var(--rosy);
+  color: var(--cream);
+}
+.stamp {
+  margin-left: auto;
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--zest);
+  box-shadow: 0 3px 0 var(--zest-dark);
+  font-style: normal;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.play .pick {
+  animation: stamp 0.7s var(--bounce) 0.5s backwards;
+}
+.play .stamp {
+  animation: stampPop 0.6s var(--bounce) 0.9s backwards;
+}
+@keyframes stamp {
+  from {
+    background: var(--cream);
+    color: var(--teal-dark);
+    transform: scale(2.2);
+  }
+}
+@keyframes stampPop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+}
+
+/* 2. who's G */
+.gRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.gItem {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+.av {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--cream);
+  font-style: normal;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+}
+.tRosy {
+  background: var(--rosy);
+  color: var(--cream);
+}
+.tTeal {
+  background: var(--teal);
+  color: var(--cream);
+}
+.tZest {
+  background: var(--zest);
+}
+.tBlossom {
+  background: var(--blossom);
+}
+.flip {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 56px;
+  height: 18px;
+  perspective: 200px;
+}
+.flip b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  backface-visibility: hidden;
+}
+.faceA {
+  background: var(--zest);
+  transform: rotateX(-180deg);
+}
+.faceB {
+  background: var(--teal);
+  color: var(--cream);
+}
+.play .faceA {
+  animation: faceA 0.9s var(--bounce) var(--d) both;
+}
+.play .faceB {
+  animation: faceB 0.9s var(--bounce) var(--d) both;
+}
+@keyframes faceA {
+  0%,
+  35% {
+    transform: rotateX(0);
+  }
+  100% {
+    transform: rotateX(-180deg);
+  }
+}
+@keyframes faceB {
+  0%,
+  35% {
+    transform: rotateX(180deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+
+/* 3. build the plan */
+.route {
+  display: block;
+  height: 54px;
+  overflow: visible;
+}
+.rPath {
+  fill: none;
+  stroke: var(--rosy);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+}
+.play .rPath {
+  animation: draw 1.6s ease-in-out 0.15s both;
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+.rPin circle {
+  fill: var(--teal-dark);
+  stroke: var(--cream);
+  stroke-width: 2.5;
+}
+.rPin text {
+  fill: var(--cream);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+}
+.rPin {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.play .rPin {
+  animation: pinDrop 0.5s var(--bounce) var(--d) backwards;
+}
+@keyframes pinDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.4);
+  }
+}
+
+/* 4. talk gastos */
+.money {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.coins {
+  display: inline-flex;
+}
+.coins i {
+  width: 18px;
+  height: 18px;
+  margin-left: -6px;
+  border-radius: 50%;
+  border: 3px solid var(--zest-dark);
+  background: var(--zest);
+}
+.coins i:first-child {
+  margin-left: 0;
+}
+.amount {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.each {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--rosy);
+  color: var(--cream);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.play .coins i {
+  animation: coin 0.6s var(--bounce) var(--d) backwards;
+}
+.play .each {
+  animation: stampPop 0.6s var(--bounce) 1s backwards;
+}
+@keyframes coin {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* 5. pack smart */
+.pack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pack li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 5px;
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 12px;
+  font-weight: 800;
+}
+.pack i {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--cream);
+}
+.play .pack i {
+  animation: tick 0.5s var(--bounce) var(--d) backwards;
+}
+.play .pack li {
+  animation: chip 0.45s var(--bounce) var(--d) backwards;
+}
+@keyframes tick {
+  from {
+    background: var(--blossom);
+    color: transparent;
+    transform: scale(0.5);
+  }
+}
+@keyframes chip {
+  from {
+    transform: translateY(8px);
+    opacity: 0.4;
+  }
+}
+
+/* 6. keep the GC going */
+.chat {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chat p {
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 14px 14px 14px 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.b1 {
+  background: var(--blossom);
+}
+.b2 {
+  background: var(--rosy);
+  color: var(--cream);
+  border-radius: 14px 14px 4px 14px !important;
+}
+.dots {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--cream);
+}
+.dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+}
+.play .chat p {
+  animation: bub 0.5s var(--bounce) var(--d) backwards;
+}
+.play .dots i {
+  animation: bounceDot 0.5s ease-in-out calc(var(--d) + 0.1s) 4 alternate backwards;
+}
+.play .dots i:nth-child(2) {
+  animation-delay: calc(var(--d) + 0.2s);
+}
+.play .dots i:nth-child(3) {
+  animation-delay: calc(var(--d) + 0.3s);
+}
+@keyframes bub {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.7);
+  }
+}
+@keyframes bounceDot {
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+/* 7. watch everyone go OTW */
+.where {
+  position: relative;
+  height: 34px;
+}
+.track {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 50%;
+  border-top: 4px dashed color-mix(in srgb, var(--teal) 50%, transparent);
+}
+.mover {
+  position: absolute;
+  left: calc(100% - 66px);
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  margin-top: -14px;
+}
+.me {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--cream);
+  background: var(--rosy);
+  color: var(--cream);
+  font-style: normal;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+}
+.ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid var(--rosy);
+  animation: ping 1.8s ease-out infinite;
+}
+@keyframes ping {
+  from {
+    opacity: 0.8;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+.dest {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  margin-top: -12px;
+  color: var(--teal-dark);
+}
+.play .mover {
+  animation: ride 2.4s cubic-bezier(0.5, 0.05, 0.5, 1) 0.2s backwards;
+}
+.play .dest {
+  animation: bounceDot 0.45s ease-in-out 2.6s 2 alternate backwards;
+}
+@keyframes ride {
+  from {
+    left: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play *,
+  .ping {
+    animation: none !important;
+  }
+}

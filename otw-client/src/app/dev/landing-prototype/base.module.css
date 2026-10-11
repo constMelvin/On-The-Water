@@ -1,0 +1,317 @@
+/* OTW landing prototype: tokens, nav, buttons and small shared pieces. Brand-coloured art: it looks the same in light and dark. */
+
+.root {
+  --rosy: #e0417c;
+  --rosy-dark: #c22e64;
+  --zest: #f8e140;
+  --zest-dark: #c9b418;
+  --blossom: #eac7df;
+  --teal: #2f8aa3;
+  --teal-dark: #1f6376;
+  --cream: #fff8f2;
+  --ink: #3a2a3a;
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --soft: cubic-bezier(0.45, 0, 0.55, 1);
+  --fd: var(--font-fredoka), 'Fredoka', system-ui, sans-serif;
+  --fb: var(--font-nunito), 'Nunito', system-ui, sans-serif;
+
+  position: relative;
+  overflow-x: clip;
+  background: var(--cream);
+  color: var(--teal-dark);
+  font-family: var(--fb);
+  font-weight: 700;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+.root * {
+  box-sizing: border-box;
+}
+.root h1,
+.root h2,
+.root h3,
+.root h4 {
+  margin: 0;
+  font-family: var(--fd);
+  font-weight: 600;
+  line-height: 1.02;
+}
+.root p {
+  margin: 0;
+}
+.root ul,
+.root ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.root :where(button) {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.root :where(a) {
+  color: inherit;
+}
+.root :focus-visible {
+  outline: 3px solid var(--zest);
+  outline-offset: 3px;
+}
+.root svg {
+  display: block;
+  flex: none;
+}
+
+/* ---- scroll reveal ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s var(--soft), transform 0.8s var(--bounce);
+  transition-delay: var(--rd, 0s);
+}
+.revealIn {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- avatars ---- */
+.av {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  box-sizing: border-box;
+  font-style: normal;
+  font-family: var(--fd);
+  font-weight: 600;
+}
+.avRing {
+  border: 3px solid var(--cream);
+}
+.av_rosy {
+  background: var(--rosy);
+  color: var(--cream);
+}
+.av_teal {
+  background: var(--teal);
+  color: var(--cream);
+}
+.av_zest {
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+.av_blossom {
+  background: var(--blossom);
+  color: var(--teal-dark);
+}
+
+.logo {
+  display: inline-block;
+  line-height: 0;
+}
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wave {
+  display: block;
+  line-height: 0;
+  height: clamp(36px, 6vw, 90px);
+}
+.wave svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---- buttons: solid offset shadow, squish on press ---- */
+.btn {
+  --bg: var(--rosy);
+  --sh: var(--rosy-dark);
+  --fg: var(--cream);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 30px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1;
+  box-shadow: 0 7px 0 var(--sh);
+  margin-bottom: 7px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.12s var(--soft), box-shadow 0.12s var(--soft);
+}
+@media (hover: hover) {
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 0 var(--sh);
+  }
+}
+.btn:active {
+  transform: translateY(5px);
+  box-shadow: 0 2px 0 var(--sh);
+}
+.btnCream {
+  --bg: var(--cream);
+  --sh: var(--blossom);
+  --fg: var(--rosy-dark);
+}
+.btnZest {
+  --bg: var(--zest);
+  --sh: var(--zest-dark);
+  --fg: var(--teal-dark);
+}
+.btnTeal {
+  --bg: var(--teal);
+  --sh: var(--teal-dark);
+}
+.btnGhost {
+  --bg: transparent;
+  --fg: currentColor;
+  box-shadow: none;
+  border: 3px solid currentColor;
+  padding: 13px 27px;
+}
+@media (hover: hover) {
+  .btnGhost:hover {
+    box-shadow: none;
+    background: color-mix(in srgb, currentColor 14%, transparent);
+  }
+}
+.btnGhost:active {
+  box-shadow: none;
+  transform: translateY(2px);
+}
+.btnSm {
+  padding: 10px 20px;
+  font-size: 16px;
+  box-shadow: 0 5px 0 var(--sh);
+}
+
+/* ---- nav ---- */
+.nav {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: min(1120px, calc(100% - 28px));
+  padding: 8px 10px 8px 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cream) 92%, transparent);
+  color: var(--teal-dark);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--rosy-dark) 70%, transparent);
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px);
+}
+.navLinks {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.navLinks a {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+}
+@media (hover: hover) {
+  .navLinks a:hover {
+    background: var(--blossom);
+  }
+}
+.nav .btn {
+  margin-bottom: 0;
+  font-size: 16px;
+  padding: 11px 22px;
+  box-shadow: 0 4px 0 var(--sh);
+}
+.nav .btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--sh);
+}
+@media (max-width: 860px) {
+  .navLinks {
+    display: none;
+  }
+  .nav .btn {
+    margin-left: auto;
+  }
+}
+
+/* ---- the prototype ribbon ---- */
+.ribbon {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--teal-dark);
+  color: var(--cream);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--teal-dark) 55%, black);
+}
+.ribbon i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--zest);
+}
+
+.section {
+  position: relative;
+  padding: clamp(72px, 10vw, 130px) clamp(18px, 4vw, 40px);
+}
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.kicker {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 3px solid currentColor;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.h2 {
+  font-size: clamp(38px, 6.4vw, 84px);
+  letter-spacing: -0.025em;
+}
+.lead {
+  margin-top: 16px;
+  max-width: 54ch;
+  font-size: clamp(17px, 2vw, 21px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .btn {
+    transition: none;
+  }
+}

@@ -1,0 +1,2179 @@
+/* The landing page's app tour. Like the rest of the landing page it is brand-coloured art: it looks the same
+   in light and dark. Only transform and opacity ever animate. The base style of every scene element is its
+   FINISHED picture; the animations below play "from" a start state, so with animations off (reduced motion)
+   you simply see the finished screens. Tokens (--rosy, --cream, --bounce...) come from .landing. */
+
+.tour {
+  --stepH: 55vh;
+  --n: 5;
+  position: relative;
+  /* clip, not hidden: hidden would make this a scroll container and break the sticky phone */
+  overflow: clip;
+  padding: 96px 28px 110px;
+  background: var(--teal-dark);
+  color: var(--cream);
+}
+.reserve {
+  /* the placeholder holds the tour's height, so the page doesn't jump when the tour loads in */
+  min-height: calc(var(--n) * var(--stepH) + 700px);
+}
+.inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* background colour per step: layers cross-fade by opacity */
+.bgs {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.bgLayer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.bgLayer[data-on='true'] {
+  opacity: 1;
+}
+.bg_rosy {
+  background: var(--rosy);
+}
+.bg_zest {
+  background: var(--zest);
+}
+.bg_teal {
+  background: var(--teal);
+}
+.bg_blossom {
+  background: var(--blossom);
+}
+
+.head {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.head h2 {
+  font-size: clamp(36px, 6vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.head p {
+  font-size: 19px;
+  font-weight: 700;
+}
+.skip {
+  margin-top: 6px;
+  color: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+}
+.tour a:focus-visible,
+.tour button:focus-visible {
+  outline: 3px solid var(--cream);
+  outline-offset: 4px;
+}
+
+/* ---- layout ---- */
+.stage {
+  margin-top: 36px;
+}
+.tour[data-mode='sticky'] .stage {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  gap: 56px;
+  align-items: start;
+}
+.deviceCol {
+  position: relative;
+  align-self: stretch;
+}
+.sticky {
+  position: sticky;
+  top: max(20px, calc((100svh - 660px) / 2));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.step {
+  --bg: var(--rosy);
+  --ink: var(--cream);
+  --sh: var(--rosy-dark);
+  display: flex;
+  align-items: center;
+  min-height: var(--stepH);
+  color: var(--ink);
+}
+.stepLong {
+  min-height: calc(var(--stepH) * 1.45);
+}
+.ink_rosy {
+  --bg: var(--rosy);
+  --ink: var(--cream);
+  --sh: var(--rosy-dark);
+}
+.ink_zest {
+  --bg: var(--zest);
+  --ink: var(--teal-dark);
+  --sh: var(--zest-dark);
+}
+.ink_teal {
+  --bg: var(--teal);
+  --ink: var(--cream);
+  --sh: var(--teal-dark);
+}
+.ink_blossom {
+  --bg: var(--blossom);
+  --ink: var(--teal-dark);
+  --sh: var(--rosy);
+}
+
+.caption {
+  max-width: 480px;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.step[data-active='false'] .caption {
+  opacity: 0.28;
+  transform: translateX(10px);
+}
+.eyebrow {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 13px;
+  border: 3px solid currentColor;
+  border-radius: 99px;
+  padding: 2px 12px;
+  margin-bottom: 14px;
+}
+.caption h3 {
+  font-size: clamp(30px, 4.2vw, 46px);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+}
+.caption p {
+  margin-top: 12px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* stacked: phones and reduced motion. Each step is a coloured card: caption on top, the phone under it. */
+.tour[data-mode='stacked'] .steps,
+.tour[data-mode='static'] .steps {
+  display: grid;
+  gap: 26px;
+}
+.tour[data-mode='stacked'] .step,
+.tour[data-mode='static'] .step {
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  gap: 22px;
+  background: var(--bg);
+  border-radius: 36px 36px 36px 14px;
+  padding: 26px 20px 30px;
+  box-shadow: 0 8px 0 var(--sh);
+}
+.tour[data-mode='stacked'] .caption,
+.tour[data-mode='static'] .caption {
+  max-width: none;
+}
+.stackedPhone {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---- the step rail ---- */
+.rail {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--cream) 22%, transparent);
+}
+.railBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  background: transparent;
+  color: var(--ink-now, var(--cream));
+  cursor: pointer;
+}
+.railBtn[aria-current='step'] {
+  background: var(--cream);
+  color: var(--rosy-dark);
+}
+.railFill {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -9px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--cream);
+  transform-origin: left;
+  transition: transform 0.5s ease;
+}
+.tour[data-tone='zest'] .railBtn,
+.tour[data-tone='blossom'] .railBtn {
+  color: var(--teal-dark);
+}
+.tour[data-tone='zest'] .railBtn[aria-current='step'],
+.tour[data-tone='blossom'] .railBtn[aria-current='step'] {
+  background: var(--teal-dark);
+  color: var(--cream);
+}
+.tour[data-tone='zest'] .railFill,
+.tour[data-tone='blossom'] .railFill {
+  background: var(--teal-dark);
+}
+
+/* ---- the end: the call to action ---- */
+.end {
+  text-align: center;
+  margin-top: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.end h3 {
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 1;
+}
+.end p {
+  font-weight: 700;
+  font-size: 18px;
+}
+.endCtas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.endPrimary,
+.endGhost {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1;
+  padding: 15px 30px;
+  border-radius: 999px;
+  text-decoration: none;
+  margin-bottom: 7px;
+}
+.endPrimary {
+  background: var(--cream);
+  color: var(--rosy-dark);
+  box-shadow: 0 7px 0 var(--blossom);
+  transition: transform 0.09s ease;
+}
+.endPrimary:active {
+  transform: translateY(5px);
+}
+.endGhost {
+  color: var(--cream);
+  border: 3px solid var(--cream);
+  padding: 12px 27px;
+}
+.tour[data-mode='stacked'] .end,
+.tour[data-mode='static'] .end {
+  margin-top: 44px;
+}
+
+/* ================================================================ */
+/*  The phone                                                        */
+/* ================================================================ */
+
+.phoneBox {
+  --k: 1;
+  flex: none;
+  width: calc(280px * var(--k));
+  height: calc(580px * var(--k));
+}
+.phone {
+  position: relative;
+  width: 280px;
+  height: 580px;
+  padding: 12px;
+  border-radius: 46px;
+  background: var(--teal-dark);
+  box-shadow: 0 12px 0 color-mix(in srgb, var(--teal-dark) 62%, var(--rosy-dark));
+  transform: scale(var(--k));
+  transform-origin: top left;
+}
+.notch {
+  position: absolute;
+  top: 19px;
+  left: 50%;
+  width: 78px;
+  height: 20px;
+  margin-left: -39px;
+  border-radius: 99px;
+  background: var(--teal-dark);
+  z-index: 5;
+}
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 34px;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--teal-dark);
+}
+@media (max-width: 480px) {
+  .phoneBox {
+    --k: 0.86;
+  }
+}
+@media (max-width: 360px) {
+  .phoneBox {
+    --k: 0.76;
+  }
+}
+@media (min-width: 901px) and (max-height: 720px) {
+  .phoneBox {
+    --k: 0.8;
+  }
+  .sticky {
+    top: 16px;
+  }
+}
+
+/* a scene sits on the screen; only the active one is visible (and so only it animates) */
+.scene {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+.scene[data-on='true'] {
+  visibility: visible;
+}
+.tour[data-mode='static'] .scene {
+  visibility: visible;
+}
+/* nothing animates while the tour is off screen or the tab is hidden */
+.tour[data-live='false'] .scene * {
+  animation-play-state: paused;
+}
+
+/* ================================================================ */
+/*  Scene building blocks (shared)                                   */
+/* ================================================================ */
+
+.body {
+  height: 100%;
+  padding: 46px 14px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  margin: 0 -14px 12px;
+  padding: 0 16px;
+  border-bottom: 3px solid var(--blossom);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 17px;
+}
+.av {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  border: 3px solid var(--cream);
+  box-sizing: border-box;
+  font-style: normal;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+}
+.av_rosy {
+  background: var(--rosy);
+  color: var(--cream);
+}
+.av_teal {
+  background: var(--teal);
+  color: var(--cream);
+}
+.av_zest {
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+.av_blossom {
+  background: var(--blossom);
+  color: var(--teal-dark);
+}
+.chip {
+  background: var(--zest);
+  color: var(--teal-dark);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 12px;
+}
+.row {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 12px;
+}
+
+/* the app's bottom nav (Home, Chat, Map) */
+.navBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+.navBtn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid var(--blossom);
+  background: var(--cream);
+  color: var(--teal);
+}
+.navOn {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--cream);
+}
+
+/* ---- 1. Plan ---- */
+.q {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.input {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 12px;
+  border: 3px solid var(--teal);
+  border-radius: 16px;
+  background: var(--cream);
+  font-weight: 800;
+  font-size: 14px;
+}
+.type {
+  display: inline-block;
+  white-space: nowrap;
+}
+.cta1 {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 99px;
+  padding: 11px;
+  background: var(--rosy);
+  color: var(--cream);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 17px;
+  box-shadow: 0 5px 0 var(--rosy-dark);
+}
+.codeCard {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 22px;
+  background: var(--blossom);
+  text-align: center;
+}
+.codeCard > span {
+  font-size: 12px;
+  font-weight: 800;
+}
+.code {
+  display: block;
+  margin: 4px 0 10px;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 21px;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+.ch {
+  display: inline-block;
+  font-style: normal;
+}
+.joined {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.joined > span {
+  display: inline-flex;
+  margin-left: -6px;
+}
+.joined > span:first-child {
+  margin-left: 0;
+}
+.joined small {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* ---- 2. Who's G? ---- */
+.tiles3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 6px;
+  border-radius: 18px;
+}
+.tile small {
+  font-size: 11px;
+  font-weight: 800;
+}
+.tileG {
+  background: var(--teal);
+  color: var(--cream);
+}
+.tileM {
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+.tileX {
+  background: var(--blossom);
+  color: var(--teal-dark);
+}
+.digits {
+  display: block;
+  height: 28px;
+  overflow: hidden;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(-84px);
+}
+.col i {
+  display: block;
+  height: 28px;
+  line-height: 28px;
+  font-style: normal;
+  text-align: center;
+}
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.people li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+}
+.people b {
+  flex: 1;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+.statusWrap {
+  position: relative;
+  width: 78px;
+  height: 24px;
+}
+.status {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--teal);
+  color: var(--cream);
+}
+.maybe {
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+.maybeOut {
+  opacity: 0;
+}
+
+/* ---- 3. The plan ---- */
+.map {
+  height: 152px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 3px solid var(--blossom);
+  margin-bottom: 10px;
+}
+.mapBg {
+  fill: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+}
+.mapWater {
+  fill: color-mix(in srgb, var(--teal) 30%, var(--cream));
+}
+.mapRoad {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.routeLine {
+  fill: none;
+  stroke: var(--rosy);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.pin {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.pinBody {
+  fill: var(--rosy);
+  stroke: var(--cream);
+  stroke-width: 2;
+}
+.pinNum {
+  fill: var(--cream);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+.stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+.stops li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+}
+.stopN {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--rosy);
+  color: var(--cream);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 12px;
+  flex: none;
+}
+.stops em {
+  font-style: normal;
+  font-weight: 800;
+  color: var(--teal);
+}
+
+/* ---- 4. Ambagan ---- */
+.exp {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.exp li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+}
+.exp b {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+}
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 2px 10px;
+  padding-top: 8px;
+  border-top: 3px dashed var(--blossom);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 18px;
+}
+.sums {
+  position: relative;
+  display: inline-block;
+  width: 84px;
+  height: 24px;
+  font-weight: 600;
+}
+.sum {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-style: normal;
+}
+.sum1,
+.sum2 {
+  opacity: 0;
+}
+.settle {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 20px;
+  background: var(--blossom);
+}
+.settleHd {
+  font-size: 12px;
+  font-weight: 800;
+}
+.owe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 14px;
+  background: var(--cream);
+  font-size: 12px;
+}
+.owe b {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+}
+.payWrap {
+  position: relative;
+  width: 74px;
+  height: 22px;
+}
+.pay,
+.paid {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 99px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+}
+.pay {
+  border: 2px solid var(--teal);
+  color: var(--teal);
+  opacity: 0;
+}
+.paid {
+  background: var(--teal);
+  color: var(--cream);
+}
+.allSet {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  background: var(--zest);
+  color: var(--teal-dark);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 15px;
+}
+
+/* ---- 5. Chat ---- */
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.msg p {
+  position: relative;
+  margin: 0;
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--blossom);
+  font-size: 13px;
+  font-weight: 700;
+}
+.me {
+  justify-content: flex-end;
+}
+.me p {
+  background: var(--rosy);
+  color: var(--cream);
+  border-radius: 16px 16px 4px 16px;
+}
+.slot {
+  position: relative;
+  padding-bottom: 12px;
+}
+.typing {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  gap: 4px;
+  padding: 11px 14px;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--rosy);
+  opacity: 0;
+}
+.typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cream);
+}
+.react {
+  position: absolute;
+  left: -6px;
+  bottom: -13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  border: 2px solid var(--blossom);
+  background: var(--cream);
+  color: var(--rosy);
+  font-size: 11px;
+  font-weight: 800;
+}
+.sys {
+  align-self: center;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 2px solid var(--blossom);
+  background: var(--cream);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ================================================================ */
+/*  Motion: plays only while a scene is on                           */
+/* ================================================================ */
+
+.scene[data-on='true'] .pop {
+  animation: popIn 0.5s var(--bounce) var(--d, 0s) both;
+}
+.scene[data-on='true'] .slide {
+  animation: slideUp 0.5s var(--soft) var(--d, 0s) both;
+}
+.scene[data-on='true'] .fade {
+  animation: fadeIn 0.4s ease var(--d, 0s) both;
+}
+.scene[data-on='true'] .press {
+  animation: press 0.4s ease var(--d, 0s) both;
+}
+.scene[data-on='true'] .type {
+  animation: typeIn 1s steps(16, end) var(--d, 0s) both;
+}
+.scene[data-on='true'] .ch {
+  animation: slideUp 0.3s ease var(--d, 0s) both;
+}
+.scene[data-on='true'] .flip {
+  animation: flipIn 0.5s var(--bounce) var(--d, 0s) both;
+}
+.scene[data-on='true'] .maybeOut {
+  animation: fadeOutAt 0.15s linear var(--d, 0s) both;
+}
+.scene[data-on='true'] .countUp {
+  animation: countUp 2.5s var(--bounce) both;
+}
+.scene[data-on='true'] .countDown {
+  animation: countUp 2.5s var(--bounce) both;
+}
+.scene[data-on='true'] .dropIn {
+  animation: dropPin 0.7s var(--bounce) var(--d, 0s) both;
+}
+.scene[data-on='true'] .draw {
+  animation: drawRoute 1.6s ease-in-out var(--d, 0s) both;
+}
+.scene[data-on='true'] .sum1 {
+  animation: fadeOutAt 0.15s linear 0.6s both;
+}
+.scene[data-on='true'] .sum2 {
+  animation: midShow 0.4s linear 0.6s both;
+}
+.scene[data-on='true'] .sum3 {
+  animation: fadeIn 0.15s linear 1s both;
+}
+.scene[data-on='true'] .payOut {
+  animation: fadeOutAt 0.15s linear var(--d, 0s) both;
+}
+.scene[data-on='true'] .payIn {
+  animation: popIn 0.35s var(--bounce) var(--d, 0s) both;
+}
+.scene[data-on='true'] .dotsFlash {
+  animation: dotsShow 0.7s linear var(--d, 0s) both;
+}
+.scene[data-on='true'] .typing i {
+  animation: dotHop 0.35s ease-in-out calc(var(--d, 0s)) 2 alternate both;
+}
+.scene[data-on='true'] .typing i:nth-child(2) {
+  animation-delay: calc(var(--d, 0s) + 0.1s);
+}
+.scene[data-on='true'] .typing i:nth-child(3) {
+  animation-delay: calc(var(--d, 0s) + 0.2s);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fadeOutAt {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes press {
+  40% {
+    transform: scale(0.92);
+  }
+}
+@keyframes typeIn {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes flipIn {
+  from {
+    opacity: 0;
+    transform: rotateX(90deg);
+  }
+}
+@keyframes countUp {
+  0%,
+  20% {
+    transform: translateY(0);
+  }
+  28%,
+  45% {
+    transform: translateY(-28px);
+  }
+  53%,
+  70% {
+    transform: translateY(-56px);
+  }
+  78%,
+  100% {
+    transform: translateY(-84px);
+  }
+}
+@keyframes dropPin {
+  from {
+    opacity: 0;
+    transform: translateY(-70px);
+  }
+  30% {
+    opacity: 1;
+  }
+}
+@keyframes drawRoute {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes midShow {
+  0% {
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes dotsShow {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes dotHop {
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+/* reduced motion: no animation anywhere, no sticking, no fading: the finished screens, stacked */
+@media (prefers-reduced-motion: reduce) {
+  .tour *,
+  .tour *::before,
+  .tour *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .tour .scene {
+    visibility: visible;
+  }
+}
+
+/* ================================================================ */
+/*  Polish: phone details, depth, captions                           */
+/* ================================================================ */
+
+.bar {
+  justify-content: space-between;
+}
+
+/* a quiet glow behind the phone, in the step's own colour family */
+.glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 520px;
+  height: 520px;
+  margin: -260px 0 0 -260px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--cream) 38%, transparent), transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+.tilt {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.9s var(--bounce);
+}
+.tour[data-mode='sticky'] [data-par='0'] .tilt {
+  transform: rotate(-2.5deg);
+}
+.tour[data-mode='sticky'] [data-par='1'] .tilt {
+  transform: rotate(2.5deg);
+}
+
+/* status bar: the time and the little signal / battery */
+.statusBar {
+  position: absolute;
+  top: 17px;
+  left: 28px;
+  right: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 6;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--teal-dark);
+  pointer-events: none;
+}
+.statusIcons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* floating stickers around the phone: tiny, tone-matched, with a slow bob */
+.sticker {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--rosy);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--cream) 45%, var(--rosy-dark));
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.4s ease, transform 0.6s var(--bounce);
+}
+.stickerOn {
+  opacity: 1;
+  transform: none;
+}
+.stickerBob {
+  animation: stickerBob 3.4s ease-in-out infinite alternate;
+}
+.tour[data-live='false'] .stickerBob {
+  animation-play-state: paused;
+}
+@keyframes stickerBob {
+  from {
+    transform: translateY(0) rotate(-4deg);
+  }
+  to {
+    transform: translateY(-9px) rotate(4deg);
+  }
+}
+.sticker_teal {
+  color: var(--teal);
+}
+.sticker_zest {
+  background: var(--zest);
+  color: var(--teal-dark);
+  box-shadow: 0 5px 0 var(--zest-dark);
+}
+
+/* captions: a huge faint step number behind, and little tags under the text */
+.step {
+  position: relative;
+}
+.ghostNum {
+  position: absolute;
+  left: -44px;
+  top: 50%;
+  transform: translateY(-66%);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: clamp(150px, 20vw, 260px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: currentColor;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+}
+.caption {
+  position: relative;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tags li {
+  padding: 5px 13px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 800;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  border: 2px solid color-mix(in srgb, currentColor 40%, transparent);
+}
+.tour[data-mode='stacked'] .ghostNum,
+.tour[data-mode='static'] .ghostNum {
+  display: none;
+}
+
+/* the call to action adapts to the last step's colour */
+.tour[data-tone='zest'] .end,
+.tour[data-tone='blossom'] .end {
+  color: var(--teal-dark);
+}
+.tour[data-tone='zest'] .endPrimary,
+.tour[data-tone='blossom'] .endPrimary {
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 7px 0 var(--rosy-dark);
+}
+.tour[data-tone='zest'] .endGhost,
+.tour[data-tone='blossom'] .endGhost {
+  color: var(--teal-dark);
+  border-color: var(--teal-dark);
+}
+.tour[data-tone='zest'] a:focus-visible,
+.tour[data-tone='zest'] button:focus-visible,
+.tour[data-tone='blossom'] a:focus-visible,
+.tour[data-tone='blossom'] button:focus-visible {
+  outline-color: var(--teal-dark);
+}
+
+/* ================================================================ */
+/*  6. Location sharing                                              */
+/* ================================================================ */
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--rosy) 12%, var(--cream));
+  color: var(--rosy);
+  font-family: var(--font-nunito), 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+}
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rosy);
+}
+.shareCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 11px;
+  margin-bottom: 8px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+}
+.shareText b {
+  display: block;
+  font-size: 12px;
+}
+.shareText small {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+.sw {
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--teal-dark) 22%, var(--cream));
+}
+.swOn {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: var(--teal);
+}
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cream);
+  transform: translateX(16px);
+}
+
+.lmap {
+  position: relative;
+  height: 188px;
+  margin-bottom: 8px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid var(--blossom);
+}
+.trail {
+  fill: none;
+  stroke: var(--teal);
+  stroke-opacity: 0.35;
+  stroke-width: 2;
+  stroke-dasharray: 3 4;
+  stroke-linecap: round;
+}
+.flagPole {
+  fill: none;
+  stroke: var(--teal-dark);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.flagCloth {
+  fill: var(--rosy);
+  stroke: var(--cream);
+  stroke-width: 1;
+}
+.meet {
+  position: absolute;
+  left: 112px;
+  top: 3px;
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: var(--cream);
+  color: var(--teal-dark);
+  font-size: 9px;
+  font-weight: 800;
+}
+.mv {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 28px;
+  height: 28px;
+}
+.travel {
+  transform: translate(var(--x1), var(--y1));
+}
+.dani {
+  left: 118px;
+  top: 52px;
+}
+.ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 3px solid var(--rosy);
+  opacity: 0;
+}
+.veil {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--cream) 70%, transparent);
+  opacity: 0;
+}
+.trip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.trip li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+}
+.trip b {
+  flex: 1;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+}
+.stStack {
+  position: relative;
+  width: 94px;
+  height: 20px;
+}
+.stChip {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 9px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  opacity: 0;
+}
+.stFin {
+  opacity: 1;
+}
+.stc0 {
+  background: var(--blossom);
+  color: var(--teal-dark);
+}
+.stc1 {
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+.stc2 {
+  background: var(--rosy);
+  color: var(--cream);
+}
+.stc3 {
+  background: var(--teal);
+  color: var(--cream);
+}
+
+/* ================================================================ */
+/*  7. Couple Mode                                                   */
+/* ================================================================ */
+
+.pairCard {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 20px;
+  background: var(--blossom);
+}
+.heartBadge {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin: 0 -7px;
+  border-radius: 50%;
+  border: 3px solid var(--blossom);
+  background: var(--rosy);
+  color: var(--cream);
+}
+.pairText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: 10px;
+}
+.pairText b {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pairText small {
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.cTabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+.cTabs span {
+  padding: 4px 9px;
+  border-radius: 99px;
+  border: 2px solid var(--blossom);
+  font-size: 10.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cTabs .cTabOn {
+  background: var(--rosy);
+  border-color: var(--rosy);
+  color: var(--cream);
+}
+.prog {
+  margin-bottom: 9px;
+}
+.progText {
+  position: relative;
+  display: block;
+  height: 16px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.pt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-style: normal;
+}
+.ptOne {
+  opacity: 0;
+}
+.progBar {
+  display: block;
+  height: 9px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--blossom) 55%, var(--cream));
+}
+.progFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--rosy);
+  transform-origin: left;
+  transform: scaleX(0.667);
+}
+.bucket {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+.bucket li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+}
+.box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  background: var(--teal);
+  color: var(--cream);
+}
+.boxOpen,
+.boxLater {
+  background: var(--cream);
+  border: 2px solid var(--teal);
+}
+.boxFill {
+  position: absolute;
+  inset: -2px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--teal);
+  color: var(--cream);
+}
+.bTitle {
+  position: relative;
+  flex: 1;
+  font-weight: 800;
+  font-size: 12.5px;
+}
+.done:not(.doneLater) .bTitle {
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+.doneLater .bTitle {
+  opacity: 0.65;
+}
+.strike {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--teal-dark);
+  transform-origin: left;
+}
+.polaroid {
+  flex: none;
+  width: 36px;
+  height: 40px;
+  padding: 2px 2px 8px;
+  border-radius: 4px;
+  border: 2px solid var(--blossom);
+  background: var(--cream);
+  box-shadow: 0 2px 0 var(--blossom);
+  transform: rotate(5deg);
+}
+.polaroid svg {
+  display: block;
+}
+.polaroidB {
+  transform: rotate(-6deg);
+}
+.floatHeart {
+  position: absolute;
+  bottom: 12px;
+  color: var(--rosy);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ================================================================ */
+/*  8. Barkada Awards                                                */
+/* ================================================================ */
+
+.awRoot {
+  position: absolute;
+  inset: 0;
+}
+.awBallot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.awCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 22px;
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 5px 0 var(--rosy-dark);
+}
+.awCard b {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+}
+.awCard small {
+  font-size: 11px;
+  font-weight: 700;
+}
+.awIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--rosy);
+}
+.awPick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.awCand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 4px;
+  border-radius: 18px;
+  border: 3px solid var(--blossom);
+  background: var(--cream);
+  font-size: 12px;
+}
+.awCand b {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+}
+.awCandOn {
+  border-color: var(--rosy);
+  background: color-mix(in srgb, var(--rosy) 12%, var(--cream));
+}
+.awTick {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--rosy);
+  color: var(--cream);
+}
+.awMeta b {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 15px;
+}
+.awMeta small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+.stamp {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  padding: 6px 16px;
+  border: 3px solid var(--rosy);
+  border-radius: 12px;
+  background: var(--cream);
+  color: var(--rosy);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 18px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-8deg);
+}
+
+.awStage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 52px;
+  background: var(--rosy);
+  color: var(--cream);
+}
+.awLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 13px;
+  border-radius: 99px;
+  background: var(--cream);
+  color: var(--teal-dark);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 14px;
+}
+.awLabelIcon {
+  width: 14px;
+  height: 17px;
+}
+.awDrum {
+  position: absolute;
+  left: 50%;
+  top: 112px;
+  width: 100px;
+  height: 100px;
+  margin-left: -50px;
+}
+.awDrum i {
+  position: absolute;
+  inset: 22px;
+  border: 3px solid var(--cream);
+  border-radius: 50%;
+  opacity: 0;
+}
+.awWinner {
+  position: absolute;
+  left: 50%;
+  top: 100px;
+  width: 124px;
+  margin-left: -62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.awWinner :global(.av) {
+  position: relative;
+  z-index: 2;
+}
+.awTrophy {
+  position: relative;
+  z-index: 3;
+  width: 38px;
+  height: 46px;
+  margin-bottom: -4px;
+}
+.awBody {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 58px;
+  height: 34px;
+  margin-top: -14px;
+  border-radius: 29px 29px 8px 8px;
+  background: var(--cream);
+}
+.awSteps {
+  position: relative;
+  display: block;
+  width: 124px;
+  height: 46px;
+}
+.awSteps i {
+  position: absolute;
+  left: 50%;
+  display: block;
+  border-radius: 8px 8px 0 0;
+  background: var(--cream);
+  box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--rosy-dark) 45%, var(--cream));
+}
+.awSteps i:nth-child(1) {
+  bottom: 0;
+  width: 124px;
+  height: 22px;
+  margin-left: -62px;
+}
+.awSteps i:nth-child(2) {
+  bottom: 22px;
+  width: 86px;
+  height: 22px;
+  margin-left: -43px;
+}
+.awName {
+  margin-top: 10px;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+}
+.awSpark {
+  position: absolute;
+  left: 50%;
+  top: 74px;
+  margin: -8px 0 0 -8px;
+  color: var(--zest);
+  opacity: 0;
+}
+.awCert {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: 198px;
+  margin-left: -99px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 10px 16px;
+  border-radius: 18px;
+  border: 4px solid var(--rosy);
+  background: var(--cream);
+  color: var(--teal-dark);
+  box-shadow: 0 6px 0 var(--rosy-dark);
+  transform: rotate(-2deg);
+}
+.certBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--rosy);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.awCert > small {
+  color: var(--rosy);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+.certSmall {
+  margin-top: 2px;
+  color: var(--teal);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+.certName {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+.certPill {
+  margin-top: 2px;
+  padding: 3px 12px;
+  border-radius: 99px;
+  background: var(--teal);
+  color: var(--cream);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+.certSeal {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px dashed var(--cream);
+  background: var(--rosy);
+  color: var(--zest);
+  box-shadow: 0 0 0 2px var(--rosy);
+}
+
+/* ================================================================ */
+/*  Motion for the polish and the three standouts                    */
+/* ================================================================ */
+
+.scene[data-on='true'] .liveDot {
+  animation: livePulse 0.8s ease-in-out 8 alternate;
+}
+.scene[data-on='true'] .swFlip {
+  animation: fadeIn 0.3s ease var(--d, 0s) both;
+}
+.scene[data-on='true'] .knobSlide {
+  animation: knobSlide 0.4s var(--bounce) var(--d, 0s) both;
+}
+.scene[data-on='true'] .travel {
+  animation: travel var(--mdur, 3s) cubic-bezier(0.45, 0.05, 0.35, 1) var(--d, 0s) both;
+}
+.scene[data-on='true'] .ringGo {
+  animation: ringPulse 1.1s ease-out var(--d, 0s) var(--rn, 2) both;
+}
+.scene[data-on='true'] .veilOff {
+  animation: veilOff 0.25s ease var(--d, 0s) both;
+}
+.scene[data-on='true'] .w_out {
+  animation: fadeOutAt 0.15s linear var(--d, 0s) both;
+}
+.scene[data-on='true'] .w_win {
+  animation: midShow var(--dur, 1s) linear var(--d, 0s) both;
+}
+.scene[data-on='true'] .w_in {
+  animation: fadeIn 0.2s linear var(--d, 0s) both;
+}
+.scene[data-on='true'] .beat {
+  animation: beat 0.9s ease-in-out 6 alternate;
+}
+.scene[data-on='true'] .ptOne {
+  animation: fadeOutAt 0.15s linear 1.4s both;
+}
+.scene[data-on='true'] .ptTwo {
+  animation: fadeIn 0.15s linear 1.4s both;
+}
+.scene[data-on='true'] .fillTo {
+  animation: fillTo 0.6s ease var(--d, 0s) both;
+}
+.scene[data-on='true'] .boxPop {
+  animation: popIn 0.35s var(--bounce) var(--d, 0s) both;
+}
+.scene[data-on='true'] .strikeIn {
+  animation: strikeIn 0.3s ease var(--d, 0s) both;
+}
+.scene[data-on='true'] .doneLater .bTitle {
+  animation: dimIn 0.3s ease 1.4s both;
+}
+.scene[data-on='true'] .hUp {
+  animation: heartUp 1.1s ease-out var(--d, 0s) both;
+}
+.scene[data-on='true'] .awBallotOut {
+  animation: awOut 3.3s linear both;
+}
+.scene[data-on='true'] .stampIn {
+  animation: stampIn 0.4s var(--bounce) var(--d, 0s) both;
+}
+.scene[data-on='true'] .awStageIn {
+  animation: fadeIn 0.4s ease 3s both;
+}
+.scene[data-on='true'] .awDrum i {
+  animation: ringPulse 1.3s ease-out 3.3s 2 both;
+}
+.scene[data-on='true'] .awDrum i:nth-child(2) {
+  animation-delay: 3.55s;
+}
+.scene[data-on='true'] .awDrum i:nth-child(3) {
+  animation-delay: 3.8s;
+}
+.scene[data-on='true'] .awWinnerIn {
+  animation: winnerIn 0.55s var(--bounce) 4.4s both;
+}
+.scene[data-on='true'] .awTrophyIn {
+  animation: trophyDrop 0.7s var(--bounce) 4.7s both;
+}
+.scene[data-on='true'] .awSparkOut {
+  animation: sparkOut 0.75s ease-out var(--d, 0s) both;
+}
+.scene[data-on='true'] .certUp {
+  animation: certUp 0.7s var(--bounce) var(--d, 0s) both;
+}
+
+@keyframes livePulse {
+  to {
+    opacity: 0.3;
+  }
+}
+@keyframes knobSlide {
+  from {
+    transform: translateX(0);
+  }
+}
+@keyframes travel {
+  0% {
+    transform: translate(var(--x0), var(--y0));
+  }
+  55% {
+    transform: translate(var(--xm), var(--ym));
+  }
+  100% {
+    transform: translate(var(--x1), var(--y1));
+  }
+}
+@keyframes ringPulse {
+  from {
+    opacity: 0.75;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+@keyframes veilOff {
+  from {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes beat {
+  to {
+    transform: scale(1.18);
+  }
+}
+@keyframes fillTo {
+  from {
+    transform: scaleX(0.333);
+  }
+}
+@keyframes strikeIn {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes dimIn {
+  from {
+    opacity: 1;
+  }
+}
+@keyframes heartUp {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-46px) scale(1.1);
+  }
+}
+@keyframes awOut {
+  0%,
+  86% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes stampIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-8deg) scale(1.9);
+  }
+}
+@keyframes winnerIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(30px);
+  }
+}
+@keyframes trophyDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-64px) rotate(-14deg) scale(0.6);
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes sparkOut {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.4);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) scale(1.1);
+  }
+}
+@keyframes certUp {
+  from {
+    opacity: 0;
+    transform: translateY(190px) rotate(-8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt {
+    transform: none !important;
+  }
+  .sticker {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* the layer the stickers sit in: the phone's footprint, centred in the device column */
+.stickerLayer {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 380px;
+  height: 580px;
+  margin-left: -190px;
+  pointer-events: none;
+  z-index: 2;
+}
+.sticky {
+  position: sticky;
+}
+
+/* the landing page's drifting dot pattern, like the other sections */
+.tour::before {
+  content: '';
+  position: absolute;
+  inset: -32px 0;
+  background-image: radial-gradient(circle, var(--cream) 2.5px, transparent 3.2px);
+  background-size: 32px 32px;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+  animation: dotsDrift 24s linear infinite;
+}
+@keyframes dotsDrift {
+  to {
+    transform: translate(32px, 32px);
+  }
+}
+/* the background shapes and dots stand still whenever the tour is off screen */
+.tour[data-live='false']::before,
+.tour[data-live='false'] .bgs * {
+  animation-play-state: paused;
+}
+.endFine {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 800;
+  opacity: 0.85;
+}

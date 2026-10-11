@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AvatarStack, Icon, Tag } from '@/components/otw';
@@ -26,9 +27,15 @@ export function GalaShell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
       <aside className="side">
-        <Link href="/" className="logo cr" aria-label="OTW home" title="OTW home" style={{ color: 'inherit', textDecoration: 'none' }}>
-          <Icon name="pin" size={26} />
-          <b>OTW</b>
+        <Link href="/" className="logo cr brandbox" aria-label="OTW home" title="OTW home" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span className="bb-bg" aria-hidden="true">
+            <i className="bb-b1" />
+            <i className="bb-b2" />
+            <i className="bb-s1" />
+            <i className="bb-s2" />
+            <i className="bb-s3" />
+          </span>
+          <Image src="/otw-logo.svg" alt="OTW" width={1500} height={1027} className="logoimg" priority />
         </Link>
 
         <div className="gmini">

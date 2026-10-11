@@ -12,8 +12,9 @@
   --off: 17%; /* how far the back card peeks out sideways */
 
   box-sizing: border-box;
+  zoom: 0.9;
   width: 100%;
-  max-width: 480px;
+  max-width: 540px;
   margin: 0 auto;
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   color: var(--blossom-ink);
@@ -35,12 +36,50 @@
   padding: 26px 0 8px;
 }
 
+/* hops when the hero logo's car drives by (set from HeroLogo) */
+.stack {
+  transition: transform 0.7s cubic-bezier(0.34, 1.9, 0.5, 1);
+}
+.root[data-hop='press'] .stack {
+  transform: translateY(var(--sag, 16px)) scale(1.03, 0.95);
+  transition: transform 0.22s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+.root[data-hop='release'] .stack {
+  animation: settle 1s linear both;
+}
+/* springs back after the car has passed: bounces downward, never above its resting spot */
+@keyframes settle {
+  0% {
+    transform: translateY(var(--sag, 16px)) scale(1.03, 0.95);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  30% {
+    transform: translateY(0) scale(0.99, 1.01);
+    animation-timing-function: ease-in-out;
+  }
+  52% {
+    transform: translateY(calc(var(--sag, 16px) * 0.12)) scale(1.02, 0.97);
+    animation-timing-function: ease-in-out;
+  }
+  74% {
+    transform: translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  88% {
+    transform: translateY(calc(var(--sag, 16px) * 0.04)) scale(1.005, 0.99);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+
 .card {
   --d: 1; /* -1 = WITHOUT (parks on the left), 1 = WITH (parks on the right) */
   grid-area: 1 / 1;
   justify-self: center;
   width: 82%;
-  max-width: 320px;
+  max-width: 370px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -149,9 +188,9 @@
   background: var(--edge);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 18px;
   letter-spacing: 0.6px;
-  padding: 13px 22px;
+  padding: 14px 24px;
   border-radius: 30px 30px 0 0;
 }
 
@@ -166,11 +205,11 @@
 /* ---- X / check badges: pop each time a card arrives in front ---- */
 .badge {
   position: absolute;
-  top: -22px;
+  top: -24px;
   right: 22px;
   z-index: 2;
-  width: 46px;
-  height: 46px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   border: 4px solid var(--cream);
   display: flex;
@@ -203,9 +242,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 18px 16px 22px;
-  min-height: 350px;
+  gap: 11px;
+  padding: 20px 18px 24px;
+  min-height: 410px;
   border-radius: 0 0 30px 30px;
 }
 
@@ -249,15 +288,15 @@
 
 .avatar {
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 14px;
   color: #fff;
 }
 
@@ -267,6 +306,16 @@
 
 .avTeal {
   background: var(--teal);
+}
+
+.avZest {
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+
+.avBlossom {
+  background: var(--blossom);
+  color: var(--teal-dark);
 }
 
 .msgCol {
@@ -281,18 +330,18 @@
 }
 
 .name {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
-  padding: 0 6px;
+  padding: 0 7px;
   opacity: 0.65;
 }
 
 .bubble {
-  font-size: 14.5px;
+  font-size: 16.5px;
   font-weight: 800;
   line-height: 1.3;
-  padding: 9px 15px;
-  border-radius: 19px;
+  padding: 10px 16px;
+  border-radius: 21px;
 }
 
 .bubblePlanner {
@@ -314,7 +363,7 @@
   gap: 12px;
   margin: 4px 0 0;
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
-  font-size: 12.5px;
+  font-size: 14px;
   opacity: 0.6;
 }
 
@@ -352,8 +401,8 @@
 
 /* "Mia: sends gala link" */
 .action {
-  margin: 2px 0 -4px 34px;
-  font-size: 12px;
+  margin: 2px 0 -4px 40px;
+  font-size: 13.5px;
   font-weight: 700;
   font-style: italic;
   opacity: 0.7;
@@ -367,7 +416,7 @@
 /* shared link bubble */
 .linkRow {
   align-self: flex-start;
-  margin-left: 34px;
+  margin-left: 40px;
   transform-origin: left bottom;
 }
 
@@ -378,7 +427,7 @@
   background: var(--cream);
   border: 2px solid var(--teal);
   border-radius: 19px 19px 19px 6px;
-  padding: 8px 14px 8px 8px;
+  padding: 8px 15px 8px 8px;
   box-shadow: 0 4px 0 var(--teal-dark);
   transition: transform 0.25s var(--bounce), box-shadow 0.25s var(--bounce);
 }
@@ -391,8 +440,8 @@
 }
 
 .linkIcon {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--blossom);
   display: flex;
@@ -402,7 +451,7 @@
 }
 
 .linkUrl {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--teal-dark);
   text-decoration: underline;
@@ -419,8 +468,8 @@
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -439,6 +488,25 @@
 .dot:focus-visible {
   outline: 3px solid var(--cream);
   outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .body {
+    min-height: 380px;
+    padding: 18px 14px 22px;
+  }
+  .bubble {
+    font-size: 15px;
+    padding: 9px 14px;
+  }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .linkUrl {
+    font-size: 14.5px;
+  }
 }
 
 /* ---- reduced motion: static deck, no auto-cycle (click a card or dot to switch) ---- */

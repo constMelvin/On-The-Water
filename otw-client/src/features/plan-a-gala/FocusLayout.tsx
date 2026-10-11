@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '@/components/otw';
 import './plan-a-gala.css';
@@ -18,8 +19,7 @@ export function FocusLayout({ tone, children, closeHref = '/' }: FocusLayoutProp
     <div className={`focus bg-${tone}`}>
       <div className="ftop">
         <span className="logo">
-          <Icon name="pin" size={26} />
-          <b>OTW</b>
+          <Image src="/otw-logo.svg" alt="OTW" width={1500} height={1027} className="logoimg" priority />
         </span>
         <Link className="btn sm ghost iconbtn" href={closeHref} aria-label="Close">
           <Icon name="x" size={20} />

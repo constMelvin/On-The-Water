@@ -6,8 +6,12 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from './landing.module.css';
 import OtwConversationAd from './OtwConversationAd';
+import IntroSplash from './IntroSplash';
+import { HeroLogo } from './HeroLogo';
+import { StopArt } from './RoadArt';
 import { useAccount } from '@/lib/auth/session';
 import { AccountCluster } from '@/components/nav/AccountCluster';
+import { WalkthroughSlot } from '@/components/landing/WalkthroughSlot';
 
 interface Sparkle {
   id: number;
@@ -127,24 +131,6 @@ const FEATURE_SHAPES: ShapeDef[] = [
   S('spark', '10%', '52%', 24, 'cream', 0.55, { a: 'twinkle', dur: 3.2, dl: -0.5, z: 48 }),
 ];
 
-const CTA_SHAPES: ShapeDef[] = [
-  S('glow', '32%', '10%', 560, 'zest', 0.32, { a: 'drift', dur: 22, z: 8 }),
-  S('blob', '-4%', '-30%', 320, 'rosy', 0.09, { a: 'drift', dur: 20, z: 18 }),
-  S('spark', '86%', '8%', 170, 'zest', 0.38, { a: 'spin', dur: 28, z: 32 }),
-  S('spark', '6%', '56%', 150, 'rosy', 0.12, { a: 'spin', dur: 30, dl: -4, z: 30 }),
-  S('ring', '20%', '8%', 110, 'rosy', 0.16, { a: 'breathe', dur: 16, z: 26 }),
-  S('burst', '70%', '8%', 110, 'teal', 0.15, { a: 'spin', dur: 24, z: 34 }),
-  S('noodle', '76%', '50%', 250, 'teal', 0.09, { a: 'sway', r: 20, dur: 22, dl: -5, z: 24 }),
-  S('pill', '8%', '80%', 280, 'cream', 0.42, { a: 'sway', dur: 18, z: 20 }),
-  // celebration confetti rising behind the button
-  S('dot', '30%', '86%', 14, 'rosy', 0.5, { a: 'rise', dur: 7, dl: 0, z: 40 }),
-  S('dot', '42%', '90%', 10, 'zest-dark', 0.6, { a: 'rise', dur: 9, dl: -3, z: 44 }),
-  S('dot', '56%', '88%', 16, 'teal', 0.4, { a: 'rise', dur: 8, dl: -5, z: 38 }),
-  S('dot', '66%', '92%', 12, 'rosy', 0.5, { a: 'rise', dur: 10, dl: -1.5, z: 46 }),
-  S('spark', '36%', '80%', 24, 'rosy', 0.5, { a: 'rise', dur: 8.5, dl: -6, z: 42 }),
-  S('spark', '60%', '84%', 22, 'zest-dark', 0.6, { a: 'rise', dur: 7.5, dl: -2.5, z: 40 }),
-];
-
 const FOOTER_SHAPES: ShapeDef[] = [
   S('glow', '58%', '-70%', 520, 'teal', 0.4, { a: 'drift', dur: 22, z: 6 }),
   S('spark', '5%', '18%', 80, 'cream', 0.1, { a: 'spin', dur: 30, z: 26 }),
@@ -162,7 +148,7 @@ const FOOTER_SHAPES: ShapeDef[] = [
 const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   {
     t: 'Pick a date',
-    d: 'Turn “someday” into an actual date.',
+    d: 'Turn “someday” into a real date.',
     icon: (
       <>
         <rect x="3.5" y="5" width="17" height="15" rx="4" />
@@ -182,7 +168,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Build the plan',
-    d: 'Places, food, timing, and everything in between.',
+    d: 'Add stops on a map, set the times, see the route.',
     icon: (
       <>
         <circle cx="6" cy="18" r="2.2" />
@@ -193,7 +179,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Talk gastos',
-    d: 'Set the budget before “magkano ba?” begins.',
+    d: 'Set the budget, log who paid, and see who owes whom.',
     icon: (
       <>
         <rect x="3" y="6.5" width="18" height="13" rx="4" />
@@ -204,7 +190,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Pack smart',
-    d: 'Because someone always forgets the charger.',
+    d: 'A shared checklist you can claim from. Someone always forgets the charger.',
     icon: (
       <>
         <rect x="4" y="8" width="16" height="12" rx="4" />
@@ -214,7 +200,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Keep the GC going',
-    d: 'Banter, updates, and last-minute changes, all in one place.',
+    d: 'Chat, react, and share photos without leaving the gala.',
     icon: (
       <>
         <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
@@ -224,7 +210,7 @@ const STEPS: { t: string; d: string; icon: React.ReactNode }[] = [
   },
   {
     t: 'Watch everyone go OTW',
-    d: 'Live location, because “OTW” needs proof.',
+    d: 'Share your live location, because “OTW” needs proof.',
     icon: (
       <>
         <path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z" />
@@ -317,9 +303,10 @@ function RoadTracker() {
                   </svg>
                 </span>
                 <div>
-                  <span className={styles.stopEyebrow}>STOP {String(i + 1).padStart(2, '0')}</span>
+                  <span className={styles.stopEyebrow}>Stop {String(i + 1).padStart(2, '0')}</span>
                   <h3>{s.t}</h3>
                   <p>{s.d}</p>
+                  <StopArt i={i} playing={i === active} />
                 </div>
               </div>
             </li>
@@ -337,18 +324,17 @@ function RoadTracker() {
 
 const NOW_ITEMS = [
   'Plan or join a gala',
-  'Attendance, itinerary, checklist',
-  'Budget, expenses, and chat',
-  'Live location on gala day',
-  'The Gala Dump for photos',
+  'Who’s G, a mapped itinerary, a shared checklist',
+  'Budget, ambagan, and group chat',
+  'Live location on gala day, if you share it',
+  'The Gala Dump for photos and videos',
 ];
 
 const LATER_ITEMS = [
   'Saved galas, one tap away',
   'Your personal gala calendar',
   'Gala history, including the mga drawing',
-  'Reminders, even when you’re not in the gala',
-  'Your galas on any device',
+  'Log in on any device and your galas are there',
 ];
 
 /** Playful pointer tilt, written as two CSS variables. Mouse only. */
@@ -374,10 +360,10 @@ function ForkCards() {
         onPointerMove={tilt}
         onPointerLeave={untilt}
       >
-        <span className={styles.forkTag}>ONE ACCOUNT. AS MANY GALAS AS YOU WANT.</span>
+        <span className={styles.forkTag}>One account for every gala.</span>
         <h3>Create once. Gala anytime.</h3>
         <p className={styles.forkSub}>
-          Create an account to save your galas and keep everything in one place.
+          Sign up once, then plan or join any gala with it.
         </p>
         <ul className={styles.forkList}>
           {NOW_ITEMS.map((t) => (
@@ -397,7 +383,7 @@ function ForkCards() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
           <path d="M12 5v14M5 12h14" />
         </svg>
-        <span>PLUS</span>
+        <span>Plus</span>
       </div>
 
       <article
@@ -407,9 +393,9 @@ function ForkCards() {
         onPointerMove={tilt}
         onPointerLeave={untilt}
       >
-        <span className={styles.forkTag}>YOUR GALAS, ALWAYS WITH YOU.</span>
+        <span className={styles.forkTag}>Your galas, always with you.</span>
         <h3>Never lose a gala again.</h3>
-        <p className={styles.forkSub}>Your plans, past galas, and upcoming adventures, all in one place.</p>
+        <p className={styles.forkSub}>Upcoming plans and past galas, all in one place.</p>
         <ul className={styles.forkList}>
           {LATER_ITEMS.map((t) => (
             <li key={t}>
@@ -651,22 +637,11 @@ export default function LandingPage() {
 
   return (
     <div ref={rootRef} className={`${styles.landing} ${jsReady ? styles.jsReady : ''}`}>
+      <IntroSplash />
       <ShapeDefs />
 
-      {/* Navigation: logo showcase + CTA only */}
+      {/* Navigation: account actions only (the logo sits in the hero) */}
       <nav className={styles.nav}>
-        <div className={styles.logoWrap}>
-          <Link href="/" aria-label="OTW home" style={{ display: 'block' }}>
-            <Image
-              src="/otw-logo.svg"
-              alt="OTW logo"
-              width={1500}
-              height={1500}
-              className={styles.logoImg}
-              priority
-            />
-          </Link>
-        </div>
         <NavActions />
       </nav>
 
@@ -687,11 +662,12 @@ export default function LandingPage() {
 
         <div className={styles.heroInner}>
           <div>
+            <HeroLogo />
             <span className={styles.heroBadge}>
               <svg width="14" height="14" viewBox="0 0 24 24" className={styles.badgeIcon}>
                 <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" style={{ fill: 'var(--zest-ink)' }} />
               </svg>
-              FOR PLANS THAT ACTUALLY HAPPEN
+              For plans that actually happen
             </span>
 
             <h1 className={styles.heroRise} style={delay(0.1)}>
@@ -701,7 +677,7 @@ export default function LandingPage() {
             </h1>
 
             <p className={`${styles.lead} ${styles.heroRise}`} style={delay(0.25)}>
-              Say goodbye to fake “OTW.” Plan the gala, get everyone on board, and actually make it happen.
+              No more fake “OTW.” Plan the gala, get everyone in, and actually go.
             </p>
 
             <div
@@ -753,11 +729,14 @@ export default function LandingPage() {
         <div className={styles.howInner}>
           <h2 data-reveal style={delay(0)}>Your gala starts here.</h2>
           <p className={styles.howSub} data-reveal style={delay(0.1)}>
-            NO COMPLICATED SETUP. JUST PICK A DATE, GET THE GROUP IN, AND MAKE IT HAPPEN.
+            Pick a date, get the group in, make it happen.
           </p>
           <RoadTracker />
         </div>
       </section>
+
+      {/* APP TOUR : a scroll-driven walkthrough, loaded lazily (components/landing) */}
+      <WalkthroughSlot />
 
       {/* FEATURES : full teal bleed, no-account vs. account fork */}
       <section className={styles.features} id="features" aria-label="Ways to use OTW">
@@ -765,39 +744,6 @@ export default function LandingPage() {
 
         <div className={styles.featuresInner}>
           <ForkCards />
-        </div>
-      </section>
-
-      {/* CTA BANNER : blossom bleed */}
-      <section className={styles.ctaBanner}>
-        <Shapes items={CTA_SHAPES} />
-
-        <div className={styles.star} style={{ top: '24px', right: '12%', animationDelay: '-1s' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="#e0417c" />
-          </svg>
-        </div>
-        <h2 id="get-started" data-reveal style={delay(0)}>
-          Your next gala is one tap away
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--rosy-dark)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            style={{ verticalAlign: '-4px', marginLeft: '4px' }}
-          >
-            <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2 2M16.4 16.4l2 2M5.6 18.4l2-2M16.4 7.6l2-2" />
-            <circle cx="12" cy="12" r="3" fill="var(--rosy-dark)" stroke="none" />
-          </svg>
-        </h2>
-        <p data-reveal style={delay(0.1)}>No planning skills required. Just bring the group chat.</p>
-        <div className={styles.ctaBtnWrap} data-reveal style={delay(0.2)}>
-          <Link className={styles.btnDark} href="/plan">
-            Tara G! — It&apos;s Free
-          </Link>
         </div>
       </section>
 

@@ -6,76 +6,42 @@ import styles from './OtwConversationAd.module.css';
 /* ---------- content ---------- */
 
 type Msg =
-  | { t: 'msg'; w: 0 | 1; text: string } // w: 0 = planner (left), 1 = friend (right)
+  | { t: 'msg'; w: number; text: string } // w: index into names. 0 = planner (left), everyone else (right)
   | { t: 'gap'; text: string }
   | { t: 'action'; text: string }
   | { t: 'link'; url: string };
 
 interface Pair {
-  names: [string, string];
+  names: string[];
   without: Msg[];
   with: Msg[];
 }
 
 const PAIRS: Pair[] = [
   {
-    names: ['Mia', 'Josh'],
+    names: ['Ana', 'Ben', 'Cai', 'Dani'],
     without: [
-      { t: 'msg', w: 0, text: 'G tayo?' },
-      { t: 'msg', w: 1, text: 'G!' },
-      { t: 'msg', w: 0, text: 'Kailan?' },
-      { t: 'msg', w: 1, text: 'Set na' },
+      { t: 'msg', w: 0, text: 'G tayo sa Tagaytay?' },
+      { t: 'msg', w: 1, text: 'G!! Kailan?' },
+      { t: 'msg', w: 2, text: 'Weekend siguro' },
+      { t: 'msg', w: 3, text: 'Sige sige, update na lang' },
       { t: 'gap', text: '3 weeks later...' },
-      { t: 'msg', w: 0, text: 'Drawing naman!' },
+      { t: 'msg', w: 0, text: 'Uy G pa ba tayo?' },
+      { t: 'msg', w: 3, text: 'Next time na lang?' },
     ],
     with: [
-      { t: 'msg', w: 0, text: 'G tayo?' },
-      { t: 'msg', w: 1, text: 'G!' },
-      { t: 'msg', w: 0, text: 'Kailan?' },
-      { t: 'msg', w: 1, text: 'Saturday.' },
-      { t: 'action', text: 'sends gala link' },
+      { t: 'msg', w: 0, text: 'G tayo sa Tagaytay?' },
+      { t: 'msg', w: 1, text: 'G!! Kailan?' },
+      { t: 'msg', w: 2, text: 'Weekend siguro' },
+      { t: 'msg', w: 0, text: 'Gawa ko na sa OTW. Check niyo.' },
       { t: 'link', url: 'otw.app/g/7K2P' },
-    ],
-  },
-  {
-    names: ['Kat', 'Migs'],
-    without: [
-      { t: 'msg', w: 0, text: 'Tara Tagaytay?' },
-      { t: 'msg', w: 1, text: 'Sige sige' },
-      { t: 'msg', w: 0, text: 'Anong date?' },
-      { t: 'msg', w: 1, text: 'Basta soon' },
-      { t: 'gap', text: '2 months later...' },
-      { t: 'msg', w: 0, text: 'Drawing naman!' },
-    ],
-    with: [
-      { t: 'msg', w: 0, text: 'Tara Tagaytay?' },
-      { t: 'msg', w: 1, text: 'Sige!' },
-      { t: 'msg', w: 0, text: 'Anong date?' },
-      { t: 'msg', w: 1, text: 'Sunday.' },
-      { t: 'action', text: 'sends gala link' },
-      { t: 'link', url: 'otw.app/g/4M9X' },
-    ],
-  },
-  {
-    names: ['Ana', 'Paolo'],
-    without: [
-      { t: 'msg', w: 0, text: 'Beach tayo?' },
-      { t: 'msg', w: 1, text: 'G na G!' },
-      { t: 'msg', w: 0, text: 'Sino may sasakyan?' },
-      { t: 'msg', w: 1, text: 'Ako bahala' },
-      { t: 'gap', text: '1 month later...' },
-      { t: 'msg', w: 0, text: 'Drawing naman!' },
-    ],
-    with: [
-      { t: 'msg', w: 0, text: 'Beach tayo?' },
-      { t: 'msg', w: 1, text: 'G na G!' },
-      { t: 'msg', w: 0, text: 'Sino may sasakyan?' },
-      { t: 'msg', w: 1, text: 'Ako, Friday.' },
-      { t: 'action', text: 'sends gala link' },
-      { t: 'link', url: 'otw.app/g/2B8Q' },
+      { t: 'msg', w: 1, text: "I'm G!" },
+      { t: 'msg', w: 3, text: 'Sama ako sa sasakyan ni Ana' },
     ],
   },
 ];
+
+const AV = [styles.avRosy, styles.avTeal, styles.avZest, styles.avBlossom];
 
 const DWELL_MS = 5400; // Tagal bago kusa mag-advance sa next card
 
@@ -108,7 +74,7 @@ function ChatCard({ variant, step, moved, onNext }: CardProps) {
   const front = isWith ? step % 2 === 1 : step % 2 === 0;
   const pair = PAIRS[Math.floor(step / 2) % PAIRS.length];
   const msgs = isWith ? pair.with : pair.without;
-  const label = isWith ? 'WITH OTW' : 'WITHOUT OTW';
+  const label = isWith ? 'With OTW' : 'Without OTW';
 
   const lastFront = front ? step : step - 1;
   const playKey = lastFront < 0 ? 'init' : lastFront;
@@ -189,7 +155,7 @@ function ChatCard({ variant, step, moved, onNext }: CardProps) {
               );
             }
 
-            const isFriend = m.w === 1;
+            const isFriend = m.w !== 0;
             const isDrawing = !isWith && i === msgs.length - 1;
             return (
               <div
@@ -197,7 +163,7 @@ function ChatCard({ variant, step, moved, onNext }: CardProps) {
                 className={`${styles.item} ${styles.row} ${isFriend ? styles.rowRight : styles.rowLeft} ${isDrawing ? styles.fizzle : ''}`}
                 style={itemStyle}
               >
-                <span className={`${styles.avatar} ${isFriend ? styles.avTeal : styles.avRosy}`} aria-hidden="true">
+                <span className={`${styles.avatar} ${AV[m.w % AV.length]}`} aria-hidden="true">
                   {pair.names[m.w][0]}
                 </span>
                 <div className={styles.msgCol}>
@@ -270,6 +236,7 @@ export default function OtwConversationAd() {
         <ChatCard variant="with" step={step} moved={moved} onNext={handleNext} />
       </div>
 
+      {PAIRS.length > 1 && (
       <div className={styles.dots} role="group" aria-label="Choose a conversation">
         {PAIRS.map((_, i) => (
           <button
@@ -282,6 +249,7 @@ export default function OtwConversationAd() {
           />
         ))}
       </div>
+      )}
     </div>
   );
 }
