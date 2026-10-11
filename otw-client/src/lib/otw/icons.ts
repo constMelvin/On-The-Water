@@ -62,6 +62,9 @@ export const IC = {
   camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
   /* ---- additions (not in the reference) ---- */
+  // Join a Gala (step in through the door) and Log out (step out).
+  enter: '<path d="M14 4h3a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-3"/><path d="M4 12h10M10 8l4 4-4 4"/>',
+  logout: '<path d="M10 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h3"/><path d="M20 12H10M16 8l4 4-4 4"/>',
   // Dark mode toggle.
   moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
   // One character icon per itinerary stop type.

@@ -1,0 +1,539 @@
+/* Awarding ceremony: a full-screen stage, one colour per award. Themed tokens; all motion is off under reduced motion. */
+
+.t_rosy {
+  --tone: var(--rosy);
+  --on: var(--cream);
+  --tsh: var(--rosy-dark);
+}
+.t_teal {
+  --tone: var(--teal);
+  --on: var(--cream);
+  --tsh: var(--teal-dark);
+}
+.t_zest {
+  --tone: var(--zest);
+  --on: var(--teal-dark);
+  --tsh: var(--zest-dark);
+}
+.t_blossom {
+  --tone: var(--blossom);
+  --on: var(--teal-dark);
+  --tsh: var(--rosy);
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 20px 32px;
+  background: var(--tone);
+  color: var(--on);
+  overflow-y: auto;
+}
+.summaryBg {
+  background: var(--teal-dark);
+  color: var(--cream);
+}
+
+.skip {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: inherit;
+  border: 3px solid currentColor;
+  border-radius: 99px;
+  padding: 6px 14px;
+  font-weight: 800;
+}
+.stage :focus-visible {
+  outline-color: var(--cream);
+}
+.t_zest.stage :focus-visible,
+.t_blossom.stage :focus-visible {
+  outline-color: var(--teal-dark);
+}
+
+.center {
+  width: min(640px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.count {
+  font-weight: 800;
+  font-size: 14px;
+  opacity: 0.85;
+}
+.icon {
+  background: var(--cream);
+  color: var(--tone);
+}
+.t_zest .icon,
+.t_blossom .icon {
+  color: var(--rosy);
+}
+.title {
+  font-size: clamp(34px, 8vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.blurb {
+  font-size: 19px;
+  font-weight: 700;
+  max-width: 34ch;
+}
+
+/* drumroll: three rings pulsing outward, with the line under them */
+.drum {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 160px;
+  height: 160px;
+  margin-top: 8px;
+}
+.drum i {
+  position: absolute;
+  inset: 40px;
+  border: 4px solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  animation: ring 1.5s ease-out infinite;
+}
+.drum i:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.drum i:nth-child(3) {
+  animation-delay: 0.6s;
+}
+.drum span {
+  position: absolute;
+  bottom: -26px;
+  white-space: nowrap;
+  font-family: var(--fd);
+  font-size: 20px;
+}
+@keyframes ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* the reveal */
+.award {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cream);
+  color: var(--teal-dark);
+  border-radius: 99px;
+  padding: 6px 16px;
+  font-weight: 800;
+}
+.winners {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px 28px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.winners li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: winIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.winners :global(.av) {
+  box-shadow: 0 0 0 6px var(--cream), 0 8px 0 6px var(--tsh);
+}
+.winner {
+  font-size: clamp(30px, 7vw, 48px);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+.sub {
+  font-family: var(--fd);
+  font-size: 22px;
+}
+@keyframes winIn {
+  0% {
+    transform: scale(0.5) translateY(24px);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* all winners */
+.summary {
+  width: min(680px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.sumTitle {
+  font-size: clamp(28px, 6vw, 40px);
+  text-align: center;
+  line-height: 1.05;
+}
+.sumList {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sumList li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cream);
+  color: var(--teal-dark);
+  border-radius: 24px;
+  padding: 10px 16px;
+  box-shadow: 0 4px 0 var(--tsh);
+}
+.sumList :global(.ico) {
+  background: var(--tone);
+  color: var(--on);
+  flex: none;
+}
+.sumList div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sumList b {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 18px;
+}
+.sumList div span {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.certs {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.certs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--teal-dark);
+  border: 3px solid var(--teal-dark);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 14px;
+}
+.sumActs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drum i,
+  .winners li {
+    animation: none;
+  }
+  .winners li {
+    opacity: 1;
+  }
+}
+
+/* ---------------- the stage scene: walk up the steps, catch the trophy ----------------
+   The base styles are the FINAL picture (standing on top, arms up, trophy in hand), so with reduced motion,
+   where every animation is switched off, you just see the finished scene. Timings: walk and hop ~3s,
+   trophy lands at 3.1s (TROPHY_MS in Ceremony.tsx), names fade in after that. */
+
+.sceneWrap {
+  --k: 1;
+  width: 100%;
+  height: calc(330px * var(--k));
+  display: flex;
+  justify-content: center;
+}
+@media (max-width: 520px) {
+  .sceneWrap {
+    --k: 0.76;
+  }
+}
+@media (max-width: 380px) {
+  .sceneWrap {
+    --k: 0.64;
+  }
+}
+
+.scene {
+  --e: 0px;
+  position: relative;
+  flex: none;
+  width: 480px;
+  height: 330px;
+  transform: scale(var(--k));
+  transform-origin: top center;
+  overflow: hidden;
+  border-radius: 32px;
+  background: color-mix(in srgb, var(--tsh) 38%, transparent);
+}
+
+/* the spotlight, fading in just before the trophy */
+.spot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 360px;
+  height: 330px;
+  margin-left: -180px;
+  background: conic-gradient(from 180deg at 50% 0, transparent 158deg, color-mix(in srgb, var(--cream) 34%, transparent) 172deg 188deg, transparent 202deg);
+  animation: fadeIn 0.6s ease-out 2.4s both;
+}
+
+.curtainL,
+.curtainR {
+  position: absolute;
+  top: 0;
+  width: 70px;
+  height: 100%;
+  background: var(--tsh);
+}
+.curtainL {
+  left: 0;
+  border-radius: 0 0 60px 0;
+}
+.curtainR {
+  right: 0;
+  border-radius: 0 0 0 60px;
+}
+.valance {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 26px;
+  background: var(--tsh);
+  border-radius: 0 0 24px 24px;
+}
+
+/* three steps, widest at the bottom */
+.steps {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90px;
+}
+.steps i {
+  position: absolute;
+  left: 50%;
+  display: block;
+  height: 31px;
+  background: var(--cream);
+  border-radius: 10px 10px 0 0;
+  box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--tsh) 45%, var(--cream));
+}
+.stepBase {
+  bottom: 0;
+  width: calc(300px + var(--e));
+  margin-left: calc((300px + var(--e)) / -2);
+}
+.stepMid {
+  bottom: 30px;
+  width: calc(210px + var(--e));
+  margin-left: calc((210px + var(--e)) / -2);
+}
+.stepTop {
+  bottom: 60px;
+  width: calc(120px + var(--e));
+  margin-left: calc((120px + var(--e)) / -2);
+}
+
+/* one winner: .who walks the path, .walker bobs as they go */
+.who {
+  --l0: calc(-150px - var(--e) / 2);
+  --l1: calc(-105px - var(--e) / 2);
+  --l2: calc(-60px - var(--e) / 2);
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 84px;
+  margin-left: -42px;
+  transform: translate(var(--ox), -90px);
+  animation: climb 3.2s linear calc(var(--i) * 0.35s) both;
+}
+.walker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: bob 0.34s ease-in-out calc(var(--i) * 0.35s) 9 alternate;
+}
+.walker :global(.av) {
+  position: relative;
+  z-index: 2;
+}
+.body {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 70px;
+  height: 52px;
+  margin-top: -16px;
+  background: var(--cream);
+  border-radius: 34px 34px 12px 12px;
+  box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--tsh) 40%, var(--cream));
+}
+.armL,
+.armR {
+  position: absolute;
+  top: 8px;
+  width: 14px;
+  height: 44px;
+  background: var(--cream);
+  border-radius: 8px;
+  transform-origin: 50% 8px;
+  animation: cheer 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) calc(3s + var(--i) * 0.35s) both;
+}
+.armL {
+  left: -9px;
+  transform: rotate(150deg);
+}
+.armR {
+  right: -9px;
+  transform: rotate(-150deg);
+}
+
+.trophy {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  width: 52px;
+  margin-left: -26px;
+  z-index: 3;
+  animation: drop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) calc(2.75s + var(--i) * 0.35s) both;
+}
+
+.names {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 24px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  animation: fadeUp 0.5s ease-out 3.2s both;
+}
+.subWin {
+  animation: fadeUp 0.5s ease-out 3.35s both;
+}
+
+@keyframes climb {
+  0% {
+    transform: translate(calc(var(--l0) - 150px), 0);
+  }
+  24% {
+    transform: translate(calc(var(--l0) - 8px), 0);
+  }
+  30% {
+    transform: translate(calc(var(--l0) + 12px), -52px);
+  }
+  35% {
+    transform: translate(calc(var(--l0) + 30px), -30px);
+  }
+  44% {
+    transform: translate(calc(var(--l1) - 8px), -30px);
+  }
+  50% {
+    transform: translate(calc(var(--l1) + 12px), -82px);
+  }
+  55% {
+    transform: translate(calc(var(--l1) + 30px), -60px);
+  }
+  64% {
+    transform: translate(calc(var(--l2) - 8px), -60px);
+  }
+  70% {
+    transform: translate(calc(var(--l2) + 12px), -112px);
+  }
+  75% {
+    transform: translate(calc(var(--l2) + 30px), -90px);
+  }
+  88%,
+  100% {
+    transform: translate(var(--ox), -90px);
+  }
+}
+@keyframes bob {
+  from {
+    transform: translateY(0) rotate(-2deg);
+  }
+  to {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+@keyframes cheer {
+  from {
+    transform: rotate(0deg);
+  }
+}
+@keyframes drop {
+  from {
+    transform: translateY(-260px) rotate(-16deg) scale(0.6);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spot,
+  .who,
+  .walker,
+  .armL,
+  .armR,
+  .trophy,
+  .names,
+  .subWin {
+    animation: none;
+  }
+}

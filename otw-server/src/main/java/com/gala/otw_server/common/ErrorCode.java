@@ -28,6 +28,9 @@ public enum ErrorCode {
     CHAT_MESSAGE_NOT_FOUND,
     NOTIFICATION_NOT_FOUND,
     NOT_A_COUPLE_ROOM,          // couple-only endpoint called on a group gala
+    BUCKET_ITEM_NOT_FOUND,
+    QUIZ_SESSION_NOT_FOUND,
+    AWARDS_NOT_AVAILABLE,       // opening / voting / closing the Barkada Awards poll isn't possible right now
 
     // ── Access / membership ─────────────────────────────────────────────────
     NOT_A_ROOM_MEMBER,

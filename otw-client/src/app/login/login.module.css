@@ -35,7 +35,12 @@
   border-radius: 999px;
   user-select: none;
 }
-.tabs span {
+.tabs button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
   min-width: 132px;
   padding: 10px 18px;
   border-radius: 999px;
@@ -46,7 +51,11 @@
   opacity: 0.55;
   transition: background-color 0.25s ease, color 0.25s ease, opacity 0.25s ease;
 }
-.tabs span[data-on='true'] {
+.tabs button:focus-visible {
+  outline: 3px solid var(--teal-dark);
+  outline-offset: 2px;
+}
+.tabs button[data-on='true'] {
   background: var(--teal);
   color: var(--cream);
   opacity: 1;

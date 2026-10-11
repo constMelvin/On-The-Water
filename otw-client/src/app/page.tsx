@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import styles from './landing.module.css';
 import OtwConversationAd from './OtwConversationAd';
 import { useAccount } from '@/lib/auth/session';
-import { useLogOut } from '@/components/gala/useLogOut';
+import { AccountCluster } from '@/components/nav/AccountCluster';
 
 interface Sparkle {
   id: number;
@@ -518,20 +518,14 @@ function ShapeDefs() {
 /* ------------------------------------------------------------------ */
 
 function NavActions() {
-  const { signedIn, displayName } = useAccount();
-  const logOut = useLogOut();
+  const { signedIn } = useAccount();
   // Nothing while checking, so neither version flashes.
   if (signedIn === undefined) return <div className={styles.navActions} aria-hidden="true" />;
+  // Signed in: the shared cluster (Plan, Join, My Galas, avatar menu with Log out) on the hero's colour.
   if (signedIn) {
     return (
       <div className={styles.navActions}>
-        <span className={styles.navName}>Hi, {displayName}</span>
-        <Link className={styles.navCta} href="/me/galas">
-          My Galas
-        </Link>
-        <button type="button" className={styles.navLogin} onClick={logOut}>
-          Log out
-        </button>
+        <AccountCluster onColor />
       </div>
     );
   }
@@ -662,14 +656,16 @@ export default function LandingPage() {
       {/* Navigation: logo showcase + CTA only */}
       <nav className={styles.nav}>
         <div className={styles.logoWrap}>
-          <Image
-            src="/otw-logo.svg"
-            alt="OTW logo"
-            width={1500}
-            height={1500}
-            className={styles.logoImg}
-            priority
-          />
+          <Link href="/" aria-label="OTW home" style={{ display: 'block' }}>
+            <Image
+              src="/otw-logo.svg"
+              alt="OTW logo"
+              width={1500}
+              height={1500}
+              className={styles.logoImg}
+              priority
+            />
+          </Link>
         </div>
         <NavActions />
       </nav>

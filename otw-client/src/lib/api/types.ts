@@ -180,23 +180,147 @@ export interface PhotoVM {
   createdAt: string;
 }
 
-/* ---------------- couple: CoupleIdeaDto ---------------- */
+/* ---------------- couple: bucket list (CoupleBucketItemDto) ---------------- */
 
-export type CoupleIdeaKey =
-  | 'SUNSET_AT_THE_PARK'
-  | 'COFFEE_CRAWL'
-  | 'PICNIC_WITH_A_PLAYLIST'
-  | 'NIGHT_MARKET_FOOD_TRIP'
-  | 'MUSEUM_THEN_MERIENDA'
-  | 'MOVIE_NIGHT_AT_HOME';
-
-export interface CoupleIdeaVM {
-  key: CoupleIdeaKey;
+export interface BucketItemVM {
+  id: string;
+  roomId: string;
   title: string;
-  estimatedCost: number;
-  durationHours: number;
-  saved: boolean;
-  savedBy: string | null;
+  description: string;
+  /** Pesos, or null when no estimate. */
+  estBudget: number | null;
+  /** yyyy-mm-dd, or null. */
+  targetDate: string | null;
+  createdBy: string;
+  completed: boolean;
+  completedAt: string | null;
+  completedBy: string | null;
+  /** A photo in this gala's Gala Dump, attached as the memory. */
+  photoId: string | null;
+  memory: string | null;
+  version: number;
+  createdAt: string;
+}
+
+/* ---------------- couple: Halfway Checker ---------------- */
+
+export interface HomeVM {
+  userId: string;
+  lat: number;
+  lng: number;
+  label: string;
+}
+
+/** `midpoint` and `distanceKm` are null until both people saved a home. */
+export interface HalfwayVM {
+  mine: HomeVM | null;
+  partner: HomeVM | null;
+  midpoint: { lat: number; lng: number } | null;
+  distanceKm: number | null;
+}
+
+export type SpotCategory = 'CAFE' | 'RESTAURANT' | 'PARK' | 'MALL';
+
+export interface SpotVM {
+  name: string;
+  category: SpotCategory;
+  lat: number;
+  lng: number;
+  distanceKm: number;
+  /** A guess by category (0 free, 1 budget, 2 mid-range): OpenStreetMap has no real prices. */
+  priceTier: 0 | 1 | 2;
+}
+
+/** `available` is false when the place data couldn't be reached. */
+export interface SpotsVM {
+  available: boolean;
+  spots: SpotVM[];
+}
+
+/* ---------------- couple: Who Knows Who Better? ---------------- */
+
+export type QuizMode = 'QUIZ' | 'DEEP_TALK';
+export type QuizCategory = 'FAVORITES' | 'HABITS' | 'LOVE_LANGUAGES' | 'PREFERENCES' | 'DEEP_TALK';
+
+export interface QuizQuestionVM {
+  key: string;
+  category: QuizCategory;
+  text: string;
+  options: { key: string; label: string }[];
+}
+
+export interface QuizItemVM {
+  questionKey: string;
+  myOwn: string | null;
+  partnerOwn: string | null;
+  myGuess: string | null;
+  partnerGuess: string | null;
+  myCorrect: boolean;
+  partnerCorrect: boolean;
+  same: boolean;
+  myText: string | null;
+  partnerText: string | null;
+}
+
+export interface QuizSessionVM {
+  id: string;
+  mode: QuizMode;
+  createdAt: string;
+  questions: QuizQuestionVM[];
+  myAnswers: { questionKey: string; ownAnswer: string | null; guessAnswer: string | null; textAnswer: string | null }[];
+  myAnswered: number;
+  partnerAnswered: number;
+  total: number;
+  revealed: boolean;
+  partnerId: string | null;
+  /** Only once both people have answered everything. */
+  result: { myScore: number | null; partnerScore: number | null; total: number; sameCount: number; items: QuizItemVM[] } | null;
+}
+
+/* ---------------- Barkada Awards (AwardsDto) ---------------- */
+
+export type AwardKey =
+  | 'TAGASALBA'
+  | 'PAMILYA'
+  | 'LAGING_G'
+  | 'MAPANGARAPIN'
+  | 'CHISMOSO'
+  | 'UNANG_DATING'
+  | 'LATE_ROYALTY'
+  | 'LITRATISTA';
+
+export type PollState = 'NOT_OPEN' | 'OPEN' | 'CLOSED';
+
+export interface AwardCategoryVM {
+  key: AwardKey;
+  title: string;
+  blurb: string;
+  /** "Nominees to consider": counts only, never amounts. Empty for vote-only categories and once closed. */
+  hints: { userId: string; count: number }[];
+}
+
+export interface AwardResultVM {
+  categoryKey: AwardKey;
+  totalVotes: number;
+  /** Empty when nobody voted; several ids on a tie (co-winners). */
+  winners: string[];
+  tally: { userId: string; votes: number }[];
+}
+
+/** Votes are anonymous: `myVotes` is only mine, and `results` appears once the poll is closed. */
+export interface AwardsVM {
+  state: PollState;
+  canOpen: boolean;
+  unavailableReason: string | null;
+  minMembers: number;
+  eligibleVoters: number;
+  votedCount: number;
+  openedAt: string | null;
+  closesAt: string | null;
+  closedAt: string | null;
+  categories: AwardCategoryVM[];
+  myVotes: Partial<Record<AwardKey, string>>;
+  results: AwardResultVM[];
 }
 
 /* ---------------- settings: RoomPermissionsDto ---------------- */

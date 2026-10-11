@@ -1,0 +1,42 @@
+/* Certificate preview inside the sheet. The image itself is a fixed brand artwork; only this frame follows the theme. */
+
+.frame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+/* the whole certificate fits the sheet (no inner scrolling): its height is capped and the 4:5 shape is kept */
+.img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: min(56dvh, 520px);
+  aspect-ratio: 4 / 5;
+  border-radius: 24px;
+  box-shadow: 0 6px 0 var(--rosy);
+}
+.loading {
+  width: min(100%, 360px);
+  aspect-ratio: 4 / 5;
+  border-radius: 24px;
+  background: var(--surface-2);
+  animation: loadPulse 1.4s ease-in-out infinite;
+}
+.msg {
+  font-weight: 700;
+  text-align: center;
+  padding: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading {
+    animation: none;
+  }
+}
+
+@keyframes loadPulse {
+  50% {
+    opacity: 0.5;
+  }
+}

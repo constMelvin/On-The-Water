@@ -1,7 +1,7 @@
 'use client';
 
 import { byName, type Tone } from '@/lib/otw/data';
-import { useMyLook } from '@/lib/otw/profile';
+import { useLook } from '@/lib/otw/profile';
 import { cx } from './cx';
 
 export interface AvatarProps {
@@ -15,18 +15,18 @@ export interface AvatarProps {
   /** A photo to show instead of the initial (a small square data URL or image URL). */
   photo?: string;
   /**
-   * Whose avatar this is. When it is ME and I saved a photo / colour in my profile (kept on this
-   * device), those replace the initial's usual look. The initial still comes from `name`.
-   * TODO(backend): once profiles come from the API, every member's photo arrives with the member.
+   * Whose avatar this is. When that account saved a photo / colour in their profile (mine from this device's
+   * cache, everyone else's from the gala's member profiles), those replace the initial's usual look.
+   * The initial still comes from `name`.
    */
   userId?: string | null;
 }
 
 /** Colored circle with the member's initial (or photo) and a 3px cream border. Text color comes from the c-* tone. */
 export function Avatar({ name, tone, size = 36, online, className, photo, userId }: AvatarProps) {
-  const mine = useMyLook(userId);
-  const c = mine?.tone ?? tone ?? byName(name).c;
-  const img = photo ?? mine?.photo;
+  const look = useLook(userId);
+  const c = look?.tone ?? tone ?? byName(name).c;
+  const img = photo ?? look?.photo;
   return (
     <span
       className={cx('av', `c-${c}`, online && 'on', className)}

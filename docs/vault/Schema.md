@@ -32,6 +32,8 @@ All `id` columns are `UUID DEFAULT gen_random_uuid()`. All timestamps are `TIMES
 | `chat_reactions` | PK(message_id, user_id), reaction (V21: HEART/HAHA/WOW/SAD/ANGRY/LIKE, default HEART), created_at | One per member; a new pick replaces it |
 | `chat_read_markers` | PK(room_id, user_id), last_read_at | Unread badge + "new" divider |
 | `couple_saved_ideas` | PK(room_id, idea_key), saved_by, created_at | Catalog is the `CoupleIdea` enum |
+| `award_polls` · `award_votes` | V25 (2026-10-11, Barkada Awards): one poll per gala (`room_id` PK, `closes_at`, `closed_at`); vote PK (room_id, category_key, voter_user_id) = one vote per member per category, `CHECK voter <> nominee`; no SELECT policy (anonymous votes). Categories are an enum in code; results are computed on read | Needs V24 applied first (ordering only) |
+| `couple_home_locations` · `couple_bucket_items` · `couple_quiz_sessions` · `couple_quiz_answers` | V24 (2026-10-11): every row scoped by `room_id` (ON DELETE CASCADE); bucket items have `version` + optional `photo_id` memory | Couple features: Halfway Checker, Our Little Bucket List, Who Knows Who Better? (all three live) |
 | `notification_preferences` | user_id PK, 7 BOOLEAN toggles, updated_at | Missing row = defaults |
 | `user_profiles` | user_id PK, nickname(20), status(40), color NULL (rosy/teal/zest/blossom), photo TEXT NULL (data URL ≤65k), updated_at | V22 (2026-10-07). Keyed by JWT `sub`, no FK to `auth.users`; missing row = empty profile. Only table holding image bytes (capped) |
 | `notifications` | user_id, room_id FK CASCADE NULL, type, title(120), body(300), dedupe_key, created_at, read_at | UNIQUE(user_id, dedupe_key) makes the scheduler idempotent |

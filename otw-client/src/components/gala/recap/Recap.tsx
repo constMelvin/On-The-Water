@@ -49,6 +49,20 @@ export function Recap() {
           <span>photos in the Dump</span>
         </div>
       </div>
+      {summary.memberCount >= 3 && (
+        <section className={`${s.awards} bg-zest`} aria-label="Barkada Awards">
+          <span className="ico" style={blob(1)} aria-hidden="true">
+            <Icon name="crown" size={28} />
+          </span>
+          <div>
+            <h2>Barkada Awards</h2>
+            <p>Vote for the bida ng barkada, then see who won.</p>
+          </div>
+          <Link className="btn rosy" href={href('awards')}>
+            Open the awards
+          </Link>
+        </section>
+      )}
       <div className={s.acts}>
         <Link className="btn teal" href={href('dump')}>
           View Gala Dump

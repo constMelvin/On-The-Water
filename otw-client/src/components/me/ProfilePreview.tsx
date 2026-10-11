@@ -42,7 +42,7 @@ export interface ProfilePreviewProps {
 /**
  * "Ganito ka makita ng GC": a live preview of the profile being edited. It reads the form's current values (not the
  * saved ones), and shows the look in the places it will appear: member list, chat, map pin and the top bar.
- * TODO(backend): others only see this once the profile API carries nickname / photo / colour / status.
+ * Other members see the photo / colour / status through the gala's member profiles; the gala nickname stays the name.
  */
 export function ProfilePreview({ name, status, tone, photo, popKey }: ProfilePreviewProps) {
   const initial = (name.trim()[0] ?? '?').toUpperCase();

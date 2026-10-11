@@ -7,13 +7,11 @@ import { useGala } from '@/lib/otw/gala-store';
 import { toast } from '@/lib/otw/feedback';
 import { MORE, galaHref } from './nav';
 import { useCopyCode } from './useCopyCode';
-import { useLogOut } from './useLogOut';
 
 /** Renders whichever shell sheet is open (More, Share). Copy from reference sheetHtml(). */
 export function GalaSheets() {
   const { sheet, closeSheet, gala } = useGala();
   const copyCode = useCopyCode();
-  const logOut = useLogOut();
   const me = useMyIdentity();
 
   if (sheet === 'more') {
@@ -40,19 +38,19 @@ export function GalaSheets() {
             </span>
             Profile
           </Link>
-          <button
-            type="button"
-            className="mo"
-            onClick={() => {
-              closeSheet();
-              logOut();
-            }}
-          >
+          <Link href="/plan" className="mo" onClick={closeSheet}>
             <span className="ico" style={blob(MORE.length + 2)}>
-              <Icon name="back" size={24} />
+              <Icon name="plus" size={24} />
             </span>
-            Log out
-          </button>
+            Plan a Gala
+          </Link>
+          <Link href="/join" className="mo" onClick={closeSheet}>
+            <span className="ico" style={blob(MORE.length + 3)}>
+              <Icon name="enter" size={24} />
+            </span>
+            Join a Gala
+          </Link>
+          {/* Log out is only in the account menu (avatar, top right). */}
         </div>
       </Sheet>
     );

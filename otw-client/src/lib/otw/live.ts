@@ -17,6 +17,7 @@ import { supabase } from '@/lib/api/supabase';
 
 export type GalaFeature =
   | 'members'
+  | 'profiles'
   | 'summary'
   | 'itinerary'
   | 'checklist'
@@ -26,7 +27,11 @@ export type GalaFeature =
   | 'chat'
   | 'locations'
   | 'photos'
-  | 'couple';
+  | 'couple'
+  | 'couple-bucket'
+  | 'couple-halfway'
+  | 'couple-quiz'
+  | 'awards';
 
 /** ['room', roomId] is the room itself; every feature list lives under it. */
 export const roomKey = (roomId: string | null) => ['room', roomId] as const;
@@ -42,7 +47,7 @@ function affected(event: string): GalaFeature[] | 'room' {
     case 'room':
       return 'room';
     case 'member':
-      return ['members', 'summary'];
+      return ['members', 'profiles', 'summary'];
     case 'itinerary':
       return ['itinerary', 'summary'];
     case 'checklist':
@@ -59,8 +64,16 @@ function affected(event: string): GalaFeature[] | 'room' {
       return ['locations'];
     case 'photo':
       return ['photos', 'summary'];
+    case 'award':
+      return ['awards'];
     case 'couple':
-      return ['couple'];
+      return sub === 'bucket'
+        ? ['couple-bucket']
+        : sub === 'home'
+          ? ['couple-halfway']
+          : sub === 'quiz'
+            ? ['couple-quiz']
+            : ['couple'];
     default:
       return 'room';
   }

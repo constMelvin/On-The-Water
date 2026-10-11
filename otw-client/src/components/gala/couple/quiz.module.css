@@ -1,0 +1,238 @@
+/* Who Knows Who Better? Themed tokens only; solid offset shadows, pill buttons. */
+
+.start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.modes {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+.mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 28px;
+  padding: 20px 22px;
+}
+.mode h3 {
+  font-size: 24px;
+}
+.mode p {
+  font-weight: 700;
+}
+.mode :global(.ico) {
+  background: var(--cream);
+  color: var(--rosy);
+}
+.cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cats button {
+  border: 3px solid var(--cream);
+  background: transparent;
+  color: inherit;
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 14px;
+}
+.cats button[aria-pressed='true'] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--cream);
+  box-shadow: 0 3px 0 var(--teal-dark);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  border-radius: 28px;
+  padding: 28px 22px;
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 720px;
+}
+.rhead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 28px;
+  padding: 20px 22px;
+}
+.cat {
+  background: var(--blossom);
+  color: var(--teal-dark);
+  border-radius: 99px;
+  padding: 3px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.q {
+  font-size: 24px;
+  line-height: 1.15;
+}
+.opts {
+  width: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.opts legend {
+  padding: 0;
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.optGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+.opt {
+  border: 3px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 20px;
+  padding: 10px 14px;
+  font-weight: 800;
+  text-align: left;
+}
+.opt[aria-checked='true'] {
+  background: var(--rosy);
+  border-color: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 4px 0 var(--rosy-dark);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap);
+}
+.scores {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  border-radius: 26px;
+  padding: 16px 20px;
+}
+.scores div {
+  display: flex;
+  flex-direction: column;
+}
+.scores b {
+  font-family: var(--fd);
+  font-size: 30px;
+  line-height: 1.05;
+}
+.scores span {
+  font-weight: 700;
+  font-size: 14px;
+}
+.items {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 24px;
+  padding: 12px 16px;
+}
+.item b {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 17px;
+}
+.pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  border-radius: 18px;
+  padding: 8px 12px;
+}
+.pair span {
+  font-weight: 700;
+}
+.pair i,
+.texts i {
+  font-style: normal;
+  font-weight: 800;
+  opacity: 0.7;
+  margin-right: 4px;
+}
+.pair em {
+  margin-left: auto;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 99px;
+  padding: 2px 10px;
+}
+.same {
+  background: color-mix(in srgb, var(--teal) 16%, var(--surface));
+}
+.same em {
+  background: var(--teal);
+  color: var(--cream);
+}
+.diff {
+  background: var(--surface-2);
+}
+.diff em {
+  background: var(--blossom);
+  color: var(--teal-dark);
+}
+.texts {
+  display: grid;
+  gap: 8px;
+}
+.texts p {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  background: var(--surface-2);
+  border-radius: 18px;
+  padding: 10px 14px;
+}
+
+@media (max-width: 639px) {
+  .modes {
+    grid-template-columns: 1fr;
+  }
+}

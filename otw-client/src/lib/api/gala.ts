@@ -8,11 +8,18 @@
 import { api } from './client';
 import type { Page, RoomDto, RoomMemberDto, TravelStatus } from './rooms';
 import type {
+  AwardKey,
+  AwardsVM,
+  BucketItemVM,
+  HalfwayVM,
+  QuizCategory,
+  QuizMode,
+  QuizSessionVM,
+  SpotCategory,
+  SpotsVM,
   BudgetVM,
   ChatMessageVM,
   ChecklistItemVM,
-  CoupleIdeaKey,
-  CoupleIdeaVM,
   ExpenseCategory,
   ExpenseVM,
   ItineraryItemVM,
@@ -191,12 +198,94 @@ export const registerPhoto = (roomId: string, driveFileId: string, caption?: str
 export const deletePhoto = (roomId: string, id: string) =>
   api<void>(`${room(roomId)}/photos/${id}`, { method: 'DELETE' });
 
-/* ---------------- couple mode ---------------- */
+/* ---------------- couple: Our Little Bucket List (one list per gala) ---------------- */
 
-export const getCoupleIdeas = (roomId: string) => api<CoupleIdeaVM[]>(`${room(roomId)}/couple/ideas`);
+/** Every item of this gala's list, following the cursor (50 per page, capped at 10 pages). */
+export async function getBucket(roomId: string): Promise<BucketItemVM[]> {
+  const all: BucketItemVM[] = [];
+  let cursor: string | null = null;
+  for (let i = 0; i < 10; i++) {
+    const q: string = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
+    const page: Page<BucketItemVM> = await api<Page<BucketItemVM>>(`${room(roomId)}/couple/bucket?limit=50${q}`);
+    all.push(...page.items);
+    cursor = page.nextCursor;
+    if (!cursor) break;
+  }
+  return all;
+}
 
-export const setCoupleIdeaSaved = (roomId: string, key: CoupleIdeaKey, saved: boolean) =>
-  api<CoupleIdeaVM>(`${room(roomId)}/couple/ideas/${key}`, { method: saved ? 'PUT' : 'DELETE' });
+export interface BucketInput {
+  title: string;
+  description?: string;
+  estBudget?: number;
+  targetDate?: string;
+}
+
+export const createBucketItem = (roomId: string, body: BucketInput) =>
+  api<BucketItemVM>(`${room(roomId)}/couple/bucket`, { method: 'POST', body });
+
+/** A missing field means "leave as is"; `version` is the one the item was read at (409 when it's stale). */
+export interface BucketPatch {
+  title?: string;
+  description?: string;
+  estBudget?: number;
+  clearBudget?: boolean;
+  targetDate?: string;
+  clearDate?: boolean;
+  completed?: boolean;
+  photoId?: string;
+  clearPhoto?: boolean;
+  memory?: string;
+  version: number;
+}
+
+export const updateBucketItem = (roomId: string, id: string, body: BucketPatch) =>
+  api<BucketItemVM>(`${room(roomId)}/couple/bucket/${id}`, { method: 'PATCH', body });
+
+export const deleteBucketItem = (roomId: string, id: string) =>
+  api<void>(`${room(roomId)}/couple/bucket/${id}`, { method: 'DELETE' });
+
+/* ---------------- couple: Halfway Checker ---------------- */
+
+export const getHalfway = (roomId: string) => api<HalfwayVM>(`${room(roomId)}/couple/halfway`);
+
+export const saveHome = (roomId: string, body: { lat: number; lng: number; label: string }) =>
+  api<HalfwayVM>(`${room(roomId)}/couple/halfway/home`, { method: 'PUT', body });
+
+export const getSpots = (roomId: string, category: SpotCategory) =>
+  api<SpotsVM>(`${room(roomId)}/couple/halfway/spots?category=${category}`);
+
+/* ---------------- couple: Who Knows Who Better? ---------------- */
+
+export const getLatestQuiz = (roomId: string) =>
+  api<{ session: QuizSessionVM | null }>(`${room(roomId)}/couple/quiz/latest`).then((r) => r.session);
+
+export const startQuiz = (roomId: string, body: { mode: QuizMode; category?: QuizCategory }) =>
+  api<QuizSessionVM>(`${room(roomId)}/couple/quiz`, { method: 'POST', body });
+
+export interface QuizAnswerInput {
+  questionKey: string;
+  ownAnswer?: string;
+  guessAnswer?: string;
+  textAnswer?: string;
+}
+
+export const answerQuiz = (roomId: string, sessionId: string, body: QuizAnswerInput) =>
+  api<QuizSessionVM>(`${room(roomId)}/couple/quiz/${sessionId}/answers`, { method: 'PUT', body });
+
+/* ---------------- Barkada Awards (after the gala) ---------------- */
+
+export const getAwards = (roomId: string) => api<AwardsVM>(`${room(roomId)}/awards`);
+
+/** Gala Leader only. `hours` is 24, 48 or 72. */
+export const openAwards = (roomId: string, hours: 24 | 48 | 72) =>
+  api<AwardsVM>(`${room(roomId)}/awards/poll?hours=${hours}`, { method: 'POST' });
+
+/** Gala Leader only: closes voting now (also what a demo uses instead of waiting for the window to end). */
+export const closeAwards = (roomId: string) => api<AwardsVM>(`${room(roomId)}/awards/poll/close`, { method: 'POST' });
+
+export const castVote = (roomId: string, category: AwardKey, nomineeUserId: string) =>
+  api<AwardsVM>(`${room(roomId)}/awards/votes/${category}`, { method: 'PUT', body: { nomineeUserId } });
 
 /* ---------------- gala settings (Gala Leader) ---------------- */
 

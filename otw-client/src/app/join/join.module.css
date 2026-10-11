@@ -598,6 +598,60 @@
   outline-offset: 3px;
 }
 
+/* Top-right account cluster (same one as every other header) */
+.topAccount {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 3;
+}
+
+/* Top-left back control (cream pill; the page itself is a brand colour in both themes) */
+.topBack {
+  position: absolute;
+  top: 20px;
+  left: 16px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cream);
+  color: var(--rosy-dark);
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 3px solid var(--rosy-dark);
+  box-shadow: 0 4px 0 var(--rosy-dark);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.25s var(--bounce), box-shadow 0.25s var(--bounce);
+}
+
+@media (hover: hover) {
+  .topBack:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--rosy-dark);
+  }
+}
+
+.topBack:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--rosy-dark);
+  transition-duration: 0.08s;
+}
+
+.topBack:focus-visible {
+  outline: 3px solid var(--cream);
+  outline-offset: 3px;
+}
+
+.topBack:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btnJoin {
   flex: 1;
   background: var(--zest);

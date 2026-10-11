@@ -128,8 +128,13 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
   };
 
   const switchTab = (t: Tab) => {
+    if (t === tab) return;
     setTab(t);
     setError('');
+    setShow(false);
+    // Email carries over; the password and the sign-up-only Name don't apply to the other form.
+    setPassword('');
+    if (t === 'login') setName('');
   };
 
   // Keep the browser tab title and ?tab= in step with the open form (switching doesn't navigate).
@@ -138,7 +143,7 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
     const url = new URL(window.location.href);
     if (tab === 'create') url.searchParams.set('tab', 'create');
     else url.searchParams.delete('tab');
-    window.history.replaceState(window.history.state, '', url);
+    window.history.replaceState(null, '', url.toString());
   }, [tab]);
 
   const bar = ctx ? CTX_BAR[ctx] : gala ? `Saving ${gala} to your account.` : '';
@@ -158,10 +163,14 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
       </Link>
       <div className={styles.wrap}>
         <div className={styles.main}>
-          {/* Shows which form is open; switching is done with the link under the form. */}
-          <div className={styles.tabs} aria-hidden="true">
-            <span data-on={!create}>Log in</span>
-            <span data-on={create}>Create account</span>
+          {/* Switch forms here or with the link under the form; both call switchTab. */}
+          <div className={styles.tabs} role="tablist" aria-label="Log in or create an account">
+            <button type="button" role="tab" aria-selected={!create} data-on={!create} onClick={() => switchTab('login')}>
+              Log in
+            </button>
+            <button type="button" role="tab" aria-selected={create} data-on={create} onClick={() => switchTab('create')}>
+              Create account
+            </button>
           </div>
 
           {bar && (

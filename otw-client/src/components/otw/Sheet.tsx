@@ -33,7 +33,8 @@ export function Sheet({ title, onClose, children, footer }: SheetProps) {
     const opener = document.activeElement as HTMLElement | null;
 
     const items = () => Array.from(el.querySelectorAll<HTMLElement>(FOCUSABLE));
-    (items()[0] ?? el).focus();
+    // A control marked data-autofocus (e.g. the safe choice in a confirm) gets focus first.
+    (el.querySelector<HTMLElement>('[data-autofocus]') ?? items()[0] ?? el).focus();
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

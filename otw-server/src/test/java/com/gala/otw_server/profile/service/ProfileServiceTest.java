@@ -77,6 +77,23 @@ class ProfileServiceTest {
     }
 
     @Test
+    @DisplayName("room profiles: one page, with a cursor when there is more")
+    void listForRoomPaginates() {
+        UUID roomId = UUID.randomUUID();
+        UserProfile a = new UserProfile(UUID.randomUUID());
+        UserProfile b = new UserProfile(UUID.randomUUID());
+        a.setColor("teal");
+        when(repo.findForActiveMembers(eq(roomId), isNull(), any())).thenReturn(java.util.List.of(a, b));
+
+        var page = service.listForRoom(roomId, null, 1);
+
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.items().get(0).userId()).isEqualTo(a.getUserId());
+        assertThat(page.items().get(0).color()).isEqualTo("teal");
+        assertThat(page.nextCursor()).isEqualTo(a.getUserId().toString());
+    }
+
+    @Test
     @DisplayName("photo must be a webp/jpeg/png data URL")
     void rejectsOtherPhotoTypes() {
         assertThatThrownBy(() -> service.update(userId, new ProfileDto("", "", null, "https://evil.example/x.png")))

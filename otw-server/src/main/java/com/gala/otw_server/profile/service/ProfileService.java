@@ -1,12 +1,16 @@
 package com.gala.otw_server.profile.service;
 
 import com.gala.otw_server.common.DomainExceptions.InvalidRequestException;
+import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.profile.dto.ProfileDto;
+import com.gala.otw_server.profile.dto.RoomMemberProfileDto;
 import com.gala.otw_server.profile.entity.UserProfile;
 import com.gala.otw_server.profile.repository.UserProfileRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,6 +32,21 @@ public class ProfileService {
     @Transactional(readOnly = true)
     public ProfileDto get(UUID userId) {
         return profiles.findById(userId).map(ProfileDto::from).orElseGet(ProfileDto::empty);
+    }
+
+    /** Saved profiles of a gala's active members, one page at a time (caller is already checked as a member). */
+    @Transactional(readOnly = true)
+    public PageResponse<RoomMemberProfileDto> listForRoom(UUID roomId, UUID cursor, int limit) {
+        List<UserProfile> found = profiles.findForActiveMembers(roomId, cursor, PageRequest.of(0, limit + 1));
+
+        boolean hasMore = found.size() > limit;
+        List<RoomMemberProfileDto> page = found.stream()
+                .limit(limit)
+                .map(RoomMemberProfileDto::from)
+                .toList();
+
+        String nextCursor = hasMore ? page.get(page.size() - 1).userId().toString() : null;
+        return PageResponse.of(page, nextCursor, limit);
     }
 
     @Transactional

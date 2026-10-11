@@ -1,0 +1,196 @@
+/* Barkada Awards page (open voting, status, results). The ballot, ceremony and certificate have their own files. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-width: 880px;
+}
+
+.hero {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.hero :global(.ico) {
+  margin-bottom: 4px;
+}
+.cel {
+  background: var(--zest);
+  color: var(--rosy);
+}
+
+/* each award picks a tone: the results get a coloured icon and bars */
+.t_rosy {
+  --tone: var(--rosy);
+  --on: var(--cream);
+}
+.t_teal {
+  --tone: var(--teal);
+  --on: var(--cream);
+}
+.t_zest {
+  --tone: var(--zest);
+  --on: var(--teal-dark);
+}
+.t_blossom {
+  --tone: var(--blossom);
+  --on: var(--teal-dark);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 28px;
+  padding: 20px 24px;
+}
+.panel p {
+  font-weight: 700;
+}
+.h {
+  font-size: 24px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chips button {
+  border: 3px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 99px;
+  padding: 8px 18px;
+  font-weight: 800;
+}
+.chips button[aria-checked='true'] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--cream);
+  box-shadow: 0 3px 0 var(--teal-dark);
+}
+
+.status {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  background: var(--blossom);
+  color: var(--teal-dark);
+  border-radius: 24px;
+  padding: 12px 20px;
+}
+.status > div {
+  display: flex;
+  flex-direction: column;
+}
+.status b {
+  font-family: var(--fd);
+  font-size: 20px;
+}
+.status span {
+  font-size: 13px;
+  font-weight: 700;
+}
+.bar {
+  min-width: 80px;
+}
+
+/* ---- results ---- */
+.results {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.res {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 28px;
+  padding: 16px 20px;
+}
+.res :global(.ico) {
+  background: var(--tone);
+  color: var(--on);
+  flex: none;
+}
+.resBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.resBody h3 {
+  font-size: 20px;
+}
+.none {
+  font-weight: 700;
+  opacity: 0.75;
+}
+.winners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.winners li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.winners b {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 18px;
+}
+.tie {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--rosy);
+}
+.tally {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tally li {
+  display: grid;
+  grid-template-columns: minmax(80px, 140px) 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.tally i {
+  height: 10px;
+  border-radius: 99px;
+  background: var(--tone);
+  min-width: 6px;
+}
+.tally em {
+  font-style: normal;
+  font-weight: 800;
+}
+
+.back {
+  display: flex;
+}
+
+@media (max-width: 639px) {
+  .status {
+    grid-template-columns: 1fr;
+  }
+}

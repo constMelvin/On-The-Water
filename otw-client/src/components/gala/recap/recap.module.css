@@ -35,6 +35,30 @@
   border-color: var(--line);
 }
 
+.awards {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-radius: 30px 30px 30px 12px;
+  padding: 16px 22px;
+  box-shadow: 0 5px 0 var(--zest-dark);
+}
+.awards > div {
+  flex: 1;
+  min-width: 200px;
+}
+.awards h2 {
+  font-size: 24px;
+}
+.awards p {
+  font-weight: 700;
+}
+.awards :global(.ico) {
+  background: var(--cream);
+  color: var(--rosy);
+}
+
 .acts {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

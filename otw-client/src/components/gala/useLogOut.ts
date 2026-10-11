@@ -1,21 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { signOut } from '@/lib/auth/session';
-import { toast } from '@/lib/otw/feedback';
+import { requestLogOut } from '@/components/nav/logout';
 
 /**
- * Log out: ends the Supabase session, clears every cached query, and goes back to the landing page.
+ * Log out, with a confirm first: this opens the "Sure ka na ba?" dialog (components/nav/LogoutDialog), which ends
+ * the Supabase session, clears every cached query and goes back to the landing page once the person says yes.
  * Galas remembered on this device (otw:rooms) stay until My Galas reads /me/rooms (slice 2).
  */
 export function useLogOut() {
-  const router = useRouter();
-  return async () => {
-    try {
-      await signOut();
-    } finally {
-      toast('Naka-log out ka na. Balik ka anytime.');
-      router.push('/');
-    }
-  };
+  return requestLogOut;
 }

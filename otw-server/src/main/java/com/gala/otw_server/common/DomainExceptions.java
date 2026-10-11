@@ -122,6 +122,18 @@ public final class DomainExceptions {
         }
     }
 
+    public static class BucketItemNotFoundException extends BaseException {
+        public BucketItemNotFoundException() {
+            super(ErrorCode.BUCKET_ITEM_NOT_FOUND, HttpStatus.NOT_FOUND, "Bucket list item not found");
+        }
+    }
+
+    public static class QuizSessionNotFoundException extends BaseException {
+        public QuizSessionNotFoundException() {
+            super(ErrorCode.QUIZ_SESSION_NOT_FOUND, HttpStatus.NOT_FOUND, "Quiz round not found");
+        }
+    }
+
     // ── 400 Bad Request ─────────────────────────────────────────────────────
 
     public static class InvalidRequestException extends BaseException {
@@ -196,6 +208,12 @@ public final class DomainExceptions {
     public static class AlreadyClaimedException extends BaseException {
         public AlreadyClaimedException() {
             super(ErrorCode.ALREADY_CLAIMED, HttpStatus.CONFLICT, "Someone already claimed this item");
+        }
+    }
+
+    public static class AwardsNotAvailableException extends BaseException {
+        public AwardsNotAvailableException(String message) {
+            super(ErrorCode.AWARDS_NOT_AVAILABLE, HttpStatus.CONFLICT, message);
         }
     }
 

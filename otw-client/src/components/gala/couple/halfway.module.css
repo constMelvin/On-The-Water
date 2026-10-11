@@ -1,0 +1,218 @@
+/* Halfway Checker. Themed tokens only; solid offset shadows, pill buttons. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.homes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.home {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 24px;
+  padding: 12px 16px;
+}
+.homeText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.homeText b {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 17px;
+}
+.homeText span {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map {
+  position: relative;
+  height: 340px;
+  border-radius: 26px;
+  border: 3px solid var(--line);
+  overflow: hidden;
+  background: var(--tile-bg);
+}
+
+/* map markers */
+.me,
+.partner,
+.mid {
+  display: grid;
+  place-items: center;
+  font-family: var(--fd);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+  border: 3px solid var(--cream);
+  border-radius: 99px;
+  padding: 5px 10px;
+  box-shadow: 0 3px 0 var(--teal-dark);
+}
+.me {
+  background: var(--rosy);
+  color: var(--cream);
+  box-shadow: 0 3px 0 var(--rosy-dark);
+}
+.partner {
+  background: var(--teal);
+  color: var(--cream);
+}
+.mid {
+  background: var(--zest);
+  color: var(--teal-dark);
+  box-shadow: 0 3px 0 var(--zest-dark);
+}
+.spot,
+.spotOn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--blossom);
+  border: 3px solid var(--teal-dark);
+  cursor: pointer;
+}
+.spotOn {
+  width: 22px;
+  height: 22px;
+  background: var(--rosy);
+  border-color: var(--cream);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--rosy) 35%, transparent);
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 24px;
+  padding: 14px 20px;
+}
+.big {
+  font-family: var(--fd);
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.h {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.chips button {
+  border: 3px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 99px;
+  padding: 6px 14px;
+  font-weight: 800;
+  font-size: 14px;
+}
+.chips button[aria-pressed='true'] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--cream);
+  box-shadow: 0 3px 0 var(--teal-dark);
+}
+
+.spots {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+.spotBtn {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface);
+  color: var(--text);
+  border: 3px solid var(--line);
+  border-radius: 22px;
+  padding: 10px 16px;
+}
+.spotBtn b {
+  font-family: var(--fd);
+  font-weight: 600;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.spotBtn span {
+  font-size: 13px;
+  font-weight: 600;
+}
+.spotBtnOn {
+  border-color: var(--rosy);
+  box-shadow: 0 4px 0 var(--rosy-dark);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 6px 4px;
+}
+.empty {
+  padding: 14px;
+  text-align: center;
+  font-weight: 700;
+  border: 3px dashed var(--line);
+  border-radius: 22px;
+  margin: 10px 0;
+}
+
+.results {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.results button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 0;
+  border-radius: 18px;
+  padding: 10px 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.results button svg {
+  color: var(--rosy);
+}
+
+@media (max-width: 639px) {
+  .homes {
+    grid-template-columns: 1fr;
+  }
+  .map {
+    height: 280px;
+  }
+}

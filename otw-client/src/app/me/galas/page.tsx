@@ -89,9 +89,14 @@ export default function MyGalasPage() {
           title="Your Gala Calendar"
           sub="Keep track of what's coming up, what's being planned, and what's already happened."
         />
-        <Link className="btn sm rosy" href="/plan">
-          <Icon name="plus" size={18} /> Plan a Gala
-        </Link>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Link className="btn sm rosy" href="/plan">
+            <Icon name="plus" size={18} /> Plan a Gala
+          </Link>
+          <Link className="btn sm zest" href="/join">
+            <Icon name="enter" size={18} /> Join a Gala
+          </Link>
+        </div>
       </div>
 
       <div className={styles.viewRow}>
@@ -143,9 +148,14 @@ export default function MyGalasPage() {
           </span>
           <h3 className="h2">Wala pang ganap.</h3>
           <p className="sub">Sounds like a good time to plan something.</p>
-          <Link className="btn rosy" href="/plan">
-            <Icon name="plus" size={20} /> Plan a Gala
-          </Link>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link className="btn rosy" href="/plan">
+              <Icon name="plus" size={20} /> Plan a Gala
+            </Link>
+            <Link className="btn zest" href="/join">
+              <Icon name="enter" size={20} /> Join a Gala
+            </Link>
+          </div>
         </div>
       )}
 

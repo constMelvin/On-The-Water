@@ -35,9 +35,11 @@ import { toast } from './feedback';
 import { POLL_MS, featureKey, roomKey, useRoomRealtime } from './live';
 import { isApiError } from '@/lib/api/client';
 import { currentUserId } from '@/lib/api/supabase';
+import { setMemberLooks } from './profile';
 import {
   getAllMembers,
   getRoom,
+  getRoomProfiles,
   getSummary,
   updateRsvp,
   type GalaPhase,
@@ -182,6 +184,16 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const membersQ = useQuery({ queryKey: featureKey(roomId ?? null, 'members'), queryFn: () => getAllMembers(roomId!), ...opts });
   const summaryQ = useQuery({ queryKey: featureKey(roomId ?? null, 'summary'), queryFn: () => getSummary(roomId!), ...opts });
   const userQ = useQuery({ queryKey: ['me'], queryFn: currentUserId, enabled, staleTime: Infinity });
+  // Everyone's saved photo / colour / status. Best effort: without it avatars just keep the initial.
+  const profilesQ = useQuery({
+    queryKey: featureKey(roomId ?? null, 'profiles'),
+    queryFn: () => getRoomProfiles(roomId!),
+    ...opts,
+  });
+  useEffect(() => {
+    if (profilesQ.data) setMemberLooks(profilesQ.data);
+  }, [profilesQ.data]);
+  useEffect(() => () => setMemberLooks([]), [roomId]);
 
   // The backend says this device isn't in the gala (removed or left): forget the stale
   // room id so the gate sends me to My Galas.
@@ -207,17 +219,22 @@ export function GalaProvider({ code, children }: { code: string; children: React
   const rows = useMemo(() => membersQ.data ?? [], [membersQ.data]);
   const mine = rows.find((m) => m.userId === myUserId);
 
+  const profileColor = useMemo(
+    () => new Map((profilesQ.data ?? []).filter((p) => TONES.includes(p.color as Tone)).map((p) => [p.userId, p.color])),
+    [profilesQ.data]
+  );
+
   const members = useMemo<Member[]>(
     () =>
       rows.map((m, i) => ({
         id: m.userId,
         n: m.nickname,
-        c: TONES[i % TONES.length],
+        c: (profileColor.get(m.userId) as Tone | undefined) ?? TONES[i % TONES.length],
         s: m.userId === myUserId && statusOverride ? statusOverride : ATTEND[m.rsvpStatus],
         on: m.userId === myUserId || present.has(m.userId) ? 1 : 0,
         role: m.role === 'HOST' ? 'leader' : 'member',
       })),
-    [rows, myUserId, statusOverride, present]
+    [rows, myUserId, statusOverride, present, profileColor]
   );
 
   const myName = mine?.nickname ?? '';

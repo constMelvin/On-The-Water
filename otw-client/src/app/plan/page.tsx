@@ -11,6 +11,7 @@ import { LocationPicker } from '@/components/plan/LocationPicker';
 import { toast as notify } from '@/lib/otw/feedback';
 import { useAccount } from '@/lib/auth/session';
 import { useProfile } from '@/lib/otw/profile';
+import { AccountCluster } from '@/components/nav/AccountCluster';
 
 /**
  * Fast-Track Plan a Gala: one create screen, then the celebration. The account gate lives in
@@ -389,9 +390,12 @@ export default function PlanPage() {
           </span>
           OTW
         </Link>
-        <Link href="/" className={styles.closeBtn} aria-label="Cancel and return home">
-          <Ic name="x" size={20} />
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <AccountCluster onColor />
+          <Link href="/" className={styles.closeBtn} aria-label="Cancel and return home">
+            <Ic name="x" size={20} />
+          </Link>
+        </div>
       </div>
 
       {stage === 'create' ? (

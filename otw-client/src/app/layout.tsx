@@ -4,6 +4,7 @@ import { connection } from 'next/server';
 import '../index.css';
 import '../styles/otw.css';
 import { QueryProvider } from '@/providers';
+import { LogoutDialog } from '@/components/nav/LogoutDialog';
 import { THEME_INIT_SCRIPT } from '@/lib/otw/theme-script';
 
 export const metadata: Metadata = {
@@ -28,7 +29,10 @@ export default async function RootLayout({
         <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="antialiased">
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          {children}
+          <LogoutDialog />
+        </QueryProvider>
       </body>
     </html>
   );

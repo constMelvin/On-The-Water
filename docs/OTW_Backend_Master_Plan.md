@@ -409,6 +409,7 @@ Conventions: JSON, `Authorization: Bearer <supabase_jwt>` on every call — a re
 | GET | `/me/rooms/stats` | Gala History tiles | Account |
 | GET / PUT | `/me/notification-preferences` | Seven reminder toggles | Account |
 | GET / PUT | `/me/profile` | Nickname, status, avatar colour, small photo (data URL ≤65k chars); `PUT` replaces all | Account |
+| GET | `/rooms/{roomId}/members/profiles` | Active members' saved profiles (userId, nickname, status, color, photo), cursor-paged ≤25; members never saved = absent. Kept out of `RoomMemberDto` (photo weight, realtime payloads) | MEMBER |
 | GET | `/me/notifications` · `/me/notifications/unread-count` | Feed (cursor) · bell badge | Account |
 | PATCH / POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | Mark read | Account |
 

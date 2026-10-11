@@ -9,9 +9,12 @@
 import { useQuery, type QueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { isApiError } from '@/lib/api/client';
 import {
+  getBucket,
+  getAwards,
+  getHalfway,
+  getLatestQuiz,
   getBudget,
   getChecklist,
-  getCoupleIdeas,
   getExpenses,
   getItinerary,
   getLocations,
@@ -19,9 +22,12 @@ import {
   getSettlement,
 } from '@/lib/api/gala';
 import type {
+  AwardsVM,
+  HalfwayVM,
+  QuizSessionVM,
+  BucketItemVM,
   BudgetVM,
   ChecklistItemVM,
-  CoupleIdeaVM,
   ExpenseVM,
   ItineraryItemVM,
   MemberLocationVM,
@@ -52,7 +58,10 @@ export const useExpenses = () => useFeature<ExpenseVM[]>('expenses', getExpenses
 export const useSettlement = () => useFeature<SettlementVM>('settlement', getSettlement);
 export const useLocations = () => useFeature<MemberLocationVM[]>('locations', getLocations);
 export const usePhotos = () => useFeature<PhotoVM[]>('photos', (id) => getPhotos(id));
-export const useCoupleIdeas = () => useFeature<CoupleIdeaVM[]>('couple', getCoupleIdeas);
+export const useCoupleBucket = () => useFeature<BucketItemVM[]>('couple-bucket', getBucket);
+export const useAwards = () => useFeature<AwardsVM>('awards', getAwards);
+export const useCoupleHalfway =() => useFeature<HalfwayVM>('couple-halfway', getHalfway);
+export const useCoupleQuiz = () => useFeature<QuizSessionVM | null>('couple-quiz', getLatestQuiz);
 
 /**
  * The screen state for a tab: the dev switcher wins; then this tab's own query (loading

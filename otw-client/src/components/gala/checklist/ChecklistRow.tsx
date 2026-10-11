@@ -42,7 +42,7 @@ export function ChecklistRow({ item, members, who, onToggle, onClaim, onDelete }
       <span className={s.ct}>{item.label}</span>
       {who ? (
         <span className={s.asg}>
-          <Avatar name={who} tone={tone} size={24} />
+          <Avatar name={who} tone={tone} size={24} userId={item.assignedTo} />
           {who}
         </span>
       ) : (

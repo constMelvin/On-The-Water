@@ -26,6 +26,11 @@ How it's gated: every broadcast is sent with `private: true`, and **V16** adds R
 | `photo.added` / `photo.deleted` | photo write | photo DTO / `{id}` |
 | `chat.message.created` / `chat.reaction.changed` | send (incl. photo), system/card line, reaction | message DTO / `{messageId, userId, reaction, reactions, hearted, heartCount}` |
 | `couple.idea.changed` | save/unsave idea | `{key, saved}` |
+| `award.poll.changed` | awards poll opened / closed | `{state}` |
+| `award.progress` | someone voted | `{voted}` (a headcount only: never who voted or for whom) |
+| `couple.home.changed` | a partner saved their home | `{userId}` (no coordinates; the screen refetches) |
+| `couple.quiz.changed` | round started / answered | `{sessionId}` (no answers are ever broadcast) |
+| `couple.bucket.changed` | bucket item added / edited / completed / deleted | the item DTO, or `{id, roomId, deleted: true}` |
 
 All events go to room members only. Notifications are **not** realtime — the frontend polls `/me/notifications`. "Online now" is Supabase presence on the room channel (client-only).
 

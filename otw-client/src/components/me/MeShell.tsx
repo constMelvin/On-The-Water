@@ -2,11 +2,10 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Avatar, Button, Icon, ThemeToggle } from '@/components/otw';
-import { useLogOut } from '@/components/gala/useLogOut';
-import { useMyIdentity } from './useMyIdentity';
+import { Icon } from '@/components/otw';
+import { AccountCluster } from '@/components/nav/AccountCluster';
+import nav from '@/components/nav/nav.module.css';
 import styles from './me.module.css';
-import profile from './profile.module.css';
 
 type Page = 'galas' | 'history' | 'profile';
 
@@ -16,11 +15,8 @@ const PAGES: { page: Page; href: string; label: string }[] = [
   { page: 'profile', href: '/me/profile', label: 'Profile' },
 ];
 
-/** Page chrome shared by My Galas, History and Profile: brand, who's signed in, the other pages, log out. */
+/** Page chrome shared by My Galas, History and Profile: the OTW logo (home), the account cluster, and the three pages as tabs. */
 export function MeShell({ active, children }: { active: Page; children: ReactNode }) {
-  const { id, name, tone, signedIn } = useMyIdentity();
-  const logOut = useLogOut();
-
   return (
     <main className={`bg-cream ${styles.page}`}>
       <div className={styles.inner}>
@@ -29,38 +25,20 @@ export function MeShell({ active, children }: { active: Page; children: ReactNod
             <Icon name="pin" size={26} />
             <b>OTW</b>
           </Link>
-          <div className={styles.topActions}>
-            <div className={styles.topMe}>
-              <ThemeToggle />
-              {signedIn && (
-                <Link
-                  href="/me/profile"
-                  className={profile.me}
-                  aria-label="Your profile"
-                  aria-current={active === 'profile' ? 'page' : undefined}
-                >
-                  <Avatar name={name} tone={tone ?? 'rosy'} size={32} userId={id} />
-                  <span className={profile.meName}>Hi, {name}</span>
-                </Link>
-              )}
-            </div>
-            <nav className={styles.topNav} aria-label="Account pages">
-              {PAGES.filter((p) => p.page !== active).map((p) => (
-                <Link key={p.page} className={`btn sm ghost ${styles.navLink}`} href={p.href}>
-                  {p.label}
-                </Link>
-              ))}
-              <Link className="btn sm ghost" href="/">
-                Back to OTW
-              </Link>
-              {signedIn && (
-                <Button sm variant="cream" onClick={logOut}>
-                  <Icon name="back" size={16} /> Log out
-                </Button>
-              )}
-            </nav>
-          </div>
+          <AccountCluster />
         </header>
+        <nav className={nav.tabs} aria-label="Account pages">
+          {PAGES.map((p) => (
+            <Link
+              key={p.page}
+              className={nav.tab}
+              href={p.href}
+              aria-current={active === p.page ? 'page' : undefined}
+            >
+              {p.label}
+            </Link>
+          ))}
+        </nav>
         {children}
       </div>
     </main>

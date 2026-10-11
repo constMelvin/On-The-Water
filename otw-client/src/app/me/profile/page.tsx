@@ -16,8 +16,8 @@ const TONE_LABEL: Record<Tone, string> = { rosy: 'Rosy', teal: 'Teal', zest: 'Ze
 
 /**
  * Profile: photo, nickname, avatar colour and a one-line status, with a live preview beside the form. Saved to the
- * account (GET/PUT /me/profile) and cached on this device (lib/otw/profile.ts). TODO(backend): other people still see
- * the initial until the member list carries colour/photo; the gala nickname is still changed in Gala Settings.
+ * account (GET/PUT /me/profile) and cached on this device (lib/otw/profile.ts). Other members see the photo and colour
+ * in their gala (GET /rooms/{id}/members/profiles, within about a minute); the gala nickname is changed in Gala Settings.
  */
 export default function ProfilePage() {
   const { id, profile } = useProfile();

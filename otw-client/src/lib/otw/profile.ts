@@ -9,8 +9,8 @@
  * The backend (`GET/PUT /me/profile`) is the source of truth so the profile follows the account to other
  * devices; localStorage is the instant, offline-safe cache. On sign-in the server copy is pulled once (an empty
  * server profile uploads this device's copy instead); saving writes locally first, then pushes (`syncProfile`).
- * TODO(backend): other members still see only the initial; showing everyone's colour/photo needs the member
- * list to carry them (not built yet), so for now only my own avatar (Avatar's `userId` prop) uses them.
+ * Other members' photo / colour / status come from `GET /rooms/{id}/members/profiles`; the gala store pushes
+ * them in with `setMemberLooks`, and `useLook(userId)` (used by Avatar) reads mine or theirs.
  */
 import { useSyncExternalStore } from 'react';
 import { api } from '@/lib/api/client';
@@ -200,9 +200,55 @@ export function useProfile(): Snapshot {
   return useSyncExternalStore(subscribe, getSnapshot, () => NONE);
 }
 
-/** My photo / colour, when `userId` is me and I saved them; otherwise null (the caller's usual look). */
-export function useMyLook(userId?: string | null): { photo?: string; tone?: Tone } | null {
+/* ---- other members (GET /rooms/{id}/members/profiles, fed by the gala store) ---- */
+
+export interface MemberLook {
+  photo?: string;
+  tone?: Tone;
+  status?: string;
+}
+
+const NO_LOOKS: ReadonlyMap<string, MemberLook> = new Map();
+let looks: ReadonlyMap<string, MemberLook> = NO_LOOKS;
+
+/** Replaces the known members' looks (an empty list or leaving the gala clears them). Photos are validated like my own. */
+export function setMemberLooks(list: ServerProfileWithId[]) {
+  const next = new Map<string, MemberLook>();
+  for (const p of list) {
+    next.set(p.userId, {
+      photo: p.photo && p.photo.startsWith('data:image/') ? p.photo : undefined,
+      tone: TONES.includes(p.color as Tone) ? (p.color as Tone) : undefined,
+      status: p.status || undefined,
+    });
+  }
+  looks = next.size ? next : NO_LOOKS;
+  notify();
+}
+
+type ServerProfileWithId = ServerProfile & { userId: string };
+
+const getLooks = () => looks;
+
+/** Same as `useLook`, for plain code (like drawing a certificate) that is not a React component. */
+export function lookOf(userId?: string | null): MemberLook | null {
+  if (!userId) return null;
+  const snap = getSnapshot();
+  if (snap.id && snap.id === userId && snap.profile) {
+    return { photo: snap.profile.photo, tone: snap.profile.color, status: snap.profile.status || undefined };
+  }
+  return looks.get(userId) ?? null;
+}
+
+/**
+ * Photo / colour for any member: mine come from my saved profile (instant, works offline), everyone else's from the
+ * gala's member profiles. Null when nothing was saved (the caller's usual look).
+ */
+export function useLook(userId?: string | null): MemberLook | null {
   const snap = useSyncExternalStore(subscribe, getSnapshot, () => NONE);
-  if (!userId || !snap.id || snap.id !== userId || !snap.profile) return null;
-  return { photo: snap.profile.photo, tone: snap.profile.color };
+  const all = useSyncExternalStore(subscribe, getLooks, () => NO_LOOKS);
+  if (!userId) return null;
+  if (snap.id && snap.id === userId && snap.profile) {
+    return { photo: snap.profile.photo, tone: snap.profile.color, status: snap.profile.status || undefined };
+  }
+  return all.get(userId) ?? null;
 }

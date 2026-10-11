@@ -156,7 +156,33 @@ export async function getAllMembers(roomId: string): Promise<RoomMemberDto[]> {
   return all;
 }
 
-export const updateRsvp = (roomId: string, rsvpStatus: RsvpStatus) =>
+/** A member's account profile as other members see it (GET /rooms/{id}/members/profiles). Members who never saved one are absent. */
+export interface RoomMemberProfileDto {
+  userId: string;
+  nickname: string;
+  status: string;
+  color: string | null;
+  /** A small square data URL, or null. */
+  photo: string | null;
+}
+
+/** Everyone's saved profile (25 per page; photos are heavy so pages stay small, capped at 8 pages). */
+export async function getRoomProfiles(roomId: string): Promise<RoomMemberProfileDto[]> {
+  const all: RoomMemberProfileDto[] = [];
+  let cursor: string | null = null;
+  for (let i = 0; i < 8; i++) {
+    const q: string = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
+    const page: Page<RoomMemberProfileDto> = await api<Page<RoomMemberProfileDto>>(
+      `/rooms/${roomId}/members/profiles?limit=25${q}`
+    );
+    all.push(...page.items);
+    cursor = page.nextCursor;
+    if (!cursor) break;
+  }
+  return all;
+}
+
+export const updateRsvp =(roomId: string, rsvpStatus: RsvpStatus) =>
   api<RoomMemberDto>(`/rooms/${roomId}/members/me/rsvp`, { method: 'PATCH', body: { rsvpStatus } });
 
 /** Host only: brings an archived gala back ("revive" a shelved plan). */

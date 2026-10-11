@@ -11,6 +11,7 @@ import { galaRoute, isValidCode, normCode, roomIdFor } from '@/lib/otw/gala-regi
 import { useAccount } from '@/lib/auth/session';
 import { useProfile } from '@/lib/otw/profile';
 import { OFFLINE_MESSAGE } from '@/lib/auth/errors';
+import { AccountCluster } from '@/components/nav/AccountCluster';
 
 // Dashboard route for the gala the member just joined
 const MEMBER_DASHBOARD_ROUTE = (code: string) => galaRoute(code);
@@ -95,6 +96,25 @@ function BackgroundShapes() {
         </span>
       </div>
     </>
+  );
+}
+
+function BackArrow() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
   );
 }
 
@@ -334,6 +354,25 @@ export default function JoinPage() {
   return (
     <main className={`${styles.joinRoot} ${isTealBackground ? styles.bgTeal : styles.bgRosy}`}>
       <BackgroundShapes />
+
+      {/* Account cluster (avatar menu with Log out), top right like every other screen. */}
+      <div className={styles.topAccount}>
+        <AccountCluster onColor />
+      </div>
+
+      {/* Back: step 1 leaves to the landing page, step 2 returns to step 1. Hidden once joined. */}
+      {!isSuccess &&
+        (step === 1 ? (
+          <Link href="/" className={styles.topBack}>
+            <BackArrow />
+            <span>Back to OTW</span>
+          </Link>
+        ) : (
+          <button type="button" onClick={handleBackToStep1} disabled={isSubmitting} className={styles.topBack}>
+            <BackArrow />
+            <span>Back</span>
+          </button>
+        ))}
 
       {/* OTW Logo header */}
       <div className={styles.logoWrap}>

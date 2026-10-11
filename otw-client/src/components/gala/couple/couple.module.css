@@ -1,5 +1,4 @@
-/* Couple Mode tab. Ported from reference/otw/styles.css "couple" block (.cintro, .cprev, .chero,
-   .cpair, .heartb, .ctabs, .idea, .heart.on, .plc, .two-col.bud, .bres, .brow, .peso). */
+/* Couple Mode page: the header band and the group-gala intro. The features have their own stylesheets. */
 
 .intro {
   display: flex;
@@ -14,10 +13,10 @@
   color: var(--rosy);
 }
 .prev {
-  width: 100%;
-  margin: 14px 0;
+  width: min(560px, 100%);
+  margin: 10px 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--gap);
 }
 .prev :global(.card) {
@@ -27,46 +26,48 @@
   gap: 8px;
 }
 
+/* ---- header band: the two people, side by side with a heart between (no overlap) ---- */
 .hero {
   display: flex;
-  gap: 16px;
   align-items: center;
-  border-radius: 30px;
+  gap: 18px;
+  border-radius: 28px;
   padding: 18px 24px;
   flex-wrap: wrap;
-}
-.hero h2 {
-  margin: 0;
 }
 .pair {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 .heartb {
   color: var(--cream);
   background: var(--rosy);
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  margin: 0 -8px;
-  z-index: 1;
+  flex: none;
 }
-.meta {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
+/* ---- feature tabs ---- */
 .tabs {
   display: flex;
   gap: 8px;
   overflow-x: auto;
+  padding: 2px 2px 6px;
+  scrollbar-width: none;
 }
 .tabs button {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 3px solid var(--line);
   background: var(--surface);
   border-radius: 99px;
@@ -82,126 +83,24 @@
   box-shadow: 0 4px 0 var(--rosy-dark);
 }
 
-.ideas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--gap);
-}
-.idea {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: space-between;
-}
-.idea > div {
+.heroText {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
 }
-.idea b {
-  font-family: var(--fd);
-  font-weight: 600;
-  font-size: 18px;
-}
-.idea span {
-  font-size: 14px;
-  font-weight: 600;
-}
-.heartOn {
-  color: var(--rosy);
-}
-.heartOn :global(svg) {
-  fill: var(--rosy);
-}
-
-.plc {
-  display: grid;
-  gap: 10px;
+.heroText h2 {
   margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.plc li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--surface);
-  border: 3px solid var(--line);
-  border-radius: 22px;
-  padding: 10px 14px;
-}
-.plc li > span:last-child {
-  display: flex;
-  flex-direction: column;
-}
-.stn {
-  width: 38px;
-  height: 38px;
-  background: var(--rosy);
-  color: var(--cream);
-  display: grid;
-  place-items: center;
-  font-family: var(--fd);
-  font-size: 16px;
-  flex: none;
-  border: 3px solid var(--av-ring);
-}
-.eta {
-  font-style: normal;
-  font-size: 13px;
-  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
-.bud {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: var(--gap);
-  align-items: start;
-}
-.rows {
-  display: grid;
-  gap: 12px;
-}
-.row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.label {
-  flex: 1;
-  font-weight: 800;
-}
-.peso {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.peso i {
-  font-style: normal;
-  font-weight: 800;
-}
-.peso :global(.in) {
-  width: 130px;
-}
-.res {
-  display: grid;
-  gap: var(--gap);
-}
-.big {
-  display: flex;
-  flex-direction: column;
-}
-.big b {
-  font-family: var(--fd);
-  font-size: 36px;
-  line-height: 1.05;
-}
-
-@media (max-width: 1023px) {
-  .bud,
-  .ideas {
+@media (max-width: 639px) {
+  .prev {
     grid-template-columns: 1fr;
   }
-  .prev {
-    grid-template-columns: 1fr 1fr;
+  .hero {
+    padding: 16px 18px;
+    gap: 12px;
   }
 }

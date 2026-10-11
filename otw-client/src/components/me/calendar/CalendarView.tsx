@@ -89,6 +89,9 @@ export function CalendarView({ groups, mode }: CalendarViewProps) {
           <Link className="btn sm rosy" href="/plan">
             <Icon name="plus" size={16} /> Plan a Gala
           </Link>
+          <Link className="btn sm zest" href="/join">
+            <Icon name="enter" size={16} /> Join a Gala
+          </Link>
         </div>
       )}
 
