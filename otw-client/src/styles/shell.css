@@ -20,7 +20,8 @@
   .brandbox .logoimg { position: relative; z-index: 1; margin: 0; width: 138px; animation: bb-bob 5s ease-in-out infinite; }
 
   /* animated backdrop behind the sidebar logo: drifting blobs and twinkling sparkles */
-  .brandbox { position: relative; isolation: isolate; display: grid; place-items: center; align-self: stretch; padding: 14px 0 12px; border-radius: 30px; overflow: hidden; background: color-mix(in srgb, var(--teal-dark) 38%, transparent); }
+  /* flex: none — in the sidebar's flex column, overflow: hidden would otherwise let a short screen squash the box and crop the logo. */
+  .brandbox { position: relative; isolation: isolate; display: grid; place-items: center; align-self: stretch; flex: none; padding: 13px 0; border-radius: 30px; overflow: hidden; background: color-mix(in srgb, var(--teal-dark) 38%, transparent); }
   .bb-bg { position: absolute; inset: 0; z-index: 0; }
   .bb-bg i { position: absolute; display: block; }
   .bb-b1, .bb-b2 { border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%; filter: blur(2px); }
