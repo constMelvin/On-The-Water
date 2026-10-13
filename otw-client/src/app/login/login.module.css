@@ -313,3 +313,14 @@
 @media (prefers-reduced-motion: reduce) {
   .sentIcon { animation: none; }
 }
+
+/* ---- Forgot / reset password: one centered column, no planner card ---- */
+.solo {
+  width: 100%;
+  max-width: 460px;
+}
+
+.forgot {
+  align-self: flex-end;
+  font-size: 15px;
+}

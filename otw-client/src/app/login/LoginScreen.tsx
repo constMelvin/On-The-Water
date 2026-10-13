@@ -278,6 +278,14 @@ export function LoginScreen({ initialTab, ctx, next, gala }: LoginScreenProps) {
                   </span>
                 )}
               </label>
+              {!create && (
+                <Link
+                  className={`lnk ${styles.forgot}`}
+                  href={email.trim() ? `/forgot-password?email=${encodeURIComponent(email.trim())}` : '/forgot-password'}
+                >
+                  Forgot password?
+                </Link>
+              )}
 
               {error && (
                 <p className="ferr" role="alert">

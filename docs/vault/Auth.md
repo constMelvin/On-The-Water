@@ -20,6 +20,7 @@ Back to [[00-Index]] · Full `SecurityConfig` code: master plan §5.1.1
 ### Account required everywhere (2026-10-02; reverses the 2026-09-29 anonymous-first rule)
 - Supabase anonymous sessions are **rejected**. `AccountRequiredFilter` returns `401 {"code":"ACCOUNT_REQUIRED"}` for any token that is anonymous (`is_anonymous` claim) or has no `email` claim (fail-closed), on every route except public/health/docs paths. No per-endpoint annotation; new endpoints are protected by default.
 - Login is email + password via Supabase (OAuth planned; Confirm email off). "Allow anonymous sign-ins" must stay OFF in the Supabase dashboard. `@RequireAccount`, `AccountRequiredAspect` and `POST /me/link-account` are removed.
+- Password reset (2026-10-13): frontend only via Supabase `resetPasswordForEmail` + `updateUser`. Web `/reset-password`, mobile `otw://auth-callback` (PKCE, same phone). Both URLs go in Supabase Redirect URLs. No backend change.
 - **Enter a Gala removed (2026-10-07):** `/rooms/enter`, `/rooms/enter/claim`, `MemberIdentityRemapper` and `MEMBER_HAS_ACCOUNT` are gone. Join a Gala is the only way in; a device that lost its room id reopens a gala from My Galas (`/me/galas`).
 
 ## Authorization: one tier (§5.2)
