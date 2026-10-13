@@ -40,7 +40,8 @@ see the master plan changelog):
 - `userId` comes from the JWT `sub` claim only. There is no local `users` table —
   Supabase `auth.users` is the identity source of truth; Postgres only stores
   `room_members` rows keyed by that `userId`, plus account-level `notification_preferences`
-  and `user_profiles` (V22, 2026-10-07: nickname/status/colour/small photo data URL).
+  and `user_profiles` (V22, 2026-10-07: nickname/status/colour; since V26, 2026-10-13, the photo is a Drive file id —
+  the image lives in the shared `OTW Profile Photos` Drive folder, never in Postgres).
 
 SOURCE OF TRUTH:
 docs/OTW_Backend_Master_Plan.md is the authoritative spec for this project. It defines:

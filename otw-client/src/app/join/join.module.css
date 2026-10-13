@@ -1,5 +1,4 @@
 .joinRoot {
-  composes: theme-light from global; /* brand-coloured flow page: its cream cards + light inputs stay light in dark mode */
   --rosy: #e0417c;
   --rosy-dark: #c22e64;
   --zest: #f8e140;
@@ -23,7 +22,7 @@
   align-items: center;
   justify-content: flex-start;
   font-family: var(--font-nunito), 'Nunito', sans-serif;
-  color: var(--teal-dark);
+  color: var(--text);
   /* clip, not hidden: overflow-x: hidden makes this box its own vertical scroller (a 2nd scrollbar
      next to the page's when the drifting background pokes out). */
   overflow: clip;
@@ -35,11 +34,11 @@
 
 /* Background gradients: Step 1 = Teal, Step 2 / Success = Rosy */
 .bgTeal {
-  background: linear-gradient(160deg, var(--teal) 0%, var(--teal-dark) 100%);
+  background: linear-gradient(160deg, var(--sec-teal) 0%, var(--sec-tdark) 100%);
 }
 
 .bgRosy {
-  background: linear-gradient(160deg, var(--rosy) 0%, var(--rosy-dark) 100%);
+  background: linear-gradient(160deg, var(--sec-rosy) 0%, var(--sec-rosy-deep) 100%);
 }
 
 /* Drifting dot background pattern */
@@ -172,7 +171,7 @@
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
-  background: var(--cream);
+  background: var(--surface);
   border-radius: 40px 44px 40px 42px / 44px 40px 44px 40px;
   padding: 34px 30px;
   box-sizing: border-box;
@@ -224,7 +223,7 @@
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--teal-dark);
+  color: var(--text);
   line-height: 1.15;
   margin: 0 0 10px 0;
   outline: none;
@@ -252,7 +251,7 @@
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
-  color: var(--teal-dark);
+  color: var(--text);
   margin: 0 0 22px 0;
 }
 
@@ -272,7 +271,7 @@
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 14px;
-  color: var(--teal-dark);
+  color: var(--text);
   margin-bottom: 6px;
   display: block;
 }
@@ -287,10 +286,10 @@
   width: 100%;
   padding: 13px 16px;
   border-radius: 18px;
-  border: 3px solid var(--blossom);
-  background: var(--cream);
-  color: var(--teal-dark);
-  box-shadow: 0 4px 0 var(--blossom);
+  border: 3px solid var(--line);
+  background: var(--field-bg);
+  color: var(--text);
+  box-shadow: 0 4px 0 var(--line);
   box-sizing: border-box;
   transition: transform 0.2s var(--bounce), border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -302,10 +301,10 @@
   width: 100%;
   padding: 13px 16px;
   border-radius: 18px;
-  border: 3px solid var(--blossom);
-  background: var(--cream);
-  color: var(--teal-dark);
-  box-shadow: 0 4px 0 var(--blossom);
+  border: 3px solid var(--line);
+  background: var(--field-bg);
+  color: var(--text);
+  box-shadow: 0 4px 0 var(--line);
   box-sizing: border-box;
   transition: transform 0.2s var(--bounce), border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -394,7 +393,7 @@
 }
 
 .btnPrimary:focus-visible {
-  outline: 3px solid var(--teal-dark);
+  outline: 3px solid var(--focus);
   outline-offset: 4px;
 }
 
@@ -425,7 +424,7 @@
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   font-size: 14px;
   font-weight: 700;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 .planLink {
@@ -453,7 +452,7 @@
 
 /* Step 2: Event Confirmation Card */
 .eventCard {
-  background: var(--blossom);
+  background: var(--surface-2);
   border-radius: 24px;
   padding: 20px 22px;
   margin-bottom: 22px;
@@ -478,7 +477,7 @@
   gap: 14px;
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 .eventMetaItem {
@@ -540,8 +539,8 @@
 }
 
 .chipColor3 {
-  background: var(--cream);
-  color: var(--rosy-dark);
+  background: var(--surface);
+  color: var(--rosy-ink);
   box-shadow: 0 2px 0 var(--rosy-dark);
 }
 
@@ -561,8 +560,8 @@
 }
 
 .btnBack {
-  background: var(--cream);
-  color: var(--rosy-dark);
+  background: var(--surface);
+  color: var(--rosy-ink);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-weight: 600;
   font-size: 16px;
@@ -606,7 +605,7 @@
   z-index: 3;
 }
 
-/* Top-left back control (cream pill; the page itself is a brand colour in both themes) */
+/* Top-left back control (a surface pill on the brand-coloured page) */
 .topBack {
   position: absolute;
   top: 20px;
@@ -615,8 +614,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--cream);
-  color: var(--rosy-dark);
+  background: var(--surface);
+  color: var(--rosy-ink);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-weight: 600;
   font-size: 15px;
@@ -686,7 +685,7 @@
 }
 
 .btnJoin:focus-visible {
-  outline: 3px solid var(--teal-dark);
+  outline: 3px solid var(--focus);
   outline-offset: 4px;
 }
 
@@ -785,7 +784,7 @@
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-size: 30px;
   font-weight: 600;
-  color: var(--teal-dark);
+  color: var(--text);
   line-height: 1.2;
   margin: 0 0 16px 0;
   outline: none;
@@ -801,8 +800,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--blossom);
-  color: var(--rosy-dark);
+  background: var(--surface-2);
+  color: var(--rosy-ink);
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 15px;
@@ -846,7 +845,7 @@
 }
 
 .btnSuccess:focus-visible {
-  outline: 3px solid var(--teal-dark);
+  outline: 3px solid var(--focus);
   outline-offset: 4px;
 }
 
@@ -898,9 +897,9 @@
   width: 100%;
   padding: 12px 16px;
   border-radius: 18px;
-  border: 3px solid var(--blossom);
-  background: var(--cream);
-  color: var(--teal-dark);
+  border: 3px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
   box-sizing: border-box;
 }
 .dirSearch:focus-visible {
@@ -921,11 +920,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: var(--cream);
-  border: 3px solid var(--blossom);
+  background: var(--surface);
+  border: 3px solid var(--line);
   border-radius: 22px;
   padding: 10px 12px 10px 16px;
-  box-shadow: 0 4px 0 var(--blossom);
+  box-shadow: 0 4px 0 var(--line);
 }
 
 .dirMain {
@@ -933,7 +932,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 .dirMain b {
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
@@ -997,7 +996,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 .dirMore {
@@ -1015,7 +1014,7 @@
   align-items: center;
   gap: 12px;
   margin: 18px 0 14px;
-  color: var(--teal-dark);
+  color: var(--text);
   font-size: 14px;
   font-weight: 800;
 }
@@ -1023,7 +1022,7 @@
 .orDivider::after {
   content: '';
   flex: 1;
-  border-top: 3px dashed var(--blossom);
+  border-top: 3px dashed var(--line);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1046,7 +1045,7 @@
 .dirDetails {
   background: none;
   border: 0;
-  color: var(--teal-dark);
+  color: var(--text);
   font-weight: 800;
   font-size: 14px;
   text-decoration: underline;
@@ -1061,9 +1060,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-top: 3px dashed var(--blossom);
+  border-top: 3px dashed var(--line);
   padding-top: 10px;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 .dirFacts {
   display: grid;

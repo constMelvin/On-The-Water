@@ -272,10 +272,10 @@
   display: flex;
   gap: 4px;
   padding: 6px;
-  background: var(--cream);
-  border: 3px solid var(--blossom);
+  background: var(--surface);
+  border: 3px solid var(--line);
   border-radius: 99px;
-  box-shadow: 0 4px 0 var(--blossom);
+  box-shadow: 0 4px 0 var(--line);
   z-index: 5;
   animation: pickerPop 0.16s ease-out;
 }
@@ -297,7 +297,7 @@
   transform: translateY(-4px) scale(1.12);
 }
 .pick.on {
-  box-shadow: 0 0 0 3px var(--teal-dark);
+  box-shadow: 0 0 0 3px var(--text);
 }
 /* Reaction tones: brand colors only. */
 .r-heart { background: var(--rosy); color: var(--cream); }
@@ -323,7 +323,7 @@
   gap: 10px;
   margin-bottom: 8px;
   padding: 6px 8px;
-  background: var(--blossom);
+  background: var(--surface-2);
   border-radius: 20px;
   font-size: 14px;
   font-weight: 700;
@@ -333,7 +333,7 @@
   height: 56px;
   border-radius: 14px;
   object-fit: cover;
-  border: 3px solid var(--cream);
+  border: 3px solid var(--surface);
 }
 .attach span {
   flex: 1;
@@ -345,7 +345,7 @@
 }
 .attachbtn {
   flex: none;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 @media (prefers-reduced-motion: reduce) {

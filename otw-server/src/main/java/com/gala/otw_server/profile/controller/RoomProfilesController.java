@@ -16,7 +16,7 @@ import java.util.UUID;
 @RestController
 public class RoomProfilesController {
 
-    /** Photos are up to ~60 KB each, so pages stay small. */
+    /** Max profiles per page. */
     static final int MAX_LIMIT = 25;
 
     private final ProfileService profileService;

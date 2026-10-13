@@ -1,5 +1,5 @@
-/* The landing page's app tour. Like the rest of the landing page it is brand-coloured art: it looks the same
-   in light and dark. Only transform and opacity ever animate. The base style of every scene element is its
+/* The landing page's app tour. Like the rest of the landing page its sections use the --sec-* fills (brand
+   colours in light, deep tints in dark) and its phone screens use the surface tokens, so it follows dark mode. Only transform and opacity ever animate. The base style of every scene element is its
    FINISHED picture; the animations below play "from" a start state, so with animations off (reduced motion)
    you simply see the finished screens. Tokens (--rosy, --cream, --bounce...) come from .landing. */
 
@@ -10,7 +10,7 @@
   /* clip, not hidden: hidden would make this a scroll container and break the sticky phone */
   overflow: clip;
   padding: 96px 28px 110px;
-  background: var(--teal-dark);
+  background: var(--sec-tdark);
   color: var(--cream);
 }
 .reserve {
@@ -40,16 +40,16 @@
   opacity: 1;
 }
 .bg_rosy {
-  background: var(--rosy);
+  background: var(--sec-rosy);
 }
 .bg_zest {
-  background: var(--zest);
+  background: var(--sec-zest);
 }
 .bg_teal {
-  background: var(--teal);
+  background: var(--sec-teal);
 }
 .bg_blossom {
-  background: var(--blossom);
+  background: var(--sec-blossom);
 }
 
 .head {
@@ -122,23 +122,23 @@
   min-height: calc(var(--stepH) * 1.45);
 }
 .ink_rosy {
-  --bg: var(--rosy);
+  --bg: var(--sec-rosy);
   --ink: var(--cream);
   --sh: var(--rosy-dark);
 }
 .ink_zest {
-  --bg: var(--zest);
-  --ink: var(--teal-dark);
+  --bg: var(--sec-zest);
+  --ink: var(--sec-ink);
   --sh: var(--zest-dark);
 }
 .ink_teal {
-  --bg: var(--teal);
+  --bg: var(--sec-teal);
   --ink: var(--cream);
   --sh: var(--teal-dark);
 }
 .ink_blossom {
-  --bg: var(--blossom);
-  --ink: var(--teal-dark);
+  --bg: var(--sec-blossom);
+  --ink: var(--sec-ink);
   --sh: var(--rosy);
 }
 
@@ -237,16 +237,16 @@
 }
 .tour[data-tone='zest'] .railBtn,
 .tour[data-tone='blossom'] .railBtn {
-  color: var(--teal-dark);
+  color: var(--sec-ink);
 }
 .tour[data-tone='zest'] .railBtn[aria-current='step'],
 .tour[data-tone='blossom'] .railBtn[aria-current='step'] {
-  background: var(--teal-dark);
-  color: var(--cream);
+  background: var(--sec-ink);
+  color: var(--surface);
 }
 .tour[data-tone='zest'] .railFill,
 .tour[data-tone='blossom'] .railFill {
-  background: var(--teal-dark);
+  background: var(--sec-ink);
 }
 
 /* ---- the end: the call to action ---- */
@@ -287,9 +287,9 @@
   margin-bottom: 7px;
 }
 .endPrimary {
-  background: var(--cream);
-  color: var(--rosy-dark);
-  box-shadow: 0 7px 0 var(--blossom);
+  background: var(--surface);
+  color: var(--rosy-ink);
+  box-shadow: 0 7px 0 var(--line);
   transition: transform 0.09s ease;
 }
 .endPrimary:active {
@@ -343,8 +343,8 @@
   height: 100%;
   border-radius: 34px;
   overflow: hidden;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
 }
 @media (max-width: 480px) {
   .phoneBox {
@@ -399,7 +399,7 @@
   height: 34px;
   margin: 0 -14px 12px;
   padding: 0 16px;
-  border-bottom: 3px solid var(--blossom);
+  border-bottom: 3px solid var(--line);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-size: 17px;
 }
@@ -427,8 +427,8 @@
   color: var(--teal-dark);
 }
 .av_blossom {
-  background: var(--blossom);
-  color: var(--teal-dark);
+  background: var(--surface-2);
+  color: var(--text);
 }
 .chip {
   background: var(--zest);
@@ -460,8 +460,8 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 3px solid var(--blossom);
-  background: var(--cream);
+  border: 3px solid var(--line);
+  background: var(--surface);
   color: var(--teal);
 }
 .navOn {
@@ -483,7 +483,7 @@
   padding: 0 12px;
   border: 3px solid var(--teal);
   border-radius: 16px;
-  background: var(--cream);
+  background: var(--field-bg);
   font-weight: 800;
   font-size: 14px;
 }
@@ -507,7 +507,7 @@
   margin-top: 16px;
   padding: 12px;
   border-radius: 22px;
-  background: var(--blossom);
+  background: var(--surface-2);
   text-align: center;
 }
 .codeCard > span {
@@ -571,8 +571,8 @@
   color: var(--teal-dark);
 }
 .tileX {
-  background: var(--blossom);
-  color: var(--teal-dark);
+  background: var(--surface-2);
+  color: var(--text);
 }
 .digits {
   display: block;
@@ -607,7 +607,7 @@
   gap: 8px;
   padding: 7px 10px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+  background: color-mix(in srgb, var(--surface-2) 38%, var(--surface));
 }
 .people b {
   flex: 1;
@@ -648,11 +648,11 @@
   height: 152px;
   border-radius: 20px;
   overflow: hidden;
-  border: 3px solid var(--blossom);
+  border: 3px solid var(--line);
   margin-bottom: 10px;
 }
 .mapBg {
-  fill: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+  fill: color-mix(in srgb, var(--surface-2) 38%, var(--surface));
 }
 .mapWater {
   fill: color-mix(in srgb, var(--teal) 30%, var(--cream));
@@ -699,7 +699,7 @@
   gap: 9px;
   padding: 7px 10px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+  background: color-mix(in srgb, var(--surface-2) 38%, var(--surface));
 }
 .stopN {
   display: grid;
@@ -732,7 +732,7 @@
   justify-content: space-between;
   padding: 8px 12px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+  background: color-mix(in srgb, var(--surface-2) 38%, var(--surface));
 }
 .exp b {
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
@@ -744,7 +744,7 @@
   justify-content: space-between;
   margin: 8px 2px 10px;
   padding-top: 8px;
-  border-top: 3px dashed var(--blossom);
+  border-top: 3px dashed var(--line);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-size: 18px;
 }
@@ -770,7 +770,7 @@
   gap: 6px;
   padding: 10px;
   border-radius: 20px;
-  background: var(--blossom);
+  background: var(--surface-2);
 }
 .settleHd {
   font-size: 12px;
@@ -782,7 +782,7 @@
   justify-content: space-between;
   padding: 5px 8px;
   border-radius: 14px;
-  background: var(--cream);
+  background: var(--surface);
   font-size: 12px;
 }
 .owe b {
@@ -848,7 +848,7 @@
   max-width: 78%;
   padding: 8px 12px;
   border-radius: 16px 16px 16px 4px;
-  background: var(--blossom);
+  background: var(--surface-2);
   font-size: 13px;
   font-weight: 700;
 }
@@ -890,8 +890,8 @@
   gap: 3px;
   padding: 1px 7px;
   border-radius: 99px;
-  border: 2px solid var(--blossom);
-  background: var(--cream);
+  border: 2px solid var(--line);
+  background: var(--surface);
   color: var(--rosy);
   font-size: 11px;
   font-weight: 800;
@@ -900,8 +900,8 @@
   align-self: center;
   padding: 4px 12px;
   border-radius: 99px;
-  border: 2px solid var(--blossom);
-  background: var(--cream);
+  border: 2px solid var(--line);
+  background: var(--surface);
   font-size: 11px;
   font-weight: 800;
 }
@@ -1157,7 +1157,7 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: var(--cream);
+  background: var(--surface);
   color: var(--rosy);
   box-shadow: 0 5px 0 color-mix(in srgb, var(--cream) 45%, var(--rosy-dark));
   opacity: 0;
@@ -1237,7 +1237,7 @@
 /* the call to action adapts to the last step's colour */
 .tour[data-tone='zest'] .end,
 .tour[data-tone='blossom'] .end {
-  color: var(--teal-dark);
+  color: var(--sec-ink);
 }
 .tour[data-tone='zest'] .endPrimary,
 .tour[data-tone='blossom'] .endPrimary {
@@ -1247,14 +1247,14 @@
 }
 .tour[data-tone='zest'] .endGhost,
 .tour[data-tone='blossom'] .endGhost {
-  color: var(--teal-dark);
-  border-color: var(--teal-dark);
+  color: var(--sec-ink);
+  border-color: var(--sec-ink);
 }
 .tour[data-tone='zest'] a:focus-visible,
 .tour[data-tone='zest'] button:focus-visible,
 .tour[data-tone='blossom'] a:focus-visible,
 .tour[data-tone='blossom'] button:focus-visible {
-  outline-color: var(--teal-dark);
+  outline-color: var(--sec-ink);
 }
 
 /* ================================================================ */
@@ -1267,7 +1267,7 @@
   gap: 5px;
   padding: 2px 9px;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--rosy) 12%, var(--cream));
+  background: color-mix(in srgb, var(--rosy) 12%, var(--surface));
   color: var(--rosy);
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   font-size: 11px;
@@ -1287,7 +1287,7 @@
   padding: 7px 11px;
   margin-bottom: 8px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+  background: color-mix(in srgb, var(--surface-2) 38%, var(--surface));
 }
 .shareText b {
   display: block;
@@ -1304,7 +1304,7 @@
   width: 38px;
   height: 22px;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--teal-dark) 22%, var(--cream));
+  background: color-mix(in srgb, var(--text) 22%, var(--surface));
 }
 .swOn {
   position: absolute;
@@ -1319,7 +1319,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--cream);
+  background: var(--surface);
   transform: translateX(16px);
 }
 
@@ -1329,7 +1329,7 @@
   margin-bottom: 8px;
   border-radius: 18px;
   overflow: hidden;
-  border: 3px solid var(--blossom);
+  border: 3px solid var(--line);
 }
 .trail {
   fill: none;
@@ -1356,8 +1356,8 @@
   top: 3px;
   padding: 1px 8px;
   border-radius: 99px;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   font-size: 9px;
   font-weight: 800;
 }
@@ -1402,7 +1402,7 @@
   gap: 7px;
   padding: 4px 8px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+  background: color-mix(in srgb, var(--surface-2) 38%, var(--surface));
 }
 .trip b {
   flex: 1;
@@ -1433,8 +1433,8 @@
   opacity: 1;
 }
 .stc0 {
-  background: var(--blossom);
-  color: var(--teal-dark);
+  background: var(--surface-2);
+  color: var(--text);
 }
 .stc1 {
   background: var(--zest);
@@ -1459,7 +1459,7 @@
   padding: 10px;
   margin-bottom: 8px;
   border-radius: 20px;
-  background: var(--blossom);
+  background: var(--surface-2);
 }
 .heartBadge {
   position: relative;
@@ -1471,7 +1471,7 @@
   height: 26px;
   margin: 0 -7px;
   border-radius: 50%;
-  border: 3px solid var(--blossom);
+  border: 3px solid var(--line);
   background: var(--rosy);
   color: var(--cream);
 }
@@ -1499,7 +1499,7 @@
 .cTabs span {
   padding: 4px 9px;
   border-radius: 99px;
-  border: 2px solid var(--blossom);
+  border: 2px solid var(--line);
   font-size: 10.5px;
   font-weight: 800;
   white-space: nowrap;
@@ -1534,7 +1534,7 @@
   height: 9px;
   border-radius: 99px;
   overflow: hidden;
-  background: color-mix(in srgb, var(--blossom) 55%, var(--cream));
+  background: color-mix(in srgb, var(--surface-2) 55%, var(--surface));
 }
 .progFill {
   display: block;
@@ -1559,7 +1559,7 @@
   gap: 9px;
   padding: 8px 10px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--blossom) 38%, var(--cream));
+  background: color-mix(in srgb, var(--surface-2) 38%, var(--surface));
 }
 .box {
   position: relative;
@@ -1574,7 +1574,7 @@
 }
 .boxOpen,
 .boxLater {
-  background: var(--cream);
+  background: var(--surface);
   border: 2px solid var(--teal);
 }
 .boxFill {
@@ -1614,9 +1614,9 @@
   height: 40px;
   padding: 2px 2px 8px;
   border-radius: 4px;
-  border: 2px solid var(--blossom);
-  background: var(--cream);
-  box-shadow: 0 2px 0 var(--blossom);
+  border: 2px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 2px 0 var(--line);
   transform: rotate(5deg);
 }
 .polaroid svg {
@@ -1672,7 +1672,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--cream);
+  background: var(--surface);
   color: var(--rosy);
 }
 .awPick {
@@ -1689,8 +1689,8 @@
   gap: 3px;
   padding: 9px 4px;
   border-radius: 18px;
-  border: 3px solid var(--blossom);
-  background: var(--cream);
+  border: 3px solid var(--line);
+  background: var(--surface);
   font-size: 12px;
 }
 .awCand b {
@@ -1699,7 +1699,7 @@
 }
 .awCandOn {
   border-color: var(--rosy);
-  background: color-mix(in srgb, var(--rosy) 12%, var(--cream));
+  background: color-mix(in srgb, var(--rosy) 12%, var(--surface));
 }
 .awTick {
   position: absolute;
@@ -1733,7 +1733,7 @@
   padding: 6px 16px;
   border: 3px solid var(--rosy);
   border-radius: 12px;
-  background: var(--cream);
+  background: var(--surface);
   color: var(--rosy);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-size: 18px;
@@ -1757,8 +1757,8 @@
   gap: 6px;
   padding: 4px 13px;
   border-radius: 99px;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-size: 14px;
 }
@@ -1810,7 +1810,7 @@
   height: 34px;
   margin-top: -14px;
   border-radius: 29px 29px 8px 8px;
-  background: var(--cream);
+  background: var(--surface);
 }
 .awSteps {
   position: relative;
@@ -1823,7 +1823,7 @@
   left: 50%;
   display: block;
   border-radius: 8px 8px 0 0;
-  background: var(--cream);
+  background: var(--surface);
   box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--rosy-dark) 45%, var(--cream));
 }
 .awSteps i:nth-child(1) {
@@ -1865,8 +1865,8 @@
   padding: 12px 10px 16px;
   border-radius: 18px;
   border: 4px solid var(--rosy);
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   box-shadow: 0 6px 0 var(--rosy-dark);
   transform: rotate(-2deg);
 }

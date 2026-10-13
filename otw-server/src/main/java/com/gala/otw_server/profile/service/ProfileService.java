@@ -1,32 +1,50 @@
 package com.gala.otw_server.profile.service;
 
-import com.gala.otw_server.common.DomainExceptions.InvalidRequestException;
 import com.gala.otw_server.common.PageResponse;
+import com.gala.otw_server.photo.dto.UploadSessionDto;
+import com.gala.otw_server.photo.service.DriveUploadSessionService;
+import com.gala.otw_server.photo.service.GalaDriveFolderService;
 import com.gala.otw_server.profile.dto.ProfileDto;
 import com.gala.otw_server.profile.dto.RoomMemberProfileDto;
+import com.gala.otw_server.profile.dto.StartProfilePhotoUploadRequest;
 import com.gala.otw_server.profile.entity.UserProfile;
 import com.gala.otw_server.profile.repository.UserProfileRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Clock;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class ProfileService {
 
-    /** The browser keeps the data URL under 60,000 chars; a little headroom for the prefix. */
-    static final int PHOTO_MAX_CHARS = 65_000;
-
-    private static final String[] PHOTO_PREFIXES = {
-            "data:image/webp;base64,", "data:image/jpeg;base64,", "data:image/png;base64,"
-    };
-
     private final UserProfileRepository profiles;
+    private final ProfilePhotoDriveService photoDrive;
+    private final DriveUploadSessionService uploads;
+    private final GalaDriveFolderService driveFiles;
+    private final Clock clock;
 
-    public ProfileService(UserProfileRepository profiles) {
+    @Autowired
+    public ProfileService(UserProfileRepository profiles,
+                          ProfilePhotoDriveService photoDrive,
+                          DriveUploadSessionService uploads,
+                          GalaDriveFolderService driveFiles) {
+        this(profiles, photoDrive, uploads, driveFiles, Clock.systemUTC());
+    }
+
+    ProfileService(UserProfileRepository profiles, ProfilePhotoDriveService photoDrive,
+                   DriveUploadSessionService uploads, GalaDriveFolderService driveFiles, Clock clock) {
         this.profiles = profiles;
+        this.photoDrive = photoDrive;
+        this.uploads = uploads;
+        this.driveFiles = driveFiles;
+        this.clock = clock;
     }
 
     @Transactional(readOnly = true)
@@ -49,39 +67,54 @@ public class ProfileService {
         return PageResponse.of(page, nextCursor, limit);
     }
 
+    /**
+     * A one-time Drive upload URL in the shared "Profile Photos" folder, for a file the server names
+     * after the caller. The browser sends the bytes straight to Google, then saves the returned id
+     * with {@code PUT /me/profile}.
+     */
+    public UploadSessionDto startPhotoUpload(UUID userId, StartProfilePhotoUploadRequest req, String origin) {
+        String folderId = photoDrive.ensureFolder();
+        String name = ProfilePhotoDriveService.fileName(userId, req.mimeType(), clock.millis());
+        return new UploadSessionDto(uploads.openSession(folderId, name, req.mimeType(), req.size(), origin));
+    }
+
+    /**
+     * Replaces the whole profile. A new photo id must be the caller's own upload in the profile folder;
+     * it is made viewable by link, and the previous photo is trashed once the row is saved.
+     */
     @Transactional
     public ProfileDto update(UUID userId, ProfileDto req) {
-        String photo = req.photo() == null || req.photo().isBlank() ? null : req.photo();
-        if (photo != null) validatePhoto(photo);
+        String photoId = req.photoDriveFileId() == null || req.photoDriveFileId().isBlank()
+                ? null : req.photoDriveFileId().trim();
 
         UserProfile p = profiles.findById(userId).orElseGet(() -> new UserProfile(userId));
+        String oldPhotoId = p.getPhotoDriveFileId();
+        boolean photoChanged = !Objects.equals(oldPhotoId, photoId);
+        if (photoChanged && photoId != null) {
+            photoDrive.checkOwnPhoto(photoId, userId);
+            driveFiles.makeLinkViewable(photoId);
+        }
+
         p.setNickname(req.nickname().trim());
         p.setStatus(req.status().trim());
         p.setColor(req.color());
-        p.setPhoto(photo);
-        return ProfileDto.from(profiles.save(p));
+        p.setPhotoDriveFileId(photoId);
+        ProfileDto saved = ProfileDto.from(profiles.save(p));
+
+        if (photoChanged && oldPhotoId != null) afterCommit(() -> driveFiles.trashFile(oldPhotoId));
+        return saved;
     }
 
-    private static void validatePhoto(String photo) {
-        if (photo.length() > PHOTO_MAX_CHARS) {
-            throw new InvalidRequestException("Profile photo is too large");
-        }
-        String prefix = null;
-        for (String candidate : PHOTO_PREFIXES) {
-            if (photo.startsWith(candidate)) {
-                prefix = candidate;
-                break;
-            }
-        }
-        if (prefix == null) {
-            throw new InvalidRequestException("Profile photo must be a webp, jpeg or png data URL");
-        }
-        // Base64 payload only: no markup or whitespace can ride along in a value other users may render.
-        for (int i = prefix.length(); i < photo.length(); i++) {
-            char c = photo.charAt(i);
-            boolean ok = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
-                    || c == '+' || c == '/' || c == '=';
-            if (!ok) throw new InvalidRequestException("Profile photo is not valid base64");
+    private static void afterCommit(Runnable action) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    action.run();
+                }
+            });
+        } else {
+            action.run();
         }
     }
 }

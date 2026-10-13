@@ -56,7 +56,8 @@ Back to [[00-Index]]
 |---|---|
 | GET | `/me/rooms?view=upcoming\|ongoing\|completed\|archived` or `?from=&to=` (≤62 days) · `/me/rooms/stats` · each item carries `roomCode` (8 chars, no `OTW-` prefix) so any device can route to `/gala/OTW-XXXX-XXXX` |
 | GET / PUT | `/me/notification-preferences` |
-| GET / PUT | `/me/profile` (nickname ≤20, status ≤40, color, photo data URL ≤65k chars; PUT replaces all) |
-| GET | `/rooms/{roomId}/members/profiles` (MEMBER; members' saved profile: userId, nickname, status, color, photo; cursor-paged ≤25; never-saved members absent) |
+| GET / PUT | `/me/profile` (nickname ≤20, status ≤40, color, photoDriveFileId: caller's own upload in the Drive profile folder; PUT replaces all, trashes the old photo) |
+| POST | `/me/profile/photo/uploads` (one-time Drive upload URL in the shared `OTW Profile Photos` folder; image/webp\|jpeg\|png ≤2 MB; V26, 2026-10-13) |
+| GET | `/rooms/{roomId}/members/profiles` (MEMBER; members' saved profile: userId, nickname, status, color, photoDriveFileId; cursor-paged ≤25; never-saved members absent) |
 | GET | `/me/notifications` · `/me/notifications/unread-count` |
 | PATCH / POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` |

@@ -9,14 +9,24 @@ import styles from '@/components/me/profile.module.css';
 import { useAccount } from '@/lib/auth/session';
 import type { Tone } from '@/lib/otw/data';
 import { burstEl, toast } from '@/lib/otw/feedback';
-import { NICKNAME_MAX, STATUS_MAX, TONES, saveProfile, syncProfile, useProfile, type Profile } from '@/lib/otw/profile';
+import {
+  NICKNAME_MAX,
+  STATUS_MAX,
+  TONES,
+  profilePhotoUrl,
+  saveProfile,
+  syncProfile,
+  uploadProfilePhoto,
+  useProfile,
+  type Profile,
+} from '@/lib/otw/profile';
 import { PhotoError, processPhoto } from '@/lib/otw/profile-photo';
 
 const TONE_LABEL: Record<Tone, string> = { rosy: 'Rosy', teal: 'Teal', zest: 'Zest', blossom: 'Blossom' };
 
 /**
  * Profile: photo, nickname, avatar colour and a one-line status, with a live preview beside the form. Saved to the
- * account (GET/PUT /me/profile) and cached on this device (lib/otw/profile.ts). Other members see the photo and colour
+ * account (GET/PUT /me/profile) and cached on this device (lib/otw/profile.ts); the photo goes to Google Drive on Save. Other members see the photo and colour
  * in their gala (GET /rooms/{id}/members/profiles, within about a minute); the gala nickname is changed in Gala Settings.
  */
 export default function ProfilePage() {
@@ -51,7 +61,10 @@ function ProfileEditor({ initial, accountName }: { initial: Profile | null; acco
   const [color, setColor] = useState<Tone>(initial?.color ?? 'rosy');
   // A colour is only saved once the person picked one (or already had one saved).
   const [colorPicked, setColorPicked] = useState(!!initial?.color);
-  const [photo, setPhoto] = useState<string | undefined>(initial?.photo);
+  // The saved photo's Drive id, and a newly picked photo (a data URL) that goes up to Drive on Save.
+  const [photoFileId, setPhotoFileId] = useState<string | undefined>(initial?.photoFileId);
+  const [newPhoto, setNewPhoto] = useState<string | undefined>();
+  const photo = newPhoto ?? profilePhotoUrl(photoFileId);
   const [error, setError] = useState('');
   const [working, setWorking] = useState(false);
   // Bumps on every save so the preview card pops.
@@ -66,7 +79,7 @@ function ProfileEditor({ initial, accountName }: { initial: Profile | null; acco
     setError('');
     setWorking(true);
     try {
-      setPhoto(await processPhoto(file));
+      setNewPhoto(await processPhoto(file));
     } catch (err) {
       setError(err instanceof PhotoError ? err.message : 'Hindi mabasa ‘yang photo. Try another one.');
     } finally {
@@ -76,9 +89,34 @@ function ProfileEditor({ initial, accountName }: { initial: Profile | null; acco
 
   const save = async (e: MouseEvent<HTMLButtonElement>) => {
     const btn = e.currentTarget;
-    const next: Profile = { nickname, status, color: colorPicked ? color : undefined, photo };
+    const base: Profile = { nickname, status, color: colorPicked ? color : undefined, photoFileId };
+    if (newPhoto) {
+      // A new photo is only usable once the account has it (the server makes the Drive file viewable), so upload
+      // and sync first, then keep it on this device.
+      setWorking(true);
+      try {
+        const fileId = await uploadProfilePhoto(newPhoto);
+        const next: Profile = { ...base, nickname: nickname.trim(), status: status.trim(), photoFileId: fileId };
+        if (!(await syncProfile(next))) {
+          toast("Couldn't save your new photo. Check your connection and try again.", 'err');
+          return;
+        }
+        setPhotoFileId(fileId);
+        setNewPhoto(undefined);
+        saveProfile(next);
+        burstEl(btn);
+        setPopKey((k) => k + 1);
+        toast('Profile saved.');
+      } catch (err) {
+        toast(err instanceof Error ? err.message : "That photo didn't upload. Try again.", 'err');
+      } finally {
+        setWorking(false);
+      }
+      return;
+    }
+    const next = base;
     if (!saveProfile(next)) {
-      toast("Couldn't save your profile on this device. Try a smaller photo.", 'err');
+      toast("Couldn't save your profile on this device.", 'err');
       return;
     }
     burstEl(btn);
@@ -120,7 +158,15 @@ function ProfileEditor({ initial, accountName }: { initial: Profile | null; acco
                 <Icon name="upload" size={16} /> {photo ? 'Change photo' : 'Upload a photo'}
               </Button>
               {photo && (
-                <Button variant="ghost" sm onClick={() => setPhoto(undefined)}>
+                <Button
+                  variant="ghost"
+                  sm
+                  disabled={working}
+                  onClick={() => {
+                    setNewPhoto(undefined);
+                    setPhotoFileId(undefined);
+                  }}
+                >
                   Remove photo
                 </Button>
               )}

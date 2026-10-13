@@ -162,11 +162,11 @@ export interface RoomMemberProfileDto {
   nickname: string;
   status: string;
   color: string | null;
-  /** A small square data URL, or null. */
-  photo: string | null;
+  /** Drive file id of the profile photo (link-viewable), or null. */
+  photoDriveFileId: string | null;
 }
 
-/** Everyone's saved profile (25 per page; photos are heavy so pages stay small, capped at 8 pages). */
+/** Everyone's saved profile (25 per page, capped at 8 pages). */
 export async function getRoomProfiles(roomId: string): Promise<RoomMemberProfileDto[]> {
   const all: RoomMemberProfileDto[] = [];
   let cursor: string | null = null;

@@ -1,12 +1,12 @@
 /**
- * Turns a photo from the device into a tiny square data URL that is safe to keep in localStorage:
- * centre-cropped to a square, downscaled to 256px, exported as WebP (JPEG where WebP isn't supported),
- * and squeezed until it is under MAX_CHARS. Nothing leaves the browser.
+ * Turns a photo from the device into a tiny square data URL: centre-cropped to a square, downscaled to
+ * 256px, exported as WebP (JPEG where WebP isn't supported), and squeezed until it is under MAX_CHARS.
+ * It is only a preview until Save, which uploads it to Google Drive (`uploadProfilePhoto` in profile.ts).
  */
 export const PHOTO_SIZE = 256;
 const FALLBACK_SIZE = 192;
 const MAX_INPUT_BYTES = 20 * 1024 * 1024;
-/** About 45 KB of image; localStorage allows about 5 MB for the whole site. */
+/** About 45 KB of image. */
 const MAX_CHARS = 60_000;
 const QUALITIES = [0.82, 0.7, 0.6, 0.5];
 /** --cream: transparent PNG corners must not turn black in a JPEG (a canvas can't read CSS variables). */

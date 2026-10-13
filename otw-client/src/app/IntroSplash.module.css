@@ -28,7 +28,7 @@
   bottom: 0;
   width: 50%;
   overflow: hidden;
-  background: var(--rosy);
+  background: var(--sec-rosy);
   will-change: transform;
 }
 .left {
@@ -78,7 +78,7 @@
   height: 34vmin;
   left: 6%;
   top: 8%;
-  background: var(--rosy-dark);
+  background: var(--sec-rosy-deep);
 }
 .b2 {
   width: 26vmin;

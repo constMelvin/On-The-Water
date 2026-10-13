@@ -39,6 +39,20 @@
   --map-block: var(--cream);
   --map-road: var(--cream);
   --tile-bg: #f8f4f0;             /* behind a map while its tiles load (the light style's land colour) */
+  /* Full-bleed section fills (bg-rosy, landing sections, flow pages). Light = the brand colour itself; dark = a deep
+     tint of it, so a page keeps its colour-per-section rhythm without glaring. Buttons, badges and chips keep the
+     brand colours in both themes. */
+  --sec-rosy: var(--rosy);
+  --sec-rosy-deep: var(--rosy-dark); /* gradient end on rosy sections */
+  --sec-zest: var(--zest);
+  --sec-teal: var(--teal);
+  --sec-blossom: var(--blossom);
+  --sec-tdark: var(--teal-dark);
+  --sec-ink: var(--teal-dark);    /* text on a zest / blossom section (bg-zest, bg-blossom) */
+  --sec-zest-ink: var(--zest-ink); /* the landing's inks on zest / blossom sections and cards */
+  --sec-zest-ink-soft: var(--zest-ink-soft);
+  --sec-blossom-ink: var(--blossom-ink);
+  --sec-blossom-ink-soft: var(--blossom-ink-soft);
   /* A custom property can hold a url(): its colour is --teal-dark (#1f6376). */
   --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f6376' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 
@@ -81,6 +95,17 @@
   --map-block: #34505c;
   --map-road: #43616f;
   --tile-bg: #1d3d48;
+  --sec-rosy: #3a1626;
+  --sec-rosy-deep: #2a0f1b;
+  --sec-zest: #2e2a0e;
+  --sec-teal: #0f2d36;
+  --sec-blossom: #2b1a26;
+  --sec-tdark: #0a1b21;
+  --sec-ink: #fff8f2;
+  --sec-zest-ink: #fff8f2;
+  --sec-zest-ink-soft: #ece3a6;
+  --sec-blossom-ink: #fff8f2;
+  --sec-blossom-ink-soft: #e6cfdc;
   --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff8f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
@@ -102,14 +127,24 @@
     --map-block: #34505c;
     --map-road: #43616f;
     --tile-bg: #1d3d48;
+    --sec-rosy: #3a1626;
+    --sec-rosy-deep: #2a0f1b;
+    --sec-zest: #2e2a0e;
+    --sec-teal: #0f2d36;
+    --sec-blossom: #2b1a26;
+    --sec-tdark: #0a1b21;
+    --sec-ink: #fff8f2;
+    --sec-zest-ink: #fff8f2;
+    --sec-zest-ink-soft: #ece3a6;
+    --sec-blossom-ink: #fff8f2;
+    --sec-blossom-ink-soft: #e6cfdc;
     --chev-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff8f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     color-scheme: dark;
   }
 }
 
 /* A "light island": inside this element every surface token is back to its light value, whatever the theme.
-   Used (via `composes: theme-light from global`) by the brand-coloured flow pages (Plan, Join, Enter code, Privacy
-   paper) whose cream cards and light inputs are part of their artwork. */
+   No page uses it since 2026-10-13 (every page follows dark mode); kept for one-off artwork that must stay light. */
 .theme-light {
   --bg-page: var(--cream);
   --surface: var(--cream);

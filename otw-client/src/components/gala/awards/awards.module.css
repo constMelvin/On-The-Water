@@ -78,8 +78,8 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 16px;
-  background: var(--blossom);
-  color: var(--teal-dark);
+  background: var(--surface-2);
+  color: var(--text);
   border-radius: 24px;
   padding: 12px 20px;
 }
@@ -97,6 +97,10 @@
 }
 .bar {
   min-width: 80px;
+}
+/* The track's usual --surface-2 is the status bar's own fill, so it uses the page colour to stay visible. */
+.status .bar {
+  background: var(--bg-page);
 }
 
 /* ---- results ---- */

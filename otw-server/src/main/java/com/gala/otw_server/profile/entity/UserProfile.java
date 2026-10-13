@@ -30,9 +30,9 @@ public class UserProfile {
     @Column(length = 10)
     private String color;
 
-    /** Browser-downscaled data URL (image/webp|jpeg|png), or null. */
-    @Column(columnDefinition = "text")
-    private String photo;
+    /** Google Drive file id of the photo in the shared "Profile Photos" folder, or null. */
+    @Column(name = "photo_drive_file_id", length = 200)
+    private String photoDriveFileId;
 
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;

@@ -278,6 +278,11 @@
 .sZest { background: var(--stripes), var(--zest); }
 .sBlossom { background: var(--stripes), var(--blossom); box-shadow: inset 0 0 0 2px var(--teal-dark); }
 .sTealDark { background: var(--stripes), var(--teal-dark); }
+/* Dark mode: a teal-dark swatch would vanish into the dark card, so it gets a light ring. */
+:global(:root[data-theme='dark']) .tealDark,
+:global(:root[data-theme='dark']) .sTealDark {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--text) 55%, transparent);
+}
 
 .ambagan {
   align-self: center;

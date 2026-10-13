@@ -35,7 +35,7 @@ export function Avatar({ name, tone, size = 36, online, className, photo, userId
       title={name}
     >
       {img ? (
-        // Plain <img>: a tiny data URL, nothing for next/image to optimise.
+        // Plain <img>: a small Drive thumbnail (or a data URL preview), nothing for next/image to optimise.
         <img
           src={img}
           alt=""

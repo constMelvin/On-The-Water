@@ -1,6 +1,5 @@
 /* Bubblegum Chaos design system tokens */
 .confirmPage {
-  composes: theme-light from global; /* brand-coloured flow page: stays light in dark mode */
   --rosy: #e0417c;
   --rosy-dark: #c22e64;
   --zest: #f8e140;
@@ -19,7 +18,7 @@
      next to the page's when the drifting background pokes out). */
   overflow: clip;
   box-sizing: border-box;
-  background-color: var(--rosy);
+  background-color: var(--sec-rosy); /* deep rosy in dark mode */
   color: var(--cream);
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   display: flex;
@@ -315,8 +314,8 @@
 
 /* Dashed ticket box */
 .ticketBox {
-  background-color: var(--cream);
-  border: 3px dashed var(--cream);
+  background-color: var(--surface);
+  border: 3px dashed var(--surface);
   border-radius: 26px;
   padding: 24px 22px;
   box-shadow: 0 7px 0 var(--rosy-dark);
@@ -330,7 +329,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--teal-dark);
+  color: var(--text);
   margin-bottom: 6px;
 }
 
@@ -394,7 +393,7 @@
 }
 
 .copyBtn:focus-visible {
-  outline: 3px solid var(--teal-dark);
+  outline: 3px solid var(--focus);
 }
 
 /* "Share Gala" button */
@@ -402,14 +401,14 @@
   flex: 1 1 140px;
   padding: 13px 20px;
   border-radius: 9999px;
-  background-color: var(--cream);
-  color: var(--teal-dark);
-  border: 3px solid var(--blossom);
+  background-color: var(--surface);
+  color: var(--text);
+  border: 3px solid var(--line);
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 5px 0 var(--blossom);
+  box-shadow: 0 5px 0 var(--line);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -421,17 +420,17 @@
 @media (hover: hover) {
   .shareBtn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 7px 0 var(--blossom);
+    box-shadow: 0 7px 0 var(--line);
   }
 }
 
 .shareBtn:active {
   transform: translateY(5px);
-  box-shadow: 0 1px 0 var(--blossom);
+  box-shadow: 0 1px 0 var(--line);
 }
 
 .shareBtn:focus-visible {
-  outline: 3px solid var(--teal-dark);
+  outline: 3px solid var(--focus);
 }
 
 .btnSvgIcon {
@@ -465,14 +464,14 @@
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   font-size: 13px;
   font-weight: 800;
-  color: var(--teal-dark);
+  color: var(--text);
   margin-top: 8px;
   margin-bottom: 0;
 }
 
 /* RIGHT COLUMN: Gala Password card */
 .passwordCard {
-  background-color: var(--cream);
+  background-color: var(--surface);
   border-radius: 26px;
   padding: 22px 24px;
   box-shadow: 0 7px 0 var(--rosy-dark);
@@ -496,7 +495,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background-color: var(--blossom);
+  background-color: var(--surface-2);
   color: var(--rosy);
   display: flex;
   align-items: center;
@@ -510,7 +509,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 .passwordActions {
@@ -523,9 +522,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid var(--blossom);
-  background: var(--cream);
-  color: var(--teal-dark);
+  border: 2px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -540,15 +539,15 @@
 }
 
 .iconActionBtn:focus-visible {
-  outline: 2px solid var(--teal-dark);
+  outline: 2px solid var(--focus);
 }
 
 .passwordDisplayBox {
   padding: 12px 18px;
   border-radius: 16px;
-  background-color: var(--blossom-tint);
-  border: 2px solid var(--blossom);
-  color: var(--teal-dark);
+  background-color: var(--field-bg);
+  border: 2px solid var(--line);
+  color: var(--text);
   font-family: var(--font-nunito), 'Nunito', sans-serif;
   font-size: 18px;
   font-weight: 800;

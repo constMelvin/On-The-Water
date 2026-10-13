@@ -41,7 +41,7 @@ export interface CertificateInput {
   /** e.g. "Oct 24-25, 2026" */
   date: string;
   tone: Tone;
-  /** A small data URL of the winner's photo, when they have one. */
+  /** The winner's profile photo URL, when they have one. */
   photo?: string;
 }
 
@@ -64,6 +64,9 @@ async function loadFonts() {
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    // A Drive profile photo is cross-origin: ask for CORS so drawing it doesn't taint the canvas (if Drive
+    // refuses, the load fails and the initial is drawn instead).
+    if (/^https?:/.test(src)) img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('image'));
     img.src = src;

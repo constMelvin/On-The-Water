@@ -4,21 +4,29 @@
   --tone: var(--rosy);
   --on: var(--cream);
   --tsh: var(--rosy-dark);
+  --stage: var(--sec-rosy);
+  --stage-on: var(--cream);
 }
 .t_teal {
   --tone: var(--teal);
   --on: var(--cream);
   --tsh: var(--teal-dark);
+  --stage: var(--sec-teal);
+  --stage-on: var(--cream);
 }
 .t_zest {
   --tone: var(--zest);
   --on: var(--teal-dark);
   --tsh: var(--zest-dark);
+  --stage: var(--sec-zest);
+  --stage-on: var(--sec-ink);
 }
 .t_blossom {
   --tone: var(--blossom);
   --on: var(--teal-dark);
   --tsh: var(--rosy);
+  --stage: var(--sec-blossom);
+  --stage-on: var(--sec-ink);
 }
 
 .stage {
@@ -29,12 +37,13 @@
   align-items: center;
   justify-content: center;
   padding: 72px 20px 32px;
-  background: var(--tone);
-  color: var(--on);
+  /* --stage is the brand colour in light, a deep tint in dark; --tone stays the brand colour for icons */
+  background: var(--stage);
+  color: var(--stage-on);
   overflow-y: auto;
 }
 .summaryBg {
-  background: var(--teal-dark);
+  background: var(--sec-tdark);
   color: var(--cream);
 }
 
@@ -57,7 +66,7 @@
 }
 .t_zest.stage :focus-visible,
 .t_blossom.stage :focus-visible {
-  outline-color: var(--teal-dark);
+  outline-color: var(--sec-ink);
 }
 
 .center {
@@ -208,8 +217,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   border-radius: 24px;
   padding: 10px 16px;
   box-shadow: 0 4px 0 var(--tsh);
@@ -245,8 +254,8 @@
   align-items: center;
   gap: 6px;
   background: transparent;
-  color: var(--teal-dark);
-  border: 3px solid var(--teal-dark);
+  color: var(--text);
+  border: 3px solid var(--text);
   border-radius: 99px;
   padding: 4px 12px;
   font-weight: 800;

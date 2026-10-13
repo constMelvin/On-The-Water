@@ -14,11 +14,10 @@
 }
 
 .card {
-  composes: theme-light from global; /* a cream "paper" card in both themes */
   width: 100%;
   max-width: 760px;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   border-radius: 28px 28px 32px 32px / 32px 32px 28px 28px;
   box-shadow: 0 8px 0 var(--rosy-dark);
   padding: 36px clamp(20px, 5vw, 48px) 40px;
@@ -57,7 +56,7 @@
 
 .updated {
   font-weight: 800;
-  color: var(--rosy-dark);
+  color: var(--rosy-ink);
   font-size: 14px;
 }
 
@@ -66,13 +65,13 @@
   flex-direction: column;
   gap: 8px;
   padding-top: 20px;
-  border-top: 3px dashed var(--blossom);
+  border-top: 3px dashed var(--line);
 }
 
 .card h2 {
   font-family: var(--fd);
   font-size: 24px;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 .card ul {
@@ -92,7 +91,7 @@
 }
 
 .card a {
-  color: var(--rosy-dark);
+  color: var(--rosy-ink);
   font-weight: 800;
   text-decoration: underline;
   text-underline-offset: 3px;

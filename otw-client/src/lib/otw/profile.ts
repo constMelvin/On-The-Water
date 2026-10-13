@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * The person's own profile (photo, nickname, avatar colour, one-line status), kept on THIS device only,
+ * The person's own profile (photo, nickname, avatar colour, one-line status), cached on THIS device
  * per account: localStorage key `otw:profile:<supabase user id>`, so another account on the same device
- * never sees this one's photo. Reads and writes never throw; blocked or full storage just means the
- * profile isn't remembered.
+ * never sees this one's profile. Reads and writes never throw; blocked or full storage just means the
+ * profile isn't remembered. The photo itself lives in Google Drive (the shared "OTW Profile Photos"
+ * folder); only its Drive file id is kept here and on the server (`uploadProfilePhoto`).
  *
  * The backend (`GET/PUT /me/profile`) is the source of truth so the profile follows the account to other
  * devices; localStorage is the instant, offline-safe cache. On sign-in the server copy is pulled once (an empty
@@ -15,6 +16,7 @@
 import { useSyncExternalStore } from 'react';
 import { api } from '@/lib/api/client';
 import { supabase } from '@/lib/api/supabase';
+import { driveThumb, uploadToDrive } from './drive';
 import type { Tone } from './data';
 
 export const NICKNAME_MAX = 20;
@@ -27,9 +29,15 @@ export interface Profile {
   color?: Tone;
   /** One line ("Always late pero sumusipot"). */
   status: string;
-  /** A small square JPEG/WebP data URL (see profile-photo.ts). */
-  photo?: string;
+  /** Drive file id of the photo in the profile folder (uploaded with `uploadProfilePhoto`). */
+  photoFileId?: string;
 }
+
+const DRIVE_ID = /^[A-Za-z0-9_-]{1,200}$/;
+const driveId = (v: unknown) => (typeof v === 'string' && DRIVE_ID.test(v) ? v : undefined);
+
+/** Thumbnail URL for a profile photo's Drive file id (undefined when there is none). */
+export const profilePhotoUrl = (fileId?: string | null) => (fileId ? driveThumb(fileId, 256) : undefined);
 
 interface Snapshot {
   /** undefined until the session has been read, null when signed out. */
@@ -88,7 +96,7 @@ function parse(raw: string): Profile | null {
       nickname: typeof v.nickname === 'string' ? v.nickname.slice(0, NICKNAME_MAX) : '',
       color: TONES.includes(v.color as Tone) ? v.color : undefined,
       status: typeof v.status === 'string' ? v.status.slice(0, STATUS_MAX) : '',
-      photo: typeof v.photo === 'string' && v.photo.startsWith('data:image/') ? v.photo : undefined,
+      photoFileId: driveId(v.photoFileId),
     };
   } catch {
     return null;
@@ -122,7 +130,7 @@ interface ServerProfile {
   nickname: string;
   status: string;
   color: string | null;
-  photo: string | null;
+  photoDriveFileId: string | null;
 }
 
 const pulled = new Set<string>();
@@ -130,7 +138,7 @@ const pulled = new Set<string>();
 const touched = new Set<string>();
 
 function toServer(p: Profile): ServerProfile {
-  return { nickname: p.nickname, status: p.status, color: p.color ?? null, photo: p.photo ?? null };
+  return { nickname: p.nickname, status: p.status, color: p.color ?? null, photoDriveFileId: p.photoFileId ?? null };
 }
 
 function writeLocal(id: string, p: Profile): boolean {
@@ -149,13 +157,13 @@ async function pull(id: string) {
   try {
     const s = await api<ServerProfile>('/me/profile');
     if (authId !== id || touched.has(id)) return;
-    const empty = !s.nickname && !s.status && !s.color && !s.photo;
+    const empty = !s.nickname && !s.status && !s.color && !s.photoDriveFileId;
     if (!empty) {
       const next: Profile = {
         nickname: s.nickname.slice(0, NICKNAME_MAX),
         status: s.status.slice(0, STATUS_MAX),
         color: TONES.includes(s.color as Tone) ? (s.color as Tone) : undefined,
-        photo: s.photo && s.photo.startsWith('data:image/') ? s.photo : undefined,
+        photoFileId: driveId(s.photoDriveFileId),
       };
       if (writeLocal(id, next)) notify();
       return;
@@ -179,6 +187,27 @@ export async function syncProfile(p: Profile): Promise<boolean> {
   }
 }
 
+/**
+ * Uploads a processed profile photo (see profile-photo.ts) straight to the shared Drive profile folder through a
+ * one-time link from `POST /me/profile/photo/uploads`, and resolves to its Drive file id. Saving that id with
+ * `syncProfile` is what makes it the account's photo (the server checks it is this account's upload).
+ */
+export async function uploadProfilePhoto(dataUrl: string): Promise<string> {
+  // Decoded by hand: fetch(dataUrl) is blocked by the CSP's connect-src (no `data:`), and it should stay that way.
+  const comma = dataUrl.indexOf(',');
+  const type = dataUrl.slice(5, dataUrl.indexOf(';'));
+  const bin = atob(dataUrl.slice(comma + 1));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ext = type === 'image/png' ? 'png' : type === 'image/jpeg' ? 'jpg' : 'webp';
+  const file = new File([bytes], `profile.${ext}`, { type });
+  return uploadToDrive(file, ({ mimeType, size }) =>
+    api<{ uploadUrl: string }>('/me/profile/photo/uploads', { method: 'POST', body: { mimeType, size } }).then(
+      (r) => r.uploadUrl
+    )
+  );
+}
+
 /** Saves the profile for the signed-in account on this device. Returns false when there is no account or storage refused. */
 export function saveProfile(p: Profile): boolean {
   const id = authId;
@@ -187,7 +216,7 @@ export function saveProfile(p: Profile): boolean {
     nickname: p.nickname.trim().slice(0, NICKNAME_MAX),
     color: p.color,
     status: p.status.trim().slice(0, STATUS_MAX),
-    photo: p.photo,
+    photoFileId: p.photoFileId,
   };
   touched.add(id);
   if (!writeLocal(id, clean)) return false;
@@ -203,6 +232,7 @@ export function useProfile(): Snapshot {
 /* ---- other members (GET /rooms/{id}/members/profiles, fed by the gala store) ---- */
 
 export interface MemberLook {
+  /** Drive thumbnail URL of the profile photo. */
   photo?: string;
   tone?: Tone;
   status?: string;
@@ -211,12 +241,12 @@ export interface MemberLook {
 const NO_LOOKS: ReadonlyMap<string, MemberLook> = new Map();
 let looks: ReadonlyMap<string, MemberLook> = NO_LOOKS;
 
-/** Replaces the known members' looks (an empty list or leaving the gala clears them). Photos are validated like my own. */
+/** Replaces the known members' looks (an empty list or leaving the gala clears them). Photo ids are validated like my own. */
 export function setMemberLooks(list: ServerProfileWithId[]) {
   const next = new Map<string, MemberLook>();
   for (const p of list) {
     next.set(p.userId, {
-      photo: p.photo && p.photo.startsWith('data:image/') ? p.photo : undefined,
+      photo: profilePhotoUrl(driveId(p.photoDriveFileId)),
       tone: TONES.includes(p.color as Tone) ? (p.color as Tone) : undefined,
       status: p.status || undefined,
     });
@@ -234,7 +264,7 @@ export function lookOf(userId?: string | null): MemberLook | null {
   if (!userId) return null;
   const snap = getSnapshot();
   if (snap.id && snap.id === userId && snap.profile) {
-    return { photo: snap.profile.photo, tone: snap.profile.color, status: snap.profile.status || undefined };
+    return { photo: profilePhotoUrl(snap.profile.photoFileId), tone: snap.profile.color, status: snap.profile.status || undefined };
   }
   return looks.get(userId) ?? null;
 }
@@ -248,7 +278,7 @@ export function useLook(userId?: string | null): MemberLook | null {
   const all = useSyncExternalStore(subscribe, getLooks, () => NO_LOOKS);
   if (!userId) return null;
   if (snap.id && snap.id === userId && snap.profile) {
-    return { photo: snap.profile.photo, tone: snap.profile.color, status: snap.profile.status || undefined };
+    return { photo: profilePhotoUrl(snap.profile.photoFileId), tone: snap.profile.color, status: snap.profile.status || undefined };
   }
   return all.get(userId) ?? null;
 }

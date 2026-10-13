@@ -16,11 +16,11 @@
   position: relative;
   margin: 0;
   font-family: var(--font-nunito), 'Nunito', sans-serif;
-  background: var(--cream); /* the landing page is brand-coloured art: it looks the same in light and dark */
+  background: var(--bg-page); /* sections below use the --sec-* fills: brand colours in light, deep tints in dark */
   /* clip, not hidden: overflow-x: hidden makes this box its own vertical scroller (a 2nd scrollbar
      next to the page's). */
   overflow-x: clip;
-  color: var(--blossom-ink);
+  color: var(--sec-blossom-ink);
   width: 100%;
 }
 
@@ -481,7 +481,7 @@
 
 /* ---- HERO : full rosy bleed ---- */
 .hero {
-  background: linear-gradient(160deg, var(--rosy) 0%, var(--rosy-dark) 100%);
+  background: linear-gradient(160deg, var(--sec-rosy) 0%, var(--sec-rosy-deep) 100%);
   padding: 92px 28px 110px;
 }
 
@@ -718,7 +718,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--cream);
+  background: var(--field-bg);
   border-radius: 999px;
   padding: 6px 8px 6px 20px;
   box-shadow: 0 5px 0 var(--teal-dark);
@@ -734,7 +734,7 @@
   font-weight: 800;
   font-size: 15px;
   letter-spacing: 0.08em;
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 .reenterInput::placeholder {
@@ -818,7 +818,7 @@
 
 /* ---- HOW IT WORKS : full zest bleed ---- */
 .how {
-  background: var(--zest);
+  background: var(--sec-zest);
   padding: 80px 28px;
 }
 
@@ -830,11 +830,11 @@
 
 .how h2 {
   font-size: 38px;
-  color: var(--zest-ink);
+  color: var(--sec-zest-ink);
 }
 
 .howSub {
-  color: var(--zest-ink-soft);
+  color: var(--sec-zest-ink-soft);
   font-weight: 800;
   font-size: 15px;
   margin: 10px 0 46px;
@@ -845,8 +845,8 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   font-weight: 800;
   font-size: 13.5px;
   padding: 9px 20px 9px 14px;
@@ -1016,8 +1016,8 @@
   height: 56px;
   border-radius: 58% 42% 55% 45% / 45% 55% 45% 55%;
   border: 3px dashed rgba(90, 77, 16, 0.4);
-  background: var(--cream);
-  color: var(--zest-ink-soft);
+  background: var(--surface);
+  color: var(--sec-zest-ink-soft);
   font-family: var(--font-fredoka), 'Fredoka', sans-serif;
   font-weight: 700;
   font-size: 21px;
@@ -1083,7 +1083,7 @@
   align-items: center;
   gap: 14px;
   text-align: left;
-  background: var(--cream);
+  background: var(--surface);
   border-radius: 30px 30px 34px 34px / 36px 36px 30px 30px;
   padding: 18px 22px;
   box-shadow: 0 8px 0 var(--zest-dark);
@@ -1109,7 +1109,7 @@
   display: grid;
   place-items: center;
   border-radius: 50% 50% 40% 60% / 60% 40% 60% 40%;
-  background: var(--blossom);
+  background: var(--surface-2);
   color: var(--rosy-dark);
   transition: background 0.3s ease, color 0.3s ease;
 }
@@ -1130,14 +1130,14 @@
 
 .stopCard h3 {
   font-size: 19px;
-  color: var(--teal-dark);
+  color: var(--text);
   margin: 2px 0 4px;
 }
 
 .stopCard p {
   font-size: 14px;
   line-height: 1.5;
-  color: var(--blossom-ink);
+  color: var(--sec-blossom-ink);
   margin: 0;
   font-weight: 700;
 }
@@ -1210,7 +1210,7 @@
 
 /* ---- FEATURES : full teal bleed, blossom blob cards ---- */
 .features {
-  background: var(--teal);
+  background: var(--sec-teal);
   padding: 80px 28px;
 }
 
@@ -1248,13 +1248,13 @@
 }
 
 .forkNow {
-  background: var(--cream);
+  background: var(--surface);
 }
 
 .forkLater {
   --accent: var(--teal);
   --accent-dark: var(--teal-dark);
-  background: var(--blossom);
+  background: var(--surface-2);
 }
 
 /* dashed inner outline hints "optional" */
@@ -1293,18 +1293,18 @@
 .forkCard h3 {
   font-size: 26px;
   line-height: 1.15;
-  color: var(--blossom-ink);
+  color: var(--sec-blossom-ink);
   margin: 16px 0 8px;
 }
 
 .forkLater h3 {
-  color: var(--teal-dark);
+  color: var(--text);
 }
 
 .forkSub {
   font-size: 14.5px;
   line-height: 1.55;
-  color: var(--blossom-ink-soft);
+  color: var(--sec-blossom-ink-soft);
   font-weight: 700;
   margin: 0;
 }
@@ -1321,12 +1321,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--field-bg) 60%, transparent);
   border-radius: 999px;
   padding: 9px 18px 9px 9px;
   font-size: 14.5px;
   font-weight: 800;
-  color: var(--blossom-ink);
+  color: var(--sec-blossom-ink);
   transition: transform 0.3s var(--bounce), background 0.2s ease;
 }
 
@@ -1388,18 +1388,18 @@
 
 /* ---- CTA BANNER : blossom bleed ---- */
 .ctaBanner {
-  background: var(--blossom);
+  background: var(--sec-blossom);
   padding: 80px 28px;
   text-align: center;
 }
 
 .ctaBanner h2 {
   font-size: 38px;
-  color: var(--rosy-dark);
+  color: var(--rosy-ink);
 }
 
 .ctaBanner p {
-  color: var(--blossom-ink-soft);
+  color: var(--sec-blossom-ink-soft);
   font-size: 16px;
   margin: 14px 0 30px;
   font-weight: 800;
@@ -1437,7 +1437,7 @@
 
 /* ---- footer: full-color logo showcase ---- */
 .footer {
-  background: var(--teal-dark);
+  background: var(--sec-tdark);
   padding: 44px 28px 50px;
   text-align: center;
 }
@@ -1547,4 +1547,14 @@
 .stopCard,
 .stopCard > div {
   min-width: 0;
+}
+
+/* Dark mode: the fork list's white hover and pale blossom rows would glare on the dark cards. */
+@media (hover: hover) {
+  :global(:root[data-theme='dark']) .forkList li:hover {
+    background: var(--surface);
+  }
+}
+:global(:root[data-theme='dark']) .forkNow .forkList li {
+  background: var(--surface-2);
 }

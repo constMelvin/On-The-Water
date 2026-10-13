@@ -17,7 +17,7 @@
   max-width: 540px;
   margin: 0 auto;
   font-family: var(--font-nunito), 'Nunito', sans-serif;
-  color: var(--blossom-ink);
+  color: var(--sec-blossom-ink);
 }
 
 .root * {
@@ -90,8 +90,8 @@
 }
 
 .cardWithout {
-  --edge: var(--blossom);
-  box-shadow: 0 10px 0 var(--blossom);
+  --edge: var(--surface-2);
+  box-shadow: 0 10px 0 var(--line);
 }
 
 .cardWith {
@@ -195,7 +195,7 @@
 }
 
 .cardWithout .head {
-  color: var(--rosy-dark);
+  color: var(--rosy-ink);
 }
 
 .cardWith .head {
@@ -345,8 +345,8 @@
 }
 
 .bubblePlanner {
-  background: var(--blossom);
-  color: var(--blossom-ink);
+  background: var(--surface-2);
+  color: var(--sec-blossom-ink);
   border-bottom-left-radius: 6px;
 }
 
@@ -424,7 +424,7 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  background: var(--cream);
+  background: var(--field-bg);
   border: 2px solid var(--teal);
   border-radius: 19px 19px 19px 6px;
   padding: 8px 15px 8px 8px;
@@ -443,7 +443,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--blossom);
+  background: var(--surface-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -453,7 +453,7 @@
 .linkUrl {
   font-size: 16px;
   font-weight: 800;
-  color: var(--teal-dark);
+  color: var(--text);
   text-decoration: underline;
   text-underline-offset: 3px;
   word-break: break-all;
@@ -517,4 +517,8 @@
     animation: none !important;
     transition: none !important;
   }
+}
+/* Dark mode: the white chat cards become dark surfaces. */
+:global(:root[data-theme='dark']) .card {
+  background: var(--surface);
 }

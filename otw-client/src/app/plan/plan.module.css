@@ -1,6 +1,5 @@
 /* Fast-Track /plan: one create screen + one celebration screen (prototype: otw-fasttrack-plan.jsx). */
 .page {
-  composes: theme-light from global; /* brand-coloured flow page: stays light in dark mode */
   --rosy: #e0417c;
   --rosy-dark: #c22e64;
   --zest: #f8e140;
@@ -11,7 +10,7 @@
   --cream: #fff8f2;
 
   min-height: 100vh;
-  background: var(--rosy);
+  background: var(--sec-rosy); /* deep rosy in dark mode */
   color: var(--cream);
   font-family: var(--font-nunito), 'Nunito', system-ui, sans-serif;
   font-weight: 700;
@@ -135,16 +134,16 @@
   font-family: inherit;
   font-weight: 700;
   font-size: 22px;
-  color: var(--teal-dark);
-  background: var(--cream);
-  border: 3px solid var(--cream);
+  color: var(--text);
+  background: var(--field-bg);
+  border: 3px solid var(--field-bg);
   border-radius: 22px;
   padding: 16px 20px;
   box-shadow: 0 6px 0 var(--rosy-dark);
 }
 
 .input::placeholder {
-  color: var(--teal-dark);
+  color: var(--text);
   opacity: 0.45;
 }
 
@@ -159,8 +158,8 @@
 .error {
   margin: -8px 0 0;
   font-size: 14.5px;
-  background: var(--cream);
-  color: var(--rosy-dark);
+  background: var(--surface);
+  color: var(--rosy-ink);
   border-radius: 999px;
   padding: 6px 14px;
   align-self: flex-start;
@@ -176,9 +175,9 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: var(--cream);
-  color: var(--teal-dark);
-  border: 3px solid var(--blossom);
+  background: var(--surface);
+  color: var(--text);
+  border: 3px solid var(--line);
   border-radius: 999px;
   padding: 8px 15px;
   font-weight: 800;
@@ -328,8 +327,8 @@
 
 .ticket {
   width: 100%;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   border: 3px dashed var(--rosy);
   border-radius: 26px;
   padding: 18px 22px;
@@ -365,8 +364,8 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--blossom);
-  color: var(--teal-dark);
+  background: var(--surface-2);
+  color: var(--text);
   display: grid;
   place-items: center;
   box-shadow: 0 4px 0 var(--rosy);
@@ -407,8 +406,8 @@
 
 .message {
   width: 100%;
-  background: var(--blossom);
-  color: var(--teal-dark);
+  background: var(--surface-2);
+  color: var(--text);
   border-radius: 22px;
   padding: 14px 16px;
   text-align: left;
@@ -422,9 +421,9 @@
   font-size: 20px;
   padding: 16px 28px;
   border-radius: 999px;
-  background: var(--cream);
-  color: var(--teal-dark);
-  box-shadow: 0 7px 0 var(--blossom);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 7px 0 var(--line);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -473,7 +472,7 @@
 @keyframes fill {
   0% {
     transform: scale(0.97);
-    background: var(--blossom);
+    background: var(--surface-2);
   }
   100% {
     transform: scale(1);
@@ -533,8 +532,8 @@
   border: 0;
   border-radius: 22px;
   padding: 0 18px;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   font-family: inherit;
   font-weight: 800;
   font-size: 15px;

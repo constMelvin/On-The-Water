@@ -1,6 +1,5 @@
 /* Everything is centered: the page content sits in the middle, horizontally and vertically. */
 .page {
-  composes: theme-light from global; /* brand-coloured page (bg-blossom): its fields stay light in dark mode */
   position: relative;
   min-height: 100dvh;
   padding: 88px var(--pad) 40px;
@@ -31,7 +30,7 @@
   display: inline-flex;
   gap: 4px;
   padding: 5px;
-  background: var(--cream);
+  background: var(--surface);
   border-radius: 999px;
   user-select: none;
 }
@@ -47,12 +46,12 @@
   font-weight: 800;
   font-size: 15px;
   white-space: nowrap;
-  color: var(--teal-dark);
+  color: var(--text);
   opacity: 0.55;
   transition: background-color 0.25s ease, color 0.25s ease, opacity 0.25s ease;
 }
 .tabs button:focus-visible {
-  outline: 3px solid var(--teal-dark);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 .tabs button[data-on='true'] {
@@ -86,8 +85,8 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   border-radius: 18px;
   padding: 10px 14px;
   font-weight: 700;
@@ -119,10 +118,9 @@
 
 /* ---- planner card: paper, spiral rings, ruled lines ---- */
 .planner {
-  composes: theme-light from global; /* a cream paper planner in both themes */
   position: relative;
-  background: var(--cream);
-  color: var(--teal-dark);
+  background: var(--surface);
+  color: var(--text);
   border-radius: 28px 28px 28px 14px;
   padding: 34px 22px 20px;
   box-shadow: 0 6px 0 var(--rosy-dark);
@@ -152,7 +150,7 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 14px;
-  border-bottom: 3px solid var(--blossom);
+  border-bottom: 3px solid var(--line);
 }
 
 .plannerHead b {
@@ -190,7 +188,7 @@
   align-items: center;
   gap: 12px;
   min-height: 46px;
-  border-bottom: 2px solid var(--blossom);
+  border-bottom: 2px solid var(--line);
   font-weight: 800;
 }
 
@@ -242,7 +240,7 @@
 
 @keyframes tickFill {
   from {
-    background: var(--cream);
+    background: var(--surface);
     color: transparent;
   }
   to {
@@ -295,7 +293,7 @@
   place-items: center;
   width: 96px;
   height: 96px;
-  background: var(--cream);
+  background: var(--surface);
   color: var(--rosy);
   border-radius: 46% 54% 38% 62% / 50% 42% 58% 50%;
   box-shadow: 0 6px 0 var(--rosy-dark);
@@ -303,7 +301,7 @@
 }
 
 .sentTo {
-  color: var(--rosy-dark);
+  color: var(--rosy-ink);
   overflow-wrap: anywhere;
 }
 

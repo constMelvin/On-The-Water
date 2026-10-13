@@ -98,18 +98,19 @@
   }
 
   /* ---- section + card fills ---- */
-  .bg-rosy { background: var(--rosy); color: var(--cream); }
-  .bg-zest { background: var(--zest); color: var(--teal-dark); }
-  .bg-teal { background: var(--teal); color: var(--cream); }
-  .bg-blossom { background: var(--blossom); color: var(--teal-dark); }
-  .bg-tdark { background: var(--teal-dark); color: var(--cream); }
+  /* Section fills turn into deep tints in dark mode (tokens.css --sec-*). */
+  .bg-rosy { background: var(--sec-rosy); color: var(--cream); }
+  .bg-zest { background: var(--sec-zest); color: var(--sec-ink); }
+  .bg-teal { background: var(--sec-teal); color: var(--cream); }
+  .bg-blossom { background: var(--sec-blossom); color: var(--sec-ink); }
+  .bg-tdark { background: var(--sec-tdark); color: var(--cream); }
   .bg-cream { background: var(--bg-page); }
 
   .c-rosy { background: var(--rosy); color: var(--cream); --sh: var(--rosy-dark); }
   .c-zest { background: var(--zest); color: var(--teal-dark); --sh: var(--zest-dark); }
   .c-teal { background: var(--teal); color: var(--cream); --sh: var(--teal-dark); }
   .c-blossom { background: var(--blossom); color: var(--teal-dark); --sh: var(--rosy); }
-  .c-cream { background: var(--cream); color: var(--teal-dark); --sh: var(--line); }
+  .c-cream { background: var(--surface); color: var(--text); --sh: var(--line); }
 
   /* ---- buttons ---- */
   .btn {
@@ -139,7 +140,7 @@
   .btn:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--sh); }
   .btn.zest { --bg: var(--zest); --sh: var(--zest-dark); --fg: var(--teal-dark); }
   .btn.teal { --bg: var(--teal); --sh: var(--teal-dark); }
-  .btn.cream { --bg: var(--cream); --sh: var(--blossom); --fg: var(--teal-dark); }
+  .btn.cream { --bg: var(--surface); --sh: var(--line); --fg: var(--text); } /* same as before in light; a dark pill in dark */
   .btn.ghost {
     --bg: transparent;
     --fg: currentColor;
