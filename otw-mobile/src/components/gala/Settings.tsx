@@ -60,7 +60,7 @@ export function Settings() {
   const leaveTo = (msg: string) => {
     void qc.invalidateQueries({ queryKey: ['me'] });
     toast(msg);
-    router.replace('/');
+    router.replace('/(tabs)');
   };
 
   const sheets = (

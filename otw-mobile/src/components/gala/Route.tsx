@@ -3,6 +3,7 @@ import { router, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
+import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { Icon, type IconName } from '@/components/Icon';
 import { RouteMap, type Landmark, type MapStop } from '@/components/maps';
 import { Empty, StateGate } from '@/components/States';
@@ -77,6 +78,7 @@ export function Route() {
   const area = [...areas.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? gala.dest;
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<ItineraryItemVM | null>(null);
   const editing = stops.find((it) => it.id === editingId) ?? null;
   const multiDay = (gala.days ?? 1) > 1;
 
@@ -106,6 +108,7 @@ export function Route() {
 
   const onDelete = (it: ItineraryItemVM) => {
     if (!roomId) return;
+    setDeleting(null);
     removeFrom(qc, key, it.id);
     deleteStop(roomId, it.id)
       .then(() => {
@@ -264,7 +267,7 @@ export function Route() {
                           {i > 0 ? <IconButton icon="chevu" label={`Move ${it.title} up`} onPress={() => move(i, -1)} /> : null}
                           {i < stops.length - 1 ? <IconButton icon="chevd" label={`Move ${it.title} down`} onPress={() => move(i, 1)} /> : null}
                           {canEditStop(it) ? <IconButton icon="edit" label={`Edit ${it.title}`} onPress={() => setEditingId(it.id)} /> : null}
-                          <IconButton icon="trash" label={`Remove ${it.title}`} onPress={() => onDelete(it)} />
+                          <IconButton icon="trash" label={`Remove ${it.title}`} onPress={() => setDeleting(it)} />
                         </View>
                       ) : null}
                     </Card>
@@ -296,6 +299,15 @@ export function Route() {
           landmarks={landmarksFor(editing.id)}
           onAdd={(input, pin) => onSave(editing, input, pin)}
           onClose={() => setEditingId(null)}
+        />
+      ) : null}
+      {deleting ? (
+        <ConfirmSheet
+          title="Delete this stop?"
+          body={`“${deleting.title}” will be removed from the plan for everyone.`}
+          confirm="Delete stop"
+          onClose={() => setDeleting(null)}
+          onConfirm={() => onDelete(deleting)}
         />
       ) : null}
     </GalaPage>

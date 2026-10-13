@@ -1,10 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import type { CameraRef } from '@maplibre/maplibre-react-native';
 import { Avatar, TONE_COLORS } from '@/components/Avatar';
 import { Icon, type IconName } from '@/components/Icon';
-import { Pin, regionFor } from '@/components/maps';
+import { MapMarker, OtwMap, Pin, flyTo as flyCamera, viewFor } from '@/components/maps';
 import { Sheet } from '@/components/Sheet';
 import { ErrorState, Skeleton } from '@/components/States';
 import { Button, Card, IconButton, PageHead, Tag, type TagVariant } from '@/components/ui';
@@ -50,7 +50,7 @@ function ago(iso: string): string {
 
 export function Location() {
   const { roomId, room, role, memberRows, myUserId, toneOf, members, phase, setViewState } = useGala();
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const qc = useQueryClient();
   const q = useLocations();
   const state = useTabState(q);
@@ -58,7 +58,7 @@ export function Location() {
   const [asking, setAsking] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [statusOverride, setStatusOverride] = useState<TravelStatus | null>(null);
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<CameraRef>(null);
 
   const locations = useMemo(() => q.data ?? [], [q.data]);
   const byUser = new Map(locations.map((l) => [l.userId, l]));
@@ -67,11 +67,7 @@ export function Location() {
 
   const initial = useMemo(
     () =>
-      regionFor([
-        ...locations.map((l) => ({ latitude: l.lat, longitude: l.lng })),
-        ...(destination ? [{ latitude: destination.lat, longitude: destination.lng }] : []),
-        ...(meeting ? [{ latitude: meeting.lat, longitude: meeting.lng }] : []),
-      ]),
+      viewFor([...locations, ...(destination ? [destination] : []), ...(meeting ? [meeting] : [])]),
     // Starting view only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [q.isSuccess],
@@ -80,7 +76,7 @@ export function Location() {
   const sel = selected ? memberRows.find((m) => m.userId === selected) : null;
   const selLoc = selected ? byUser.get(selected) : undefined;
   useEffect(() => {
-    if (selLoc) mapRef.current?.animateToRegion({ latitude: selLoc.lat, longitude: selLoc.lng, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 400);
+    if (selLoc) flyCamera(mapRef.current, selLoc, 14);
   }, [selLoc?.lat, selLoc?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (state === 'loading' || !roomId) {
@@ -119,7 +115,7 @@ export function Location() {
   const count = (st: TravelStatus) => memberRows.filter((m) => statusOf(m.userId, m.travelStatus) === st).length;
   const list = [...memberRows].sort((a, b) => ORDER.indexOf(statusOf(a.userId, a.travelStatus)) - ORDER.indexOf(statusOf(b.userId, b.travelStatus)));
 
-  const flyTo = (lat: number, lng: number) => mapRef.current?.animateToRegion({ latitude: lat, longitude: lng, latitudeDelta: 0.01, longitudeDelta: 0.01 }, 400);
+  const flyTo = (lat: number, lng: number) => flyCamera(mapRef.current, { lat, lng });
 
   const setStatus = (st: TravelStatus) => {
     setStatusOverride(st);
@@ -193,31 +189,31 @@ export function Location() {
       {banner}
 
       <Card style={styles.mapcard}>
-        <MapView ref={mapRef} style={styles.map} initialRegion={initial} userInterfaceStyle={scheme} toolbarEnabled={false} onPress={() => setSelected(null)}>
+        <OtwMap cameraRef={mapRef} style={styles.map} initial={initial} onPress={() => setSelected(null)}>
           {locations.map((l) => {
             const m = memberRows.find((x) => x.userId === l.userId);
             if (!m) return null;
             const meta = TRAVEL[statusOf(l.userId, m.travelStatus)];
             const tone = TONE_COLORS[toneOf(l.userId) ?? 'teal'];
             return (
-              <Marker key={l.userId} coordinate={{ latitude: l.lat, longitude: l.lng }} onPress={() => setSelected(l.userId)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
+              <MapMarker key={l.userId} at={l} anchor="center" label={m.nickname} onPress={() => setSelected(l.userId)}>
                 <View style={[styles.mpin, { backgroundColor: tone.bg, borderColor: meta.bg === brand.cream ? brand.tealDark : meta.bg }]}>
                   <Text style={[styles.mpinText, { color: tone.fg }]}>{(m.nickname[0] ?? '?').toUpperCase()}</Text>
                 </View>
-              </Marker>
+              </MapMarker>
             );
           })}
           {destination ? (
-            <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} title={destination.label} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+            <MapMarker at={destination} label={destination.label ?? 'Destination'}>
               <Pin fill={brand.rosy} ink={brand.cream} icon="pin" size={36} />
-            </Marker>
+            </MapMarker>
           ) : null}
           {meeting ? (
-            <Marker coordinate={{ latitude: meeting.lat, longitude: meeting.lng }} title={meeting.label ?? 'Meeting point'} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+            <MapMarker at={meeting} label={meeting.label ?? 'Meeting point'}>
               <Pin fill={brand.zest} ink={brand.tealDark} icon="flag" size={32} />
-            </Marker>
+            </MapMarker>
           ) : null}
-        </MapView>
+        </OtwMap>
         {destination || meeting ? (
           <View style={styles.jump}>
             {destination ? <Button sm fw={false} variant="zest" icon="pin" label="Find the gala" onPress={() => flyTo(destination.lat, destination.lng)} /> : null}

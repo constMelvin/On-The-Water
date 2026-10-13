@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { isApiError } from '@/api/client';
 import { PermissionsGate } from '@/components/PermissionsGate';
 import { ToastHost } from '@/components/ToastHost';
@@ -105,9 +106,12 @@ function RootStack() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <RootStack />
-      </ThemeProvider>
+      {/* Edge-to-edge Android no longer resizes the window for the keyboard; this tracks it instead. */}
+      <KeyboardProvider>
+        <ThemeProvider>
+          <RootStack />
+        </ThemeProvider>
+      </KeyboardProvider>
     </QueryClientProvider>
   );
 }

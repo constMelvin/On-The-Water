@@ -17,7 +17,7 @@ export function MeTabs({ active }: { active: 'galas' | 'history' }) {
   };
   return (
     <View accessibilityRole="tablist" style={[styles.tabs, { backgroundColor: colors.surface2 }]}>
-      {tab('galas', 'My Galas', () => (router.canGoBack() ? router.back() : router.replace('/')))}
+      {tab('galas', 'My Galas', () => (router.canGoBack() ? router.back() : router.replace('/(tabs)')))}
       {tab('history', 'History', () => router.push('/history'))}
     </View>
   );

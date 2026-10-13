@@ -85,7 +85,7 @@ export function JoinFlow({
       } else if (isApiError(e, 'ALREADY_A_MEMBER')) {
         const roomId = await findRoomId(code).catch(() => null);
         if (roomId) router.replace({ pathname: '/gala/[roomId]', params: { roomId } });
-        else router.replace('/');
+        else router.replace('/(tabs)');
       } else if (isApiError(e, 'INVALID_GALA_PASSWORD')) {
         setPasswordError("That password doesn't match. Check with your Gala Leader.");
       } else if (isApiError(e, 'DUPLICATE_NICKNAME')) {

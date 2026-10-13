@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { router, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { Icon, type IconName } from '@/components/Icon';
 import { Empty, ErrorState, Offline, Sk } from '@/components/States';
 import { Button, Card, IconButton, Lnk, PageHead, Tag } from '@/components/ui';
@@ -55,6 +56,7 @@ export function Budget() {
   const value = draft ?? q.data;
   const neverSaved = !draft && !!q.data && q.data.updatedBy === null;
   const [started, setStarted] = useState(false);
+  const [removing, setRemoving] = useState<CustomCategory | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const latest = useRef<BudgetVM | null>(null);
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -193,11 +195,7 @@ export function Budget() {
           onCustomAmount={(id, pesos) => roomId && updateCategory(roomId, id, { amount: pesos })}
           onAddCustom={onAddCustom}
           onEditCustom={onEditCustom}
-          onRemoveCustom={(id) => {
-            if (!roomId) return;
-            removeCategory(roomId, id);
-            toast('Category removed.');
-          }}
+          onRemoveCustom={(id) => setRemoving(customs.find((c) => c.id === id) ?? null)}
         />
         <Results lines={lines} total={totals.total} perPerson={totals.perPerson} />
       </>
@@ -208,6 +206,19 @@ export function Budget() {
     <GalaPage>
       <PageHead title="Let's talk gastos." sub="Estimate the budget before anyone starts saying, “Magkano ba kailangan?”" tag={<Tag icon="calc">Before the gala</Tag>} />
       {body}
+      {removing ? (
+        <ConfirmSheet
+          title="Remove this category?"
+          body={`“${removing.label}” and its amount will be taken out of the budget.`}
+          confirm="Remove category"
+          onClose={() => setRemoving(null)}
+          onConfirm={() => {
+            if (roomId) removeCategory(roomId, removing.id);
+            setRemoving(null);
+            toast('Category removed.');
+          }}
+        />
+      ) : null}
     </GalaPage>
   );
 }

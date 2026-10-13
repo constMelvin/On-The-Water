@@ -2,12 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import type { CameraRef } from '@maplibre/maplibre-react-native';
 import { Avatar } from '@/components/Avatar';
 import { Icon, type IconName } from '@/components/Icon';
-import { Pin, regionFor } from '@/components/maps';
+import { MapLine, MapMarker, OtwMap, Pin, fitTo, viewFor } from '@/components/maps';
 import { PickerField } from '@/components/PickerField';
 import { Sheet } from '@/components/Sheet';
 import { ErrorState, Skeleton } from '@/components/States';
@@ -390,9 +390,10 @@ const TIER_LABEL = ['Free', '₱', '₱₱'] as const;
 
 function Halfway() {
   const { roomId, role, memberRows, myUserId } = useGala();
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const qc = useQueryClient();
   const q = useCoupleHalfway();
+  const camera = useRef<CameraRef>(null);
   const canEditPlan = useCanEditPlan();
   const key = featureKey(roomId, 'couple-halfway');
   const [setting, setSetting] = useState(false);
@@ -408,6 +409,10 @@ function Halfway() {
     retry: false,
   });
   const spots = useMemo(() => (spotsQ.data?.spots ?? []).filter((p) => budget === 'any' || p.priceTier <= Number(budget)), [spotsQ.data, budget]);
+  // Both homes + the halfway point; the map refits when one of them moves.
+  const ptsKey = JSON.stringify([q.data?.mine, q.data?.partner, mid].filter((x) => !!x).map((p) => [p!.lat, p!.lng]));
+  const pts = useMemo(() => (JSON.parse(ptsKey) as [number, number][]).map(([lat, lng]) => ({ lat, lng })), [ptsKey]);
+  useEffect(() => fitTo(camera.current, pts), [pts]);
 
   if (q.isPending) return <Skeleton label="Loading Halfway Checker" />;
   if (!q.data) return <ErrorState kind="couple" onRetry={async () => (await q.refetch()).isSuccess} />;
@@ -440,8 +445,6 @@ function Halfway() {
       .catch((e: unknown) => failed(qc, [], e, "Couldn't set the meeting point."));
   };
 
-  const pts = [data.mine, data.partner, mid].filter((x): x is { lat: number; lng: number } => !!x).map((p) => ({ latitude: p.lat, longitude: p.lng }));
-
   return (
     <>
       <Card>
@@ -462,39 +465,29 @@ function Halfway() {
         </View>
       </Card>
 
-      <MapView style={styles.map} initialRegion={regionFor(pts)} region={pts.length ? regionFor(pts, 1.8) : undefined} userInterfaceStyle={scheme} toolbarEnabled={false}>
-        {data.mine && data.partner ? (
-          <Polyline
-            coordinates={[
-              { latitude: data.mine.lat, longitude: data.mine.lng },
-              { latitude: data.partner.lat, longitude: data.partner.lng },
-            ]}
-            strokeColor={brand.rosy}
-            strokeWidth={4}
-            lineDashPattern={[10, 8]}
-          />
-        ) : null}
+      <OtwMap initial={viewFor(pts)} cameraRef={camera} style={styles.map}>
+        {data.mine && data.partner ? <MapLine id="between" points={[data.mine, data.partner]} width={4} dashed /> : null}
         {data.mine ? (
-          <Marker coordinate={{ latitude: data.mine.lat, longitude: data.mine.lng }} title="Your home" anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+          <MapMarker at={data.mine} label="Your home">
             <Pin fill={brand.teal} ink={brand.cream} icon="home" />
-          </Marker>
+          </MapMarker>
         ) : null}
         {data.partner ? (
-          <Marker coordinate={{ latitude: data.partner.lat, longitude: data.partner.lng }} title={`${partnerName}'s home`} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+          <MapMarker at={data.partner} label={`${partnerName}'s home`}>
             <Pin fill={brand.blossom} ink={brand.tealDark} icon="user" />
-          </Marker>
+          </MapMarker>
         ) : null}
         {mid ? (
-          <Marker coordinate={{ latitude: mid.lat, longitude: mid.lng }} title="Halfway" anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+          <MapMarker at={mid} label="Halfway">
             <Pin fill={brand.rosy} ink={brand.cream} icon="heart" size={38} />
-          </Marker>
+          </MapMarker>
         ) : null}
         {spots.map((p, i) => (
-          <Marker key={`${p.lat},${p.lng},${p.name}`} coordinate={{ latitude: p.lat, longitude: p.lng }} title={p.name} onPress={() => setSelected(p)} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+          <MapMarker key={`${p.lat},${p.lng},${p.name}`} at={p} label={p.name} onPress={() => setSelected(p)}>
             <Pin fill={selected === p ? brand.rosy : brand.zest} ink={brand.tealDark} n={i + 1} size={28} />
-          </Marker>
+          </MapMarker>
         ))}
-      </MapView>
+      </OtwMap>
 
       {!data.mine || !data.partner ? (
         <Fine>

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AvatarStack } from '@/components/Avatar';
+import { LockableScrollView } from '@/components/LockableScrollView';
 import { Icon } from '@/components/Icon';
 import { Tag } from '@/components/ui';
 import { useGala } from '@/lib/otw/gala-store';
@@ -33,7 +34,7 @@ export function GalaShell({ children }: { children: ReactNode }) {
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.shell, { backgroundColor: colors.bgPage }]}>
       <View style={[styles.topbar, { backgroundColor: colors.surface, borderBottomColor: colors.line }]}>
         <View style={styles.tbl}>
-          <Pressable accessibilityRole="button" accessibilityLabel="My Galas" onPress={() => router.navigate('/')} style={styles.ibtn}>
+          <Pressable accessibilityRole="button" accessibilityLabel="My Galas" onPress={() => router.navigate('/(tabs)')} style={styles.ibtn}>
             <Icon name="pin" size={24} color={brand.rosy} />
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="More" onPress={() => openSheet('more')} style={styles.ibtn}>
@@ -113,9 +114,9 @@ export function GalaPage({ children, scroll = true, overlay }: { children: React
   return (
     <View style={styles.main}>
       {scroll ? (
-        <ScrollView contentContainerStyle={[styles.pageInner, overlay ? styles.pageFab : null]} keyboardShouldPersistTaps="handled">
+        <LockableScrollView contentContainerStyle={[styles.pageInner, overlay ? styles.pageFab : null]} keyboardShouldPersistTaps="handled">
           {children}
-        </ScrollView>
+        </LockableScrollView>
       ) : (
         <View style={styles.page}>{children}</View>
       )}

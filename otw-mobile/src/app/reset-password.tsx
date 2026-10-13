@@ -29,7 +29,7 @@ export default function ResetPassword() {
     try {
       await updatePassword(password);
       toast('Password updated. You’re in.');
-      router.replace('/');
+      router.replace('/(tabs)');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'OTW couldn’t finish that just now. Try again in a moment.');
       setBusy(false);

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { LockableScrollView } from './LockableScrollView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconButton } from './ui';
 import { font } from '@/theme/fonts';
@@ -14,7 +16,7 @@ export function Sheet({ title, onClose, children, footer }: { title: string; onC
   const insets = useSafeAreaInsets();
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
+      <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable accessibilityLabel="Close" onPress={onClose} style={[styles.scrim, { backgroundColor: colors.scrim }]} />
         <View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: 16 + insets.bottom }]} accessibilityViewIsModal>
           <View style={[styles.grab, { backgroundColor: colors.line }]} />
@@ -24,9 +26,9 @@ export function Sheet({ title, onClose, children, footer }: { title: string; onC
             </Text>
             <IconButton icon="x" label="Close" onPress={onClose} />
           </View>
-          <ScrollView style={styles.body} contentContainerStyle={styles.bodyInner} keyboardShouldPersistTaps="handled">
+          <LockableScrollView style={styles.body} contentContainerStyle={styles.bodyInner} keyboardShouldPersistTaps="handled">
             {children}
-          </ScrollView>
+          </LockableScrollView>
           {footer ? <View style={styles.footer}>{footer}</View> : null}
         </View>
       </KeyboardAvoidingView>

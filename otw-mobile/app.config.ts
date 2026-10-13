@@ -63,6 +63,8 @@ const config: ExpoConfig = {
     ],
     'expo-font',
     'expo-web-browser',
+    // Maps (MapLibre + OpenFreeMap, same as the web): no API key. Native module, so it needs a rebuild.
+    '@maplibre/maplibre-react-native',
   ],
   experiments: {
     typedRoutes: true,

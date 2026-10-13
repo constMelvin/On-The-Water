@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
+import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { Sheet } from '@/components/Sheet';
 import { Empty, StateGate } from '@/components/States';
 import { Button, Card, CheckBox, ChoiceChips, Fab, Field, IconButton, PageHead, ProgressBar, SegmentedControl } from '@/components/ui';
@@ -38,6 +39,7 @@ export function Checklist() {
   const items = q.data ?? [];
   const [filter, setFilter] = useState<Filter>('all');
   const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState<ChecklistItemVM | null>(null);
   const myId = myUserId ?? '';
 
   /** Shows the change right away, then swaps in the server's row (or rolls back on failure). */
@@ -66,6 +68,7 @@ export function Checklist() {
 
   const onDelete = (it: ChecklistItemVM) => {
     if (!roomId) return;
+    setDeleting(null);
     removeFrom(qc, key, it.id);
     deleteChecklistItem(roomId, it.id)
       .then(() => {
@@ -132,7 +135,7 @@ export function Checklist() {
                   who={it.assignedTo ? nameOf(it.assignedTo) : null}
                   onToggle={() => onToggle(it)}
                   onClaim={() => onClaim(it)}
-                  onDelete={() => onDelete(it)}
+                  onDelete={() => setDeleting(it)}
                 />
               ))
             ) : (
@@ -142,6 +145,15 @@ export function Checklist() {
         )}
       </StateGate>
       {adding ? <AddItemSheet members={members} onClose={() => setAdding(false)} onAdd={onAdd} /> : null}
+      {deleting ? (
+        <ConfirmSheet
+          title="Delete this item?"
+          body={`“${deleting.label}” will be removed from the checklist for everyone.`}
+          confirm="Delete item"
+          onClose={() => setDeleting(null)}
+          onConfirm={() => onDelete(deleting)}
+        />
+      ) : null}
     </GalaPage>
   );
 }

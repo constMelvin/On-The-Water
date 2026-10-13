@@ -26,7 +26,7 @@ function GalaGate() {
   const { status, error, retry } = useGala();
 
   useEffect(() => {
-    if (status === 'guest') router.replace('/');
+    if (status === 'guest') router.replace('/(tabs)');
   }, [status]);
 
   if (status === 'missing') {
@@ -44,7 +44,7 @@ function GalaGate() {
         <IconBlob name="alert" index={3} size={96} iconSize={44} color={brand.rosyDark} />
         <PageHead title="Hindi ma-load ang gala." sub={error} />
         <Button label="Try again" icon="refresh" onPress={() => void retry()} />
-        <Button variant="cream" label="Back to My Galas" onPress={() => router.replace('/')} />
+        <Button variant="cream" label="Back to My Galas" onPress={() => router.replace('/(tabs)')} />
       </Screen>
     );
   }

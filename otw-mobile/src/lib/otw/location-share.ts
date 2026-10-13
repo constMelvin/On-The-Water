@@ -63,13 +63,18 @@ export function startSharing(roomId: string): void {
   void (async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return set({ status: 'denied', roomId });
+    // Android: with the phone's Location switched off, watchPositionAsync fails (permission alone isn't enough).
+    if (!(await Location.hasServicesEnabledAsync().catch(() => true))) {
+      return set({ status: 'error', roomId, message: 'Turn on Location in your phone settings, then try again.' });
+    }
     try {
       watch = await Location.watchPositionAsync({ accuracy: Location.Accuracy.High, timeInterval: 10_000, distanceInterval: 20 }, (pos) => {
         last = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         if (Date.now() - lastSent >= MIN_GAP_MS) void send(roomId);
       });
       heartbeat = setInterval(() => void send(roomId), HEARTBEAT_MS);
-    } catch {
+    } catch (e) {
+      console.warn('[location-share] watchPositionAsync failed', e);
       clear();
       set({ status: 'error', roomId, message: "Couldn't get your location. Try again outside or near a window." });
     }

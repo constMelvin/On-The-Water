@@ -6,6 +6,7 @@ import Animated, { ZoomIn } from 'react-native-reanimated';
 import { api, signOut } from '@/api/client';
 import type { ProfileDto } from '@/api/types';
 import { Avatar, isTone, TONE_COLORS, TONES, type Tone } from '@/components/Avatar';
+import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { Icon } from '@/components/Icon';
 import { Button, Card, ErrorNote, Field, Fine, Loading, PageHead, Screen, SegmentedControl, Tag } from '@/components/ui';
 import { PhotoError, pickProfilePhoto, profilePhotoUrl, uploadProfilePhoto } from '@/lib/profile-photo';
@@ -30,6 +31,7 @@ export default function Profile() {
       return { name: typeof name === 'string' ? name : '', email: data.user?.email ?? '' };
     },
   });
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   return (
     <Screen>
@@ -38,10 +40,19 @@ export default function Profile() {
       <ErrorNote message={profile.error?.message} />
       {profile.data && account.data ? <ProfileEditor saved={profile.data} accountName={account.data.name} /> : null}
       {account.data?.email ? <Fine>Signed in as {account.data.email}</Fine> : null}
-      <Button variant="cream" icon="logout" label="Log out" onPress={() => void signOut()} />
+      <Button variant="cream" icon="logout" label="Log out" onPress={() => setConfirmLogout(true)} />
       <Text accessibilityRole="link" onPress={() => router.push('/privacy')} style={styles.privacy}>
         Privacy Policy
       </Text>
+      {confirmLogout ? (
+        <ConfirmSheet
+          title="Log out of OTW?"
+          body="Your galas stay saved. Log in again to see them."
+          confirm="Log out"
+          onClose={() => setConfirmLogout(false)}
+          onConfirm={() => signOut()}
+        />
+      ) : null}
     </Screen>
   );
 }

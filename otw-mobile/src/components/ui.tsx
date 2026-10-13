@@ -7,7 +7,6 @@ import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,6 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, type IconName } from './Icon';
+import { LockableScrollView } from './LockableScrollView';
 import { LOC, ST, type AttendanceKey, type LocationKey } from '@/lib/otw/data';
 import { font } from '@/theme/fonts';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -67,9 +67,9 @@ export function Screen({
   return (
     <SafeAreaView style={[styles.flex, { backgroundColor: bg }]} edges={edges}>
       {scroll ? (
-        <ScrollView contentContainerStyle={inner} keyboardShouldPersistTaps="handled">
+        <LockableScrollView contentContainerStyle={inner} keyboardShouldPersistTaps="handled">
           {children}
-        </ScrollView>
+        </LockableScrollView>
       ) : (
         <View style={[styles.flex, inner]}>{children}</View>
       )}
