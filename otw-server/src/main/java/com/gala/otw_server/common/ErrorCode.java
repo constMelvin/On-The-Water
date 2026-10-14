@@ -53,6 +53,7 @@ public enum ErrorCode {
     INVALID_REQUEST,
     INVALID_PHOTO_REFERENCE,   // driveFileId isn't a real/accessible image in the expected Drive folder
     TOO_MANY_REQUESTS,
+    PAYLOAD_TOO_LARGE,          // request body over RequestSizeLimitFilter.MAX_BODY_BYTES
 
     // ── Server ──────────────────────────────────────────────────────────────
     INTERNAL_ERROR,

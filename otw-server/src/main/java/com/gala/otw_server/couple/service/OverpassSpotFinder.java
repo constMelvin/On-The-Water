@@ -7,6 +7,7 @@ import com.gala.otw_server.cache.CacheService;
 import com.gala.otw_server.couple.dto.SpotDto;
 import com.gala.otw_server.couple.dto.SpotsDto;
 import com.gala.otw_server.couple.entity.SpotCategory;
+import com.gala.otw_server.ratelimit.RateLimiterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,11 +24,18 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 /**
  * Finds cafes, restaurants, parks and malls around a point from OpenStreetMap (Overpass API: free, no key).
  * The browser never calls it: answers are cached per ~100 m cell for hours, so we stay polite to the public
  * server, and an outage just means "no suggestions right now" (never a 500). Data (c) OpenStreetMap contributors.
+ *
+ * <p>Cache misses are guarded, since each one is a slow outside call on a request thread: each account gets
+ * {@link #LOOKUPS_PER_HOUR} misses an hour (moving a saved home forces new ones), at most
+ * {@link #MAX_CONCURRENT} calls run at once, and after a failure nobody calls Overpass for {@link #BACKOFF}.
+ * When a guard says no, the answer is "no suggestions right now", like an outage.
  */
 @Service
 public class OverpassSpotFinder {
@@ -37,21 +45,29 @@ public class OverpassSpotFinder {
     static final int RADIUS_M = 3000;
     static final int MAX_SPOTS = 15;
     private static final Duration CACHE_TTL = Duration.ofHours(6);
+    static final int LOOKUPS_PER_HOUR = 20;
+    static final int MAX_CONCURRENT = 4;
+    static final Duration BACKOFF = Duration.ofMinutes(2);
 
     private final CacheService cache;
+    private final RateLimiterService rateLimiter;
     private final ObjectMapper mapper;
     private final String url;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+    private final Semaphore inFlight = new Semaphore(MAX_CONCURRENT);
+    private volatile long backoffUntil;
 
     public OverpassSpotFinder(CacheService cache,
+                              RateLimiterService rateLimiter,
                               ObjectMapper mapper,
                               @Value("${otw.overpass.url:https://overpass-api.de/api/interpreter}") String url) {
         this.cache = cache;
+        this.rateLimiter = rateLimiter;
         this.mapper = mapper;
         this.url = url;
     }
 
-    public SpotsDto find(SpotCategory category, double lat, double lng) {
+    public SpotsDto find(SpotCategory category, double lat, double lng, UUID callerId) {
         String key = String.format(Locale.ROOT, "couple:spots:%s:%.3f:%.3f", category, lat, lng);
         var hit = cache.get(key);
         if (hit.isPresent()) {
@@ -61,13 +77,27 @@ public class OverpassSpotFinder {
                 cache.evict(key); // unreadable cache entry: fall through to a fresh lookup
             }
         }
+        if (System.currentTimeMillis() < backoffUntil) {
+            return new SpotsDto(false, List.of());
+        }
+        if (!rateLimiter.tryAcquireCount("ratelimit:overpass:" + callerId, LOOKUPS_PER_HOUR, Duration.ofHours(1))) {
+            log.debug("Overpass lookup budget used up for {}", callerId);
+            return new SpotsDto(false, List.of());
+        }
+        if (!inFlight.tryAcquire()) {
+            return new SpotsDto(false, List.of());
+        }
         try {
             List<SpotDto> spots = query(category, lat, lng);
             cache.set(key, mapper.writeValueAsString(spots), CACHE_TTL);
             return new SpotsDto(true, spots);
         } catch (Exception ex) {
+            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
+            backoffUntil = System.currentTimeMillis() + BACKOFF.toMillis();
             log.warn("Overpass lookup failed ({}): {}", category, ex.getMessage());
             return new SpotsDto(false, List.of());
+        } finally {
+            inFlight.release();
         }
     }
 

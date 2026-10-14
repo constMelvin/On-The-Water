@@ -40,3 +40,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Gradle caches and build output of local native modules (modules/*/android)
+.gradle/
+modules/*/android/build/

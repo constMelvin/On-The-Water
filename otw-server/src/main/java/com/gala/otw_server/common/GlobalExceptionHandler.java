@@ -1,5 +1,7 @@
 package com.gala.otw_server.common;
 
+import com.gala.otw_server.ratelimit.RequestSizeLimitFilter;
+import com.gala.otw_server.ratelimit.RequestSizeLimitFilter.PayloadTooLargeException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,12 +80,23 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, "Missing parameter '" + ex.getParameterName() + "'"));
     }
 
-    /** Malformed JSON body. */
+    /** Malformed JSON body, or one cut off by RequestSizeLimitFilter (413). */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadable(HttpMessageNotReadableException ex) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t instanceof PayloadTooLargeException) return payloadTooLarge();
+        }
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of(ErrorCode.INVALID_REQUEST, "Malformed request body"));
+    }
+
+    /** A body over the cap that surfaced without Spring's "unreadable" wrapper. */
+    @ExceptionHandler(PayloadTooLargeException.class)
+    public ResponseEntity<ErrorResponse> payloadTooLarge() {
+        return ResponseEntity
+                .status(HttpStatus.CONTENT_TOO_LARGE)
+                .body(ErrorResponse.of(ErrorCode.PAYLOAD_TOO_LARGE, RequestSizeLimitFilter.tooLargeMessage()));
     }
 
     /**

@@ -145,7 +145,7 @@ public class RoomService {
                 .orElseThrow(InvalidCodeException::new);
         // Every join needs the Gala Password; a gala without one can't be joined until the
         // Gala Leader sets it in Settings.
-        passwordGuard.verify(room, req.password());
+        passwordGuard.verify(room, callerId, req.password());
         UUID roomId = room.getId();
         String nickname = req.nickname().trim();
 

@@ -41,6 +41,7 @@ public class PhotoService {
     private final RoomPermissionService permissions;
     private final GalaDriveFolderService folders;
     private final DriveUploadSessionService uploads;
+    private final DriveUploadBudget uploadBudget;
 
     public PhotoService(PhotoRepository photoRepo,
                         RoomRepository roomRepo,
@@ -49,7 +50,8 @@ public class PhotoService {
                         GoogleDriveFileValidator driveFileValidator,
                         RoomPermissionService permissions,
                         GalaDriveFolderService folders,
-                        DriveUploadSessionService uploads) {
+                        DriveUploadSessionService uploads,
+                        DriveUploadBudget uploadBudget) {
         this.photoRepo = photoRepo;
         this.roomRepo = roomRepo;
         this.memberRepo = memberRepo;
@@ -58,6 +60,7 @@ public class PhotoService {
         this.permissions = permissions;
         this.folders = folders;
         this.uploads = uploads;
+        this.uploadBudget = uploadBudget;
     }
 
     // ── Start an upload: a one-time Drive upload URL in this gala's folder ────
@@ -70,6 +73,7 @@ public class PhotoService {
         permissions.require(roomId, callerId, Permission.ADD_PHOTOS);
         verifyMemberOfRoom(roomId, callerId);
         String name = UploadFileNames.clean(req.fileName(), req.mimeType());
+        uploadBudget.chargeGalaUpload(callerId, req.size());
         String folderId = folders.ensureFolder(roomId);
         return new UploadSessionDto(uploads.openSession(folderId, name, req.mimeType(), req.size(), origin));
     }

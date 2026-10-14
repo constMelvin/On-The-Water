@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Rate limiter for protecting high-frequency endpoints and mitigating brute-force/DoS attacks.
@@ -131,6 +131,48 @@ public class RateLimiterService {
     }
 
     /**
+     * Adds {@code amount} to a fixed-window budget of {@code max} (e.g. bytes uploaded per day).
+     * A request that would go over is refused and not counted, so one big file that doesn't fit
+     * doesn't use up the rest of the budget.
+     */
+    public boolean tryAcquireAmount(String key, long amount, long max, Duration window) {
+        if (redis != null) {
+            try {
+                Long total = redis.opsForValue().increment(key, amount);
+                if (total != null) {
+                    Long ttl = total == amount ? null : redis.getExpire(key);
+                    if (total == amount || (ttl != null && ttl < 0)) {
+                        redis.expire(key, window);
+                    }
+                    if (total > max) {
+                        redis.opsForValue().decrement(key, amount);
+                        return false;
+                    }
+                    return true;
+                }
+            } catch (Exception ex) {
+                log.warn("Redis amount rate limit check failed for '{}': {} — falling back to local memory", key, ex.getMessage());
+            }
+        }
+
+        long now = System.currentTimeMillis();
+        boolean[] allowed = {false};
+        localCounters.compute(key, (k, existing) -> {
+            WindowCounter c = existing == null || now > existing.expiresAt
+                    ? new WindowCounter(0, now + window.toMillis()) : existing;
+            if (c.count.get() + amount <= max) {
+                c.count.addAndGet(amount);
+                allowed[0] = true;
+            }
+            return c;
+        });
+        if (localCounters.size() > 5000) {
+            localCounters.entrySet().removeIf(entry -> now > entry.getValue().expiresAt);
+        }
+        return allowed[0];
+    }
+
+    /**
      * True when {@code key} has already used up {@code maxRequests} in its current window
      * (as counted by {@link #tryAcquireCount}). Only reads; never counts a request.
      */
@@ -149,11 +191,11 @@ public class RateLimiterService {
     }
 
     private static class WindowCounter {
-        final AtomicInteger count;
+        final AtomicLong count;
         final long expiresAt;
 
-        WindowCounter(int initialCount, long expiresAt) {
-            this.count = new AtomicInteger(initialCount);
+        WindowCounter(long initialCount, long expiresAt) {
+            this.count = new AtomicLong(initialCount);
             this.expiresAt = expiresAt;
         }
     }

@@ -5,6 +5,7 @@ import com.gala.otw_server.common.ErrorCode;
 import com.gala.otw_server.common.ErrorResponse;
 import com.gala.otw_server.ratelimit.RateLimitFilter;
 import com.gala.otw_server.ratelimit.RateLimiterService;
+import com.gala.otw_server.ratelimit.RequestSizeLimitFilter;
 import com.gala.otw_server.security.AccountRequiredFilter;
 import com.gala.otw_server.security.SupabaseJwtAuthenticationConverter;
 import org.springframework.beans.factory.ObjectProvider;
@@ -112,7 +113,9 @@ public class SecurityConfig {
                 // Access-Control-Allow-Origin). See AccountRequiredFilter and RateLimitFilter.
                 .addFilterAfter(new AccountRequiredFilter(objectMapper), BearerTokenAuthenticationFilter.class)
                 .addFilterAfter(new RateLimitFilter(rateLimiterService.getIfAvailable(), objectMapper),
-                        AccountRequiredFilter.class);
+                        AccountRequiredFilter.class)
+                // Body size cap last, so only verified accounts within budget get here (RequestSizeLimitFilter).
+                .addFilterAfter(new RequestSizeLimitFilter(objectMapper), RateLimitFilter.class);
 
         return http.build();
     }

@@ -80,7 +80,7 @@ public class CoupleHalfwayService {
         if (mid == null) {
             throw new InvalidRequestException("You both need to save a home location first");
         }
-        return spotFinder.find(category, mid.lat(), mid.lng());
+        return spotFinder.find(category, mid.lat(), mid.lng(), callerId);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

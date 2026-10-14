@@ -1,7 +1,10 @@
 package com.gala.otw_server.profile.service;
 
 import com.gala.otw_server.common.DomainExceptions.InvalidPhotoReferenceException;
+import com.gala.otw_server.common.DomainExceptions.TooManyRequestsException;
+import com.gala.otw_server.photo.service.DriveUploadBudget;
 import com.gala.otw_server.photo.service.DriveUploadSessionService;
+import com.gala.otw_server.ratelimit.RateLimiterService;
 import com.gala.otw_server.photo.service.GalaDriveFolderService;
 import com.gala.otw_server.profile.dto.ProfileDto;
 import com.gala.otw_server.profile.dto.StartProfilePhotoUploadRequest;
@@ -41,7 +44,8 @@ class ProfileServiceTest {
     @BeforeEach
     void setUp() {
         Clock clock = Clock.fixed(Instant.ofEpochMilli(1_700_000_000_000L), ZoneOffset.UTC);
-        service = new ProfileService(repo, photoDrive, uploads, driveFiles, clock);
+        service = new ProfileService(repo, photoDrive, uploads, driveFiles,
+                new DriveUploadBudget(new RateLimiterService(null)), clock);
     }
 
     @Test
@@ -143,6 +147,21 @@ class ProfileServiceTest {
         assertThat(dto.uploadUrl()).isEqualTo("https://upload");
         verify(uploads).openSession("folder_1", "profile-" + userId + "-1700000000000.webp", "image/webp", 1000L,
                 "http://localhost:3000");
+    }
+
+    @Test
+    @DisplayName("upload session: at most 10 profile photo upload links per hour")
+    void startPhotoUploadIsLimitedPerHour() {
+        when(photoDrive.ensureFolder()).thenReturn("folder_1");
+        when(uploads.openSession(anyString(), anyString(), anyString(), anyLong(), any())).thenReturn("https://upload");
+        var req = new StartProfilePhotoUploadRequest("image/webp", 1000L);
+
+        for (int i = 0; i < 10; i++) {
+            service.startPhotoUpload(userId, req, null);
+        }
+        assertThatThrownBy(() -> service.startPhotoUpload(userId, req, null))
+                .isInstanceOf(TooManyRequestsException.class);
+        verify(uploads, times(10)).openSession(anyString(), anyString(), anyString(), anyLong(), any());
     }
 
     @Test

@@ -378,12 +378,30 @@ class RoomServiceTest {
     }
 
     @Test
-    @DisplayName("joinRoom locks the gala after 20 wrong passwords, even for the right one")
-    void joinRoom_locksAfterTooManyWrongPasswords() {
+    @DisplayName("joinRoom locks one account after 5 wrong passwords, even for the right one; others can still join")
+    void joinRoom_locksAccountAfterTooManyWrongPasswords() {
         when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(roomWithPassword()));
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 5; i++) {
             assertThatThrownBy(() -> roomService.joinRoom(callerId, true, new JoinRoomRequest("ROOM1234", "Carlos", "nope")))
+                    .isInstanceOf(InvalidGalaPasswordException.class);
+        }
+        assertThatThrownBy(() -> roomService.joinRoom(callerId, true, new JoinRoomRequest("ROOM1234", "Carlos", "baguio2026")))
+                .isInstanceOf(TooManyRequestsException.class);
+
+        // Someone else still gets a real password check (wrong password → 401, not 429).
+        assertThatThrownBy(() -> roomService.joinRoom(UUID.randomUUID(), true, new JoinRoomRequest("ROOM1234", "Bea", "nope")))
+                .isInstanceOf(InvalidGalaPasswordException.class);
+    }
+
+    @Test
+    @DisplayName("joinRoom locks the whole gala after 100 wrong passwords from rotating accounts")
+    void joinRoom_locksGalaAfterTooManyWrongPasswordsFromManyAccounts() {
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(roomWithPassword()));
+
+        for (int i = 0; i < 100; i++) {
+            UUID attacker = UUID.randomUUID();
+            assertThatThrownBy(() -> roomService.joinRoom(attacker, true, new JoinRoomRequest("ROOM1234", "X", "nope")))
                     .isInstanceOf(InvalidGalaPasswordException.class);
         }
         assertThatThrownBy(() -> roomService.joinRoom(callerId, true, new JoinRoomRequest("ROOM1234", "Carlos", "baguio2026")))

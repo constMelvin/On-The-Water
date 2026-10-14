@@ -2,6 +2,7 @@ package com.gala.otw_server.profile.service;
 
 import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.photo.dto.UploadSessionDto;
+import com.gala.otw_server.photo.service.DriveUploadBudget;
 import com.gala.otw_server.photo.service.DriveUploadSessionService;
 import com.gala.otw_server.photo.service.GalaDriveFolderService;
 import com.gala.otw_server.profile.dto.ProfileDto;
@@ -28,22 +29,26 @@ public class ProfileService {
     private final ProfilePhotoDriveService photoDrive;
     private final DriveUploadSessionService uploads;
     private final GalaDriveFolderService driveFiles;
+    private final DriveUploadBudget uploadBudget;
     private final Clock clock;
 
     @Autowired
     public ProfileService(UserProfileRepository profiles,
                           ProfilePhotoDriveService photoDrive,
                           DriveUploadSessionService uploads,
-                          GalaDriveFolderService driveFiles) {
-        this(profiles, photoDrive, uploads, driveFiles, Clock.systemUTC());
+                          GalaDriveFolderService driveFiles,
+                          DriveUploadBudget uploadBudget) {
+        this(profiles, photoDrive, uploads, driveFiles, uploadBudget, Clock.systemUTC());
     }
 
     ProfileService(UserProfileRepository profiles, ProfilePhotoDriveService photoDrive,
-                   DriveUploadSessionService uploads, GalaDriveFolderService driveFiles, Clock clock) {
+                   DriveUploadSessionService uploads, GalaDriveFolderService driveFiles,
+                   DriveUploadBudget uploadBudget, Clock clock) {
         this.profiles = profiles;
         this.photoDrive = photoDrive;
         this.uploads = uploads;
         this.driveFiles = driveFiles;
+        this.uploadBudget = uploadBudget;
         this.clock = clock;
     }
 
@@ -73,6 +78,7 @@ public class ProfileService {
      * with {@code PUT /me/profile}.
      */
     public UploadSessionDto startPhotoUpload(UUID userId, StartProfilePhotoUploadRequest req, String origin) {
+        uploadBudget.chargeProfileUpload(userId);
         String folderId = photoDrive.ensureFolder();
         String name = ProfilePhotoDriveService.fileName(userId, req.mimeType(), clock.millis());
         return new UploadSessionDto(uploads.openSession(folderId, name, req.mimeType(), req.size(), origin));

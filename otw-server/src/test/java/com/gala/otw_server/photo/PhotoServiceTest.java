@@ -10,7 +10,10 @@ import com.gala.otw_server.photo.dto.PhotoDto;
 import com.gala.otw_server.photo.dto.RegisterPhotoRequest;
 import com.gala.otw_server.photo.entity.Photo;
 import com.gala.otw_server.photo.repository.PhotoRepository;
+import com.gala.otw_server.common.DomainExceptions.TooManyRequestsException;
+import com.gala.otw_server.photo.service.DriveUploadBudget;
 import com.gala.otw_server.photo.service.DriveUploadSessionService;
+import com.gala.otw_server.ratelimit.RateLimiterService;
 import com.gala.otw_server.photo.service.GalaDriveFolderService;
 import com.gala.otw_server.photo.service.GoogleDriveFileValidator;
 import com.gala.otw_server.photo.service.PhotoService;
@@ -34,6 +37,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -74,7 +78,8 @@ class PhotoServiceTest {
 
     @BeforeEach
     void setUp() {
-        photoService = new PhotoService(photoRepo, roomRepo, memberRepo, realtime, driveFileValidator, permissions, folders, uploads);
+        photoService = new PhotoService(photoRepo, roomRepo, memberRepo, realtime, driveFileValidator, permissions, folders, uploads,
+                new DriveUploadBudget(new RateLimiterService(null)));
         room = new Room();
         room.setId(roomId);
         room.setStatus("ACTIVE");
@@ -244,6 +249,28 @@ class PhotoServiceTest {
                     .isInstanceOf(InvalidRequestException.class);
         }
         verifyNoInteractions(folders, uploads);
+    }
+
+    @Test
+    @DisplayName("startUpload refuses a file that would go over the account's 2 GB daily budget, before touching Drive")
+    void startUpload_OverDailyBudget() {
+        when(permissions.require(roomId, uploaderId, Permission.ADD_PHOTOS)).thenReturn(room);
+        when(memberRepo.existsByRoom_IdAndUserIdAndLeftAtIsNull(roomId, uploaderId)).thenReturn(true);
+        when(folders.ensureFolder(roomId)).thenReturn("gala-folder-1");
+        when(uploads.openSession(anyString(), anyString(), anyString(), anyLong(), any())).thenReturn("https://upload.example/session");
+        long video = 300L * 1024 * 1024;
+
+        for (int i = 0; i < 6; i++) { // 6 x 300 MB = 1.76 GB fits
+            photoService.startUpload(roomId, uploaderId, new StartUploadRequest("clip.mp4", "video/mp4", video), null);
+        }
+        assertThatThrownBy(() -> photoService.startUpload(roomId, uploaderId,
+                new StartUploadRequest("clip.mp4", "video/mp4", video), null))
+                .isInstanceOf(TooManyRequestsException.class);
+        verify(uploads, times(6)).openSession(anyString(), anyString(), anyString(), anyLong(), any());
+
+        // The refused file wasn't counted: a smaller one that still fits goes through.
+        photoService.startUpload(roomId, uploaderId, new StartUploadRequest("a.jpg", "image/jpeg", 5_000_000L), null);
+        verify(uploads, times(7)).openSession(anyString(), anyString(), anyString(), anyLong(), any());
     }
 
     @Test
