@@ -144,6 +144,28 @@ export interface ChatMessageVM {
   heartCount: number;
   reactedByMe: boolean;
   createdAt: string;
+  /** The message this one replies to (snippet = its first 120 characters), or null. */
+  replyTo: ChatReplyToVM | null;
+  /** Members @mentioned in this message. */
+  mentions: string[];
+  /** True when the sender used @everyone. */
+  mentionsEveryone: boolean;
+}
+
+export interface ChatReplyToVM {
+  id: string;
+  senderUserId: string | null;
+  kind: MessageKind;
+  snippet: string;
+  /** The quoted message carries a photo that still exists. */
+  hasPhoto: boolean;
+}
+
+/** One row of a message's "who reacted" list. */
+export interface ReactorVM {
+  userId: string;
+  reaction: ReactionType;
+  reactedAt: string;
 }
 
 export interface UnreadVM {

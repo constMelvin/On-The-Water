@@ -122,6 +122,7 @@ public class RoomService {
     public RoomPreviewDto previewRoom(String rawCode) {
         Room room = roomRepo.findByRoomCodeAndStatus(CodeGenerator.normalize(rawCode), Room.STATUS_ACTIVE)
                 .orElseThrow(InvalidCodeException::new);
+        requireNotFinished(room);
 
         int memberCount = (int) memberRepo.countByRoom_IdAndLeftAtIsNull(room.getId());
         List<String> nicknames = memberRepo.findTop12ByRoom_IdAndLeftAtIsNullOrderByJoinedAtAsc(room.getId())
@@ -138,11 +139,23 @@ public class RoomService {
                 room.isCouple() && memberCount >= COUPLE_MAX_MEMBERS);
     }
 
+    /**
+     * A gala whose dates are over can't be previewed or joined by code: its code reads as
+     * expired, the same answer as an unknown one (so a finished gala leaks nothing, not even
+     * that the Gala Password exists). Members still open it from My Galas.
+     */
+    private void requireNotFinished(Room room) {
+        if (galaClock.phaseOf(room) == GalaPhase.DONE) {
+            throw new InvalidCodeException();
+        }
+    }
+
     // ── Join room by code ─────────────────────────────────────────────────────
 
     public RoomMemberDto joinRoom(UUID callerId, boolean callerHasAccount, JoinRoomRequest req) {
         Room room = roomRepo.findByRoomCodeAndStatus(CodeGenerator.normalize(req.roomCode()), Room.STATUS_ACTIVE)
                 .orElseThrow(InvalidCodeException::new);
+        requireNotFinished(room);
         // Every join needs the Gala Password; a gala without one can't be joined until the
         // Gala Leader sets it in Settings.
         passwordGuard.verify(room, callerId, req.password());

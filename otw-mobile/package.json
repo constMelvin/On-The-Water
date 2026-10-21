@@ -65,6 +65,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "bump": "npm version --no-git-tag-version",
     "gen:api": "npx --yes openapi-typescript@7 http://localhost:8080/v3/api-docs -o src/api/schema.d.ts"
   },
   "private": true

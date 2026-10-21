@@ -19,6 +19,7 @@ import type {
   SpotsVM,
   BudgetVM,
   ChatMessageVM,
+  ReactorVM,
   ChecklistItemVM,
   ExpenseCategory,
   ExpenseVM,
@@ -155,9 +156,34 @@ export const getChatPage = (roomId: string, cursor?: string | null, limit = 30) 
     `${room(roomId)}/chat/messages?limit=${limit}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`
   );
 
-/** Sends a message; `photoId` attaches a photo I already put in the Gala Dump (the body is then a caption). */
-export const sendChat = (roomId: string, body: string, photoId?: string) =>
-  api<ChatMessageVM>(`${room(roomId)}/chat/messages`, { method: 'POST', body: { body, photoId } });
+export interface SendChatOptions {
+  /** A photo I already put in the Gala Dump (the body is then a caption). */
+  photoId?: string;
+  /** The message this one replies to. */
+  replyToMessageId?: string;
+  /** Members to notify (at most 20). */
+  mentionedUserIds?: string[];
+  /** Notify every member of the gala. */
+  mentionEveryone?: boolean;
+}
+
+/** Sends a message, optionally with a photo, a reply quote and @mentions. */
+export const sendChat = (roomId: string, body: string, opts: SendChatOptions = {}) =>
+  api<ChatMessageVM>(`${room(roomId)}/chat/messages`, { method: 'POST', body: { body, ...opts } });
+
+/** Who reacted to a message, newest first; `reaction` limits it to one reaction (a tab). */
+export const getChatReactors = (
+  roomId: string,
+  messageId: string,
+  reaction?: ReactionType | null,
+  cursor?: string | null,
+  limit = 50
+) =>
+  api<Page<ReactorVM>>(
+    `${room(roomId)}/chat/messages/${messageId}/reactions?limit=${limit}${reaction ? `&reaction=${reaction}` : ''}${
+      cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''
+    }`
+  );
 
 /** Sets my reaction on a message; null removes it. */
 export const setReaction = (roomId: string, messageId: string, reaction: ReactionType | null) =>

@@ -43,6 +43,14 @@ public class ChatMessage {
     @Column(name = "ref_id", updatable = false)
     private UUID refId;
 
+    /** The message this one replies to (same room, TEXT), or null. */
+    @Column(name = "reply_to_message_id", updatable = false)
+    private UUID replyToMessageId;
+
+    /** True when the sender used @everyone (every active member was notified). */
+    @Column(name = "mentions_everyone", nullable = false, updatable = false)
+    private boolean mentionsEveryone;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

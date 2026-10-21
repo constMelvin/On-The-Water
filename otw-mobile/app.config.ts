@@ -1,4 +1,5 @@
 import type { ExpoConfig } from 'expo/config';
+import pkg from './package.json';
 
 /** From `eas init`. Paste it here once you have it. */
 const EAS_PROJECT_ID = '';
@@ -7,7 +8,9 @@ const config: ExpoConfig = {
   name: 'OTW',
   slug: 'otw',
   scheme: 'otw', // deep links: otw://gala/OTW-XXXX-XXXX, otw://auth-callback
-  version: '1.0.0',
+  // The one place the app version lives is package.json: bump it with `npm run bump -- patch|minor|major`.
+  // The store build number (versionCode / buildNumber) is EAS's job: eas.json autoIncrement.
+  version: pkg.version,
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   userInterfaceStyle: 'automatic', // light + dark (guide Step 6)

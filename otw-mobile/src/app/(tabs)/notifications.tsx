@@ -60,7 +60,9 @@ export default function Notifications() {
           shadow={n.readAt ? undefined : brand.rosyDark}
           onPress={() => {
             if (!n.readAt) readOne.mutate(n.id);
-            if (n.roomId) router.push({ pathname: '/gala/[roomId]', params: { roomId: n.roomId } });
+            // A chat mention or reply opens the gala's chat; everything else opens the gala.
+            if (n.roomId && (n.type === 'MENTION' || n.type === 'REPLY')) router.push({ pathname: '/gala/[roomId]/chat', params: { roomId: n.roomId } });
+            else if (n.roomId) router.push({ pathname: '/gala/[roomId]', params: { roomId: n.roomId } });
           }}
           style={styles.row}>
           <IconBlob name="bell" index={n.id.charCodeAt(0)} size={44} iconSize={22} color={n.readAt ? colors.text : brand.rosy} bg={colors.surface2} />

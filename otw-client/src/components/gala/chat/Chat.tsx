@@ -5,6 +5,9 @@
  * Data is GET /rooms/{roomId}/chat/messages (newest first, 30 a page; "Load earlier" pages back).
  * Sending (text, or a photo that also lands in the Gala Dump), reactions and system / card lines (written by the server, e.g. "Sam changed their status
  * to I'm G.") arrive for everyone over realtime chat.* on room:{roomId}.
+ * A message can reply to an earlier one (quote above the bubble; clicking it jumps there) and
+ * @mention members or @everyone (they get a notification on the mobile app). Tapping a reaction
+ * pill opens who reacted.
  *
  * Unread: GET .../chat/unread when the tab opens freezes where the "N new" divider goes for this
  * visit; then PUT .../chat/read marks everything read, which also clears the nav badge
@@ -17,14 +20,24 @@ import { useGala } from '@/lib/otw/gala-store';
 import { toast } from '@/lib/otw/feedback';
 import { featureKey } from '@/lib/otw/live';
 import { useTabState } from '@/lib/otw/gala-queries';
-import { getChatPage, getChatUnread, markChatRead, registerPhoto, sendChat, setReaction, startPhotoUpload } from '@/lib/api/gala';
+import {
+  getChatPage,
+  getChatUnread,
+  markChatRead,
+  registerPhoto,
+  sendChat,
+  setReaction,
+  startPhotoUpload,
+  type SendChatOptions,
+} from '@/lib/api/gala';
 import type { Page } from '@/lib/api/rooms';
 import type { ChatMessageVM, ReactionType, UnreadVM } from '@/lib/api/types';
 import { uploadToDrive } from '@/lib/otw/drive';
 import { StateGate } from '../States';
 import { PinnedPlan } from './PinnedPlan';
 import { MessageList } from './MessageList';
-import { Composer } from './Composer';
+import { Composer, type SendMentions } from './Composer';
+import { ReactionsSheet } from './ReactionsSheet';
 import { ChatSide } from './ChatSide';
 import s from './chat.module.css';
 
@@ -42,6 +55,11 @@ const patchMessage = (data: ChatPages | undefined, id: string, fn: (m: ChatMessa
 
 /** Chat's poll interval while realtime is down (only while this tab is open and visible). */
 const CHAT_POLL_MS = 3_000;
+
+/** How long (ms) a message a reply quote jumped to stays highlighted. */
+const FLASH_MS = 1_500;
+/** Most older pages (30 messages each) loaded while looking for a quoted message. */
+const MAX_JUMP_PAGES = 20;
 
 export function Chat({ code }: { code: string }) {
   const { members, nameOf, roomId, myUserId, live, summary, setViewState, room, role } = useGala();
@@ -135,27 +153,34 @@ export function Chat({ code }: { code: string }) {
   const sendFailed = (e: unknown, fallback: string) =>
     toast(e instanceof Error && e.message ? e.message : fallback, 'err');
 
-  const onSend = useCallback(
-    (text: string) => {
-      const body = text.trim();
-      if (!body || !roomId) return false;
-      forceScroll.current = true;
-      sendChat(roomId, body)
-        .then(addMine)
-        .catch((e: unknown) => sendFailed(e, "Your message didn't send. Try again."));
-      return true;
-    },
-    [roomId, addMine]
-  );
+  // The message the composer is replying to; cleared once a message is sent.
+  const [replyTo, setReplyTo] = useState<ChatMessageVM | null>(null);
+  const extras = (mentions?: SendMentions): SendChatOptions => ({
+    replyToMessageId: replyTo?.id,
+    mentionedUserIds: mentions?.ids.length ? mentions.ids : undefined,
+    mentionEveryone: mentions?.everyone || undefined,
+  });
+
+  const onSend = (text: string, mentions: SendMentions) => {
+    const body = text.trim();
+    if (!body || !roomId) return false;
+    forceScroll.current = true;
+    sendChat(roomId, body, extras(mentions))
+      .then(addMine)
+      .catch((e: unknown) => sendFailed(e, "Your message didn't send. Try again."));
+    setReplyTo(null);
+    return true;
+  };
 
   /** Photo: upload to the gala's Drive folder, register it in the Dump, then post it in the chat. */
-  const onSendPhoto = async (file: File, caption: string) => {
+  const onSendPhoto = async (file: File, caption: string, mentions?: SendMentions) => {
     if (!roomId) return false;
     try {
       const driveFileId = await uploadToDrive(file, (f) => startPhotoUpload(roomId, f).then((r) => r.uploadUrl));
       const photo = await registerPhoto(roomId, driveFileId, caption.trim() || null);
       forceScroll.current = true;
-      addMine(await sendChat(roomId, caption.trim(), photo.id));
+      addMine(await sendChat(roomId, caption.trim(), { photoId: photo.id, ...extras(mentions) }));
+      setReplyTo(null);
       return true;
     } catch (e) {
       sendFailed(e, "Your photo didn't send. Try again.");
@@ -181,6 +206,36 @@ export function Chat({ code }: { code: string }) {
         void qc.invalidateQueries({ queryKey: key });
       });
   };
+
+  // Jumping to the message a reply quotes: older pages load until it shows up (or history ends).
+  const { hasNextPage, fetchNextPage } = q;
+  const onJumpTo = async (id: string) => {
+    const find = () => logRef.current?.querySelector<HTMLElement>(`[data-msg-id="${CSS.escape(id)}"]`);
+    let more = hasNextPage;
+    for (let page = 0; !find() && more && page < MAX_JUMP_PAGES; page++) {
+      more = (await fetchNextPage()).hasNextPage;
+      // Let React render the page that just arrived.
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    }
+    const el = find();
+    if (!el) {
+      toast("Couldn't find that message.", 'err');
+      return;
+    }
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.classList.add(s.flash);
+    window.setTimeout(() => el.classList.remove(s.flash), FLASH_MS);
+  };
+
+  // "Who reacted" follows the live message, so its tab counts update with reactions.
+  const [reactionsFor, setReactionsFor] = useState<string | null>(null);
+  const reactionsMsg = reactionsFor ? messages.find((m) => m.id === reactionsFor) : undefined;
+  const closeReactions = useCallback(() => setReactionsFor(null), []);
+
+  const mentionable = useMemo(
+    () => members.filter((m) => m.id && m.id !== myUserId).map((m) => ({ userId: m.id!, label: m.n, tone: m.c })),
+    [members, myUserId]
+  );
 
   const stops = summary?.itineraryStops ?? 0;
 
@@ -231,9 +286,32 @@ export function Chat({ code }: { code: string }) {
               firstUnreadId={divider?.count ? divider.firstUnreadId : null}
               unreadCount={divider?.count ?? 0}
               onReact={onReact}
+              onReply={setReplyTo}
+              onJumpTo={(id) => void onJumpTo(id)}
+              onShowReactions={(m) => setReactionsFor(m.id)}
             />
           </div>
-          <Composer onSend={onSend} onSendPhoto={onSendPhoto} canAddPhotos={canAddPhotos} inputRef={inputRef} />
+          <Composer
+            onSend={onSend}
+            onSendPhoto={onSendPhoto}
+            canAddPhotos={canAddPhotos}
+            inputRef={inputRef}
+            replyTo={replyTo}
+            replyName={replyTo ? (replyTo.senderUserId === myUserId ? 'yourself' : nameOf(replyTo.senderUserId)) : ''}
+            onCancelReply={() => setReplyTo(null)}
+            mentionable={mentionable}
+          />
+          {reactionsMsg && roomId && (
+            <ReactionsSheet
+              roomId={roomId}
+              message={reactionsMsg}
+              members={members}
+              nameOf={nameOf}
+              myUserId={myUserId ?? ''}
+              onReact={onReact}
+              onClose={closeReactions}
+            />
+          )}
         </div>
         <ChatSide stops={stops} />
       </div>

@@ -2,9 +2,12 @@ package com.gala.otw_server.chat.service;
 
 import com.gala.otw_server.chat.dto.ChatMessageDto;
 import com.gala.otw_server.chat.dto.ChatMessageDto.ChatPhotoDto;
+import com.gala.otw_server.chat.dto.ChatMessageDto.ReplyToDto;
+import com.gala.otw_server.chat.dto.ReactorDto;
 import com.gala.otw_server.chat.dto.SendMessageRequest;
 import com.gala.otw_server.chat.dto.UnreadDto;
 import com.gala.otw_server.chat.entity.*;
+import com.gala.otw_server.chat.repository.ChatMessageMentionRepository;
 import com.gala.otw_server.chat.repository.ChatMessageRepository;
 import com.gala.otw_server.chat.repository.ChatReactionRepository;
 import com.gala.otw_server.chat.repository.ChatReadMarkerRepository;
@@ -15,7 +18,12 @@ import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.photo.entity.Photo;
 import com.gala.otw_server.photo.repository.PhotoRepository;
 import com.gala.otw_server.ratelimit.RateLimiterService;
+import com.gala.otw_server.notification.dto.RoomNotificationEvent;
+import com.gala.otw_server.notification.entity.NotificationType;
 import com.gala.otw_server.realtime.RealtimeEventPublisher;
+import com.gala.otw_server.room.entity.RoomMember;
+import com.gala.otw_server.room.repository.RoomMemberRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +43,13 @@ public class ChatService {
     /** Spam guard on top of the global write limit: 20 messages per minute per member. */
     private static final int MAX_MESSAGES_PER_MINUTE = 20;
 
+    /** Most members one message can @mention (de-duplicated, without the sender). */
+    private static final int MAX_MENTIONS = 20;
+
+    /** @everyone notifies the whole gala, so it gets its own, tighter limit: 3 per 10 minutes. */
+    private static final int MAX_EVERYONE_PER_WINDOW = 3;
+    private static final Duration EVERYONE_WINDOW = Duration.ofMinutes(10);
+
     /** {@code ref_type} of a message that carries a Gala Dump photo. */
     public static final String REF_PHOTO = "PHOTO";
 
@@ -44,19 +59,28 @@ public class ChatService {
     private final RateLimiterService rateLimiter;
     private final RealtimeEventPublisher realtime;
     private final PhotoRepository photoRepo;
+    private final ChatMessageMentionRepository mentionRepo;
+    private final RoomMemberRepository memberRepo;
+    private final ApplicationEventPublisher events;
 
     public ChatService(ChatMessageRepository messageRepo,
                        ChatReactionRepository reactionRepo,
                        ChatReadMarkerRepository markerRepo,
                        RateLimiterService rateLimiter,
                        RealtimeEventPublisher realtime,
-                       PhotoRepository photoRepo) {
+                       PhotoRepository photoRepo,
+                       ChatMessageMentionRepository mentionRepo,
+                       RoomMemberRepository memberRepo,
+                       ApplicationEventPublisher events) {
         this.messageRepo = messageRepo;
         this.reactionRepo = reactionRepo;
         this.markerRepo = markerRepo;
         this.rateLimiter = rateLimiter;
         this.realtime = realtime;
         this.photoRepo = photoRepo;
+        this.mentionRepo = mentionRepo;
+        this.memberRepo = memberRepo;
+        this.events = events;
     }
 
     // ── List messages (newest first) ──────────────────────────────────────────
@@ -90,10 +114,26 @@ public class ChatService {
             }
         }
 
-        Map<UUID, ChatPhotoDto> photos = photosFor(roomId, page);
+        Map<UUID, ChatMessage> originals = originalsFor(roomId, page);
+        List<ChatMessage> withOriginals = new ArrayList<>(page);
+        withOriginals.addAll(originals.values());
+        Map<UUID, ChatPhotoDto> photos = photosFor(roomId, withOriginals);
+        Map<UUID, List<UUID>> mentions = new HashMap<>();
+        if (!ids.isEmpty()) {
+            for (ChatMessageMention mention : mentionRepo.findByIdMessageIdIn(ids)) {
+                mentions.computeIfAbsent(mention.getId().getMessageId(), k -> new ArrayList<>())
+                        .add(mention.getId().getUserId());
+            }
+        }
+
         List<ChatMessageDto> dtos = page.stream()
-                .map(m -> ChatMessageDto.from(m, photoOf(m, photos),
-                        counts.getOrDefault(m.getId(), Map.of()), mine.get(m.getId())))
+                .map(m -> {
+                    ChatMessage original = m.getReplyToMessageId() == null ? null : originals.get(m.getReplyToMessageId());
+                    ReplyToDto replyTo = original == null ? null : ReplyToDto.of(original, photoOf(original, photos) != null);
+                    return ChatMessageDto.from(m, photoOf(m, photos),
+                            counts.getOrDefault(m.getId(), Map.of()), mine.get(m.getId()),
+                            replyTo, mentions.getOrDefault(m.getId(), List.of()));
+                })
                 .toList();
 
         String nextCursor = (hasMore && !page.isEmpty()) ? page.get(page.size() - 1).getId().toString() : null;
@@ -113,6 +153,13 @@ public class ChatService {
             throw new InvalidRequestException("Message can't be empty");
         }
 
+        ChatMessage original = req.replyToMessageId() == null ? null : requireReplyTarget(roomId, req.replyToMessageId());
+        List<UUID> mentions = requireMentionable(roomId, callerId, req.mentionedUserIds());
+        boolean everyone = Boolean.TRUE.equals(req.mentionEveryone());
+        if (everyone) {
+            rateLimiter.checkRateLimit("ratelimit:chat:everyone:" + callerId, MAX_EVERYONE_PER_WINDOW, EVERYONE_WINDOW);
+        }
+
         ChatMessage m = new ChatMessage();
         m.setRoomId(roomId);
         m.setSenderUserId(callerId);
@@ -122,14 +169,82 @@ public class ChatService {
             m.setRefType(REF_PHOTO);
             m.setRefId(req.photoId());
         }
+        m.setReplyToMessageId(original == null ? null : original.getId());
+        m.setMentionsEveryone(everyone);
         ChatMessage saved = messageRepo.save(m);
+        if (!mentions.isEmpty()) {
+            mentionRepo.saveAll(mentions.stream()
+                    .map(u -> new ChatMessageMention(new ChatMessageMentionId(saved.getId(), u)))
+                    .toList());
+        }
 
         // Sending implies I've read everything up to my own message.
         upsertMarker(roomId, callerId, saved.getCreatedAt());
 
-        ChatMessageDto dto = ChatMessageDto.from(saved, photo, Map.of(), null);
+        ReplyToDto replyTo = original == null ? null : ReplyToDto.of(original, hasPhoto(roomId, original));
+        ChatMessageDto dto = ChatMessageDto.from(saved, photo, Map.of(), null, replyTo, mentions);
         publishAfterCommit(roomId, "chat.message.created", dto);
+        notifyMentionsAndReply(roomId, callerId, saved, original, mentions);
         return dto;
+    }
+
+    /** A reply must quote a TEXT message (photo messages included) of the same gala. */
+    private ChatMessage requireReplyTarget(UUID roomId, UUID messageId) {
+        return messageRepo.findByIdAndRoomId(messageId, roomId)
+                .filter(o -> o.getKind() == MessageKind.TEXT)
+                .orElseThrow(() -> new InvalidRequestException("Can't reply to that message"));
+    }
+
+    /** De-duplicated mentions without the sender; every one must be an active member of this gala. */
+    private List<UUID> requireMentionable(UUID roomId, UUID callerId, List<UUID> requested) {
+        if (requested == null || requested.isEmpty()) return List.of();
+        LinkedHashSet<UUID> ids = new LinkedHashSet<>(requested);
+        ids.remove(null);
+        ids.remove(callerId);
+        if (ids.size() > MAX_MENTIONS) {
+            throw new InvalidRequestException("You can mention at most " + MAX_MENTIONS + " members");
+        }
+        if (ids.isEmpty()) return List.of();
+        if (memberRepo.findByRoom_IdAndUserIdInAndLeftAtIsNull(roomId, ids).size() != ids.size()) {
+            throw new InvalidRequestException("You can only mention members of this gala");
+        }
+        return List.copyOf(ids);
+    }
+
+    private boolean hasPhoto(UUID roomId, ChatMessage m) {
+        return photoOf(m, photosFor(roomId, List.of(m))) != null;
+    }
+
+    /**
+     * One notification per person: @everyone covers the whole gala; otherwise each mentioned
+     * member gets a MENTION and the replied-to author a REPLY unless already mentioned.
+     * Delivered after commit by NotificationEventListener.
+     */
+    private void notifyMentionsAndReply(UUID roomId, UUID callerId, ChatMessage saved,
+                                        ChatMessage original, List<UUID> mentions) {
+        UUID replyAuthor = original == null ? null : original.getSenderUserId();
+        boolean notifyAuthor = replyAuthor != null && !replyAuthor.equals(callerId) && !mentions.contains(replyAuthor);
+        if (!saved.isMentionsEveryone() && mentions.isEmpty() && !notifyAuthor) return;
+
+        RoomMember sender = memberRepo.findByRoom_IdAndUserIdAndLeftAtIsNull(roomId, callerId).orElse(null);
+        if (sender == null) return;
+        String nick = sender.getNickname();
+        String body = sender.getRoom().getTitle() + ": "
+                + (saved.getBody().isEmpty() ? "sent a photo" : ChatMessageDto.snippetOf(saved.getBody()));
+
+        if (saved.isMentionsEveryone()) {
+            events.publishEvent(RoomNotificationEvent.toRoom(roomId, NotificationType.MENTION, callerId,
+                    nick + " mentioned everyone", body));
+            return;
+        }
+        for (UUID target : mentions) {
+            events.publishEvent(RoomNotificationEvent.toMember(roomId, NotificationType.MENTION, callerId, target,
+                    nick + " mentioned you", body));
+        }
+        if (notifyAuthor) {
+            events.publishEvent(RoomNotificationEvent.toMember(roomId, NotificationType.REPLY, callerId, replyAuthor,
+                    nick + " replied to you", body));
+        }
     }
 
     /**
@@ -141,6 +256,18 @@ public class ChatService {
                 .filter(x -> callerId.equals(x.getUploadedBy()) && "READY".equals(x.getStatus()))
                 .orElseThrow(InvalidPhotoReferenceException::new);
         return new ChatPhotoDto(p.getDriveFileId(), p.getMimeType());
+    }
+
+    /** The messages (by id) that the replies on this page quote, in one query. */
+    private Map<UUID, ChatMessage> originalsFor(UUID roomId, List<ChatMessage> page) {
+        Set<UUID> ids = new HashSet<>();
+        for (ChatMessage m : page) {
+            if (m.getReplyToMessageId() != null) ids.add(m.getReplyToMessageId());
+        }
+        Map<UUID, ChatMessage> out = new HashMap<>();
+        if (ids.isEmpty()) return out;
+        for (ChatMessage m : messageRepo.findByRoomIdAndIdIn(roomId, ids)) out.put(m.getId(), m);
+        return out;
     }
 
     /** Photos (by id) that the PHOTO messages on this page point at and that still exist. */
@@ -198,6 +325,32 @@ public class ChatService {
         event.put("heartCount", dto.heartCount());
         publishAfterCommit(roomId, "chat.reaction.changed", event);
         return dto;
+    }
+
+    /**
+     * Who reacted to a message, newest first, optionally one reaction only (a tab of the sheet).
+     * The cursor is the user id of the last reactor the client has.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ReactorDto> getReactors(UUID roomId, UUID messageId, ReactionType reaction,
+                                                UUID cursorUserId, int limit) {
+        messageRepo.findByIdAndRoomId(messageId, roomId).orElseThrow(ChatMessageNotFoundException::new);
+
+        OffsetDateTime cursorAt = com.gala.otw_server.common.CursorBounds.NEWEST;
+        UUID cursorId = null;
+        if (cursorUserId != null) {
+            ChatReaction c = reactionRepo.findById(new ChatReactionId(messageId, cursorUserId)).orElse(null);
+            if (c != null) {
+                cursorAt = c.getCreatedAt();
+                cursorId = cursorUserId;
+            }
+        }
+
+        List<ChatReaction> rows = reactionRepo.findPage(messageId, reaction, cursorAt, cursorId, PageRequest.of(0, limit + 1));
+        boolean hasMore = rows.size() > limit;
+        List<ReactorDto> items = rows.stream().limit(limit).map(ReactorDto::from).toList();
+        String nextCursor = (hasMore && !items.isEmpty()) ? items.get(items.size() - 1).userId().toString() : null;
+        return PageResponse.of(items, nextCursor, limit);
     }
 
     /** The original heart toggle: a heart on, or the caller's reaction (whatever it is) off. */

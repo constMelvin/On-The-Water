@@ -2,7 +2,8 @@ package com.gala.otw_server.notification.entity;
 
 /**
  * The seven reminder toggles on the Notifications screen, plus NUDGE (a direct
- * "G ka na ba?" from the Gala Leader, which is not optional).
+ * "G ka na ba?" from the Gala Leader), MENTION (@you or @everyone in the chat) and REPLY
+ * (someone replied to your chat message). Those last three are not optional.
  *
  * <p>{@code prefColumn}/{@code defaultOn} map each type to its
  * {@code notification_preferences} column and the default used when a user has no
@@ -16,7 +17,9 @@ public enum NotificationType {
     BUDGET_UPDATED("budget_updated", false),
     DAY_BEFORE("day_before", true),
     GALA_DAY("gala_day", true),
-    NUDGE(null, true);
+    NUDGE(null, true),
+    MENTION(null, true),
+    REPLY(null, true);
 
     private final String prefColumn;
     private final boolean defaultOn;

@@ -240,6 +240,49 @@ class RoomServiceTest {
         verify(memberRepo, never()).saveAndFlush(any());
     }
 
+    // ── Finished galas can't be previewed or joined ───────────────────────────
+    // The test clock says today is 2026-09-29 (Asia/Manila).
+
+    @Test
+    @DisplayName("previewRoom treats a gala that ended yesterday like an unknown code")
+    void previewRoom_finishedGala() {
+        Room room = activeRoom("ROOM1234");
+        room.setStartDate(LocalDate.of(2026, 9, 20));
+        room.setEndDate(LocalDate.of(2026, 9, 28));
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
+
+        assertThatThrownBy(() -> roomService.previewRoom("ROOM1234")).isInstanceOf(InvalidCodeException.class);
+        verifyNoInteractions(memberRepo);
+    }
+
+    @Test
+    @DisplayName("joinRoom refuses a finished gala as an invalid code, before the Gala Password is even checked")
+    void joinRoom_finishedGala() {
+        Room room = roomWithPassword();
+        room.setStartDate(LocalDate.of(2026, 9, 28));
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
+
+        // A wrong password: if the password were checked first this would be InvalidGalaPasswordException.
+        assertThatThrownBy(() -> roomService.joinRoom(callerId, true, new JoinRoomRequest("ROOM1234", "Carlos", "wrong")))
+                .isInstanceOf(InvalidCodeException.class);
+        verify(memberRepo, never()).saveAndFlush(any());
+    }
+
+    @Test
+    @DisplayName("joinRoom still accepts a gala whose last day is today")
+    void joinRoom_lastDayIsToday() {
+        Room room = roomWithPassword();
+        room.setStartDate(LocalDate.of(2026, 9, 27));
+        room.setEndDate(LocalDate.of(2026, 9, 29));
+        when(roomRepo.findByRoomCodeAndStatus("ROOM1234", "ACTIVE")).thenReturn(Optional.of(room));
+        when(memberRepo.findByRoom_IdAndUserId(roomId, callerId)).thenReturn(Optional.empty());
+        when(memberRepo.saveAndFlush(any(RoomMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        RoomMemberDto result = roomService.joinRoom(callerId, false, new JoinRoomRequest("ROOM1234", "Carlos", "baguio2026"));
+
+        assertThat(result.userId()).isEqualTo(callerId);
+    }
+
     @Test
     @DisplayName("joinRoom reactivates the old row when a member who left joins again")
     void joinRoom_rejoinAfterLeaving() {

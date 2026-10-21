@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +17,9 @@ import java.util.UUID;
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, UUID> {
 
     Optional<ChatMessage> findByIdAndRoomId(UUID id, UUID roomId);
+
+    /** The originals that one page of replies quote. */
+    List<ChatMessage> findByRoomIdAndIdIn(UUID roomId, Collection<UUID> ids);
 
     /** Newest first; the cursor is the oldest message the client already has. */
     @Query("""

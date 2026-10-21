@@ -37,6 +37,10 @@ export type GalaFeature =
 export const roomKey = (roomId: string | null) => ['room', roomId] as const;
 export const featureKey = (roomId: string | null, feature: GalaFeature) => ['room', roomId, feature] as const;
 
+/** A message's "who reacted" list. Sits under the chat key, so chat.* events refresh an open sheet. */
+export const reactorsKey = (roomId: string | null, messageId: string, reaction: string | null) =>
+  [...featureKey(roomId, 'chat'), 'reactors', messageId, reaction ?? 'ALL'] as const;
+
 /** Poll interval while realtime is down (or not configured). */
 export const POLL_MS = 15_000;
 

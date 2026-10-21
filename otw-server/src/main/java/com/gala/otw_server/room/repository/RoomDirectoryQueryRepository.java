@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The Join a Gala directory: every active (not archived) group gala. Couple galas are never
- * listed: they are joined only with a shared Gala Code + Gala Password. Upcoming and ongoing
- * ones first, soonest first; finished ones after. Joining still needs the Gala Password.
+ * The Join a Gala directory: every active (not archived) group gala that isn't finished yet,
+ * soonest first. Couple galas are never listed: they are joined only with a shared Gala Code +
+ * Gala Password. Finished galas (last day before {@code today}) are left out, matching
+ * {@code GalaClock.phaseOf} = DONE, and can't be joined by code either. Joining still needs the
+ * Gala Password.
  */
 @Repository
 public class RoomDirectoryQueryRepository {
@@ -28,7 +30,7 @@ public class RoomDirectoryQueryRepository {
     }
 
     public List<Row> find(UUID callerId, LocalDate today, String search, int offset, int limit) {
-        List<Object> args = new ArrayList<>(List.of(callerId));
+        List<Object> args = new ArrayList<>(List.of(callerId, today));
         StringBuilder sql = new StringBuilder("""
                 SELECT r.room_code, r.title, r.destination, r.start_date, r.end_date, r.room_type,
                        (SELECT h.nickname FROM room_members h
@@ -39,6 +41,7 @@ public class RoomDirectoryQueryRepository {
                 FROM rooms r
                 WHERE r.status = 'ACTIVE'
                   AND r.room_type <> 'COUPLE'
+                  AND (r.start_date IS NULL OR COALESCE(r.end_date, r.start_date) >= ?)
                 """);
         if (search != null && !search.isBlank()) {
             sql.append(" AND (r.title ILIKE ? ESCAPE '!' OR r.destination ILIKE ? ESCAPE '!')");
@@ -46,8 +49,7 @@ public class RoomDirectoryQueryRepository {
             args.add(like);
             args.add(like);
         }
-        sql.append(" ORDER BY (COALESCE(r.end_date, r.start_date) < ?) ASC, r.start_date ASC, r.id ASC OFFSET ? LIMIT ?");
-        args.add(today);
+        sql.append(" ORDER BY r.start_date ASC, r.id ASC OFFSET ? LIMIT ?");
         args.add(offset);
         args.add(limit);
 

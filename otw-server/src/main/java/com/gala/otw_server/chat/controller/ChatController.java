@@ -1,9 +1,11 @@
 package com.gala.otw_server.chat.controller;
 
 import com.gala.otw_server.chat.dto.ChatMessageDto;
+import com.gala.otw_server.chat.dto.ReactorDto;
 import com.gala.otw_server.chat.dto.SendMessageRequest;
 import com.gala.otw_server.chat.dto.SetReactionRequest;
 import com.gala.otw_server.chat.dto.UnreadDto;
+import com.gala.otw_server.chat.entity.ReactionType;
 import com.gala.otw_server.chat.service.ChatService;
 import com.gala.otw_server.common.PageResponse;
 import com.gala.otw_server.security.auth.CurrentUserProvider;
@@ -64,6 +66,19 @@ public class ChatController {
     @RequireRoomRole(RoomRole.MEMBER)
     public ChatMessageDto unreact(@PathVariable UUID roomId, @PathVariable UUID messageId) {
         return chatService.setReaction(roomId, messageId, currentUser.getUserId(), null);
+    }
+
+    // ── GET /rooms/{roomId}/chat/messages/{messageId}/reactions — who reacted ─
+
+    @GetMapping("/messages/{messageId}/reactions")
+    @RequireRoomRole(RoomRole.MEMBER)
+    public PageResponse<ReactorDto> getReactors(
+            @PathVariable UUID roomId,
+            @PathVariable UUID messageId,
+            @RequestParam(required = false) ReactionType reaction,
+            @RequestParam(required = false) UUID cursor,
+            @RequestParam(defaultValue = "50") int limit) {
+        return chatService.getReactors(roomId, messageId, reaction, cursor, Math.max(1, Math.min(limit, 100)));
     }
 
     // ── PUT / DELETE /rooms/{roomId}/chat/messages/{messageId}/heart (kept for older clients) ──────────

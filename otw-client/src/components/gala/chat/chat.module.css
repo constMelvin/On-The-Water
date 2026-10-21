@@ -157,6 +157,11 @@
   gap: 10px;
   align-items: flex-end;
   max-width: 82%;
+  position: relative;
+  /* Vertical drags scroll the chat natively; horizontal ones are ours (swipe to reply). */
+  touch-action: pan-y;
+  transition: transform 0.18s ease-out;
+  border-radius: 24px;
 }
 .msg.me {
   align-self: flex-end;
@@ -216,6 +221,118 @@
 .mgone {
   font-style: italic;
   opacity: 0.8;
+}
+
+/* ---- message actions: React + Reply beside the bubble (mouse hover / keyboard focus) ---- */
+.acts {
+  display: none;
+  align-self: center;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .msg:hover .acts,
+  .msg:focus-within .acts {
+    display: flex;
+  }
+}
+.act {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  opacity: 0.7;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.act:hover,
+.act:focus-visible {
+  opacity: 1;
+  background: var(--surface-2);
+}
+.act:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+/* Touch screens: holding a bubble opens its actions, so don't select its text or show the callout. */
+@media (hover: none) {
+  .mb {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+}
+/* The reply arrow that fades in behind a bubble while it's swiped. */
+.swipehint {
+  position: absolute;
+  top: 50%;
+  left: -28px;
+  transform: translateY(-50%);
+  color: var(--text);
+}
+.msg.me .swipehint {
+  left: auto;
+  right: -28px;
+}
+/* The message a reply quote jumped to. */
+.flash {
+  background: var(--surface-2);
+  box-shadow: 0 0 0 6px var(--surface-2);
+}
+
+/* ---- reply quote inside a bubble ---- */
+.quote {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  margin: 6px 0 4px;
+  padding: 6px 10px;
+  border: 0;
+  border-left: 4px solid var(--teal);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.msg.me .quote {
+  border-left-color: var(--zest);
+}
+.quote b {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.quote span {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.quote:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* ---- @mentions in a body ---- */
+.mention {
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mentionMe {
+  font-weight: 800;
+  background: var(--zest);
+  color: var(--teal-dark);
+  border-radius: 8px;
+  padding: 0 4px;
 }
 
 /* ---- reactions: the pill under a bubble + the picker it opens ---- */
@@ -299,6 +416,11 @@
 .pick.on {
   box-shadow: 0 0 0 3px var(--text);
 }
+.pickreply {
+  background: var(--surface-2);
+  color: var(--text);
+  margin-left: 4px;
+}
 /* Reaction tones: brand colors only. */
 .r-heart { background: var(--rosy); color: var(--cream); }
 .r-haha { background: var(--zest); color: var(--teal-dark); }
@@ -316,6 +438,213 @@
 /* ---- composer (+ the photo about to be sent) ---- */
 .composerwrap {
   padding: 8px var(--pad) 14px;
+  position: relative;
+}
+.replybar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 6px 8px 6px 12px;
+  background: var(--surface-2);
+  border-left: 4px solid var(--teal);
+  border-radius: 16px;
+}
+.replybar div {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.replybar b {
+  font-size: 13px;
+  font-weight: 800;
+}
+.replybar span {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- @ list above the composer ---- */
+.mentions {
+  position: absolute;
+  left: var(--pad);
+  right: var(--pad);
+  bottom: calc(100% - 4px);
+  max-width: 360px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--line);
+  z-index: 6;
+}
+.mentions li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+.mentions li.on,
+.mentions li:hover {
+  background: var(--surface-2);
+}
+.mentions b {
+  font-weight: 800;
+}
+.mentions i {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.mentionall {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--zest);
+  color: var(--teal-dark);
+}
+
+/* ---- who reacted (sheet) ---- */
+.reactors {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.reactors li,
+.reactorme {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 4px;
+}
+.reactors li > span:nth-child(2),
+.reactorme > span:nth-child(2) {
+  flex: 1;
+  display: grid;
+}
+.reactors b {
+  font-weight: 800;
+}
+.reactors i {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.reactorme {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.reactorme:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+.reactorsnote {
+  margin-top: 8px;
+  opacity: 0.7;
+}
+
+/* Messenger-style tab row in the sheet: plain tabs, the active one underlined. */
+.rtabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  border-bottom: 2px solid var(--line);
+}
+.rtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 10px 8px;
+  margin-bottom: -2px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.7;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rtab:hover {
+  opacity: 1;
+}
+.rtab.on {
+  opacity: 1;
+  font-weight: 800;
+  color: var(--teal-dark);
+  border-bottom-color: var(--teal);
+}
+.rtab:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: -3px;
+}
+.rmorewrap {
+  position: relative;
+}
+.rmore {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 7;
+  min-width: 180px;
+  margin: 4px 0 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface);
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--line);
+}
+.rmore button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.rmore button b {
+  margin-left: auto;
+  font-weight: 800;
+}
+.rmore button:hover,
+.rmore button.on {
+  background: var(--surface-2);
+}
+.rmore button:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: -3px;
 }
 .attach {
   display: flex;
@@ -352,7 +681,8 @@
   .picker {
     animation: none;
   }
-  .pick {
+  .pick,
+  .msg {
     transition: none;
   }
 }

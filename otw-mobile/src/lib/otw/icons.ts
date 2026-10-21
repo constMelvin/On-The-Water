@@ -83,6 +83,7 @@ export const IC = {
   angry: '<circle cx="12" cy="12" r="9"/><path d="M7.5 8.5l3 1.5M16.5 8.5l-3 1.5"/><circle cx="9.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><path d="M9 17q3-2 6 0"/>',
   like: '<path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3z"/><path d="M7 11l4-8a2.5 2.5 0 0 1 2.5 2.5V9h5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.3 20H7"/>',
   react: '<path d="M20.5 11.5a8.5 8.5 0 1 1-8-8.5"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><path d="M8.5 14.5q3 2.5 6 0"/><path d="M19 2v5M16.5 4.5h5"/>',
+  reply: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v5"/>',
   // Plan a Gala preset icons (inline in otw-client/src/app/plan/page.tsx on the web).
   coffee: '<path d="M4 8h12v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M16 9h2.5a2.5 2.5 0 0 1 0 5H16"/><path d="M7 3v2M11 3v2"/>',
   cap: '<path d="M3 9l9-4 9 4-9 4z"/><path d="M7 11v4c0 1 2.2 2 5 2s5-1 5-2v-4"/><path d="M21 9v5"/>',
