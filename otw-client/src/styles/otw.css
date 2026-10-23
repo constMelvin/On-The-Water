@@ -6,6 +6,18 @@
 @import './shell.css';
 @import './dashboard.css';
 
+/* Hide every scrollbar (page + inner scrollers); content still scrolls by wheel/touch/keys.
+   Unlayered + !important so it beats per-component `scrollbar-width: thin` rules. */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 @layer base {
   *,
   *::before,
